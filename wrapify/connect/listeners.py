@@ -130,7 +130,7 @@ class YarpAudioChunkListener(YarpImageListener):
 
 
 @Listeners.register("NativeObject")
-class YarpPropertiesListener(Listener):
+class YarpNativeObjectListener(Listener):
     def __init__(self):
         super().__init__()
         raise NotImplementedError

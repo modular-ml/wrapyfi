@@ -119,7 +119,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
 
 # TODO (fabawi): send as a bottle string using json.dumps
 @Publishers.register("NativeObject")
-class YarpPropertiesPublisher(Publisher):
+class YarpNativeObjectPublisher(Publisher):
     def __init__(self):
         super().__init__()
         raise NotImplementedError
