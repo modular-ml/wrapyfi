@@ -1,0 +1,4 @@
+sounddevice
+Pillow
+opencv-python
+numpy

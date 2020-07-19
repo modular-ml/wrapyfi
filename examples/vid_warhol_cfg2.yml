@@ -1,0 +1,6 @@
+Warholify:
+  capture_vid: "listen"
+  darken_bg: "listen"
+  color_bg_fg: "publish"
+  white_to_color: "listen"
+  combine_to_one: "listen"
