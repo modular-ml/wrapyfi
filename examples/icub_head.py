@@ -127,9 +127,10 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
     def updateModule(self):
         # print(self.getPeriod())
         external_cam, left_cam, right_cam = self.receive_images(**self.cam_props)
-        cv2.imshow("ExternCam", cv2.cvtColor(external_cam, cv2.COLOR_BGR2RGB))
-        cv2.imshow("LeftCam", cv2.cvtColor(left_cam, cv2.COLOR_BGR2RGB))
-        cv2.imshow("RightCam", cv2.cvtColor(right_cam, cv2.COLOR_BGR2RGB))
+        external_cam = cv2.cvtColor(external_cam, cv2.COLOR_BGR2RGB)
+        left_cam = cv2.cvtColor(left_cam, cv2.COLOR_BGR2RGB)
+        right_cam = cv2.cvtColor(right_cam, cv2.COLOR_BGR2RGB)
+        cv2.imshow("ICubCam", np.concatenate((left_cam, external_cam, right_cam), axis=1))
         k = cv2.waitKey(33)
         if k == 27:  # Esc key to exit
             exit(0)

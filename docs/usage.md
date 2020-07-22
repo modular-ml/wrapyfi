@@ -57,7 +57,10 @@ single returns e.g.:
 ```
 Each of the list's returns are encapsulated with its own publisher and listener, with the named arguments transmitted as 
 a single dictionary within the list. Notice that `encapsulated_a` returns a list of length 3, therefore, the first decorator contains 
-3 list configurations as well.
+3 list configurations as well. Note that by using a single `NativeObject` as a `<Data structure type>`, the same 
+can be achieved. However, the Yarp implementation of the `NativeObject` utilizes `BufferedPortBottle` and serializes the 
+object before transmission. The `NativeObject` may result in a greater overhead and should only be used when multiple nesting depths are 
+required or the objects within a list not within the [supported data structure types](#publishers-and-listeners).
 
 ## Configuration
 The `MiddlewareCommunicator`'s child class' functions modes can be independently set to:
