@@ -6,6 +6,8 @@ import numpy as np
 
 yarp.Network.init()
 
+from wrapify.utils import JsonEncoder as json
+
 class Listeners(object):
     registry = {}
 
@@ -131,15 +133,26 @@ class YarpAudioChunkListener(YarpImageListener):
 
 @Listeners.register("NativeObject")
 class YarpNativeObjectListener(Listener):
-    def __init__(self):
+    def __init__(self, name, in_port, carrier=""):
         super().__init__()
-        raise NotImplementedError
+        self.__name__ = name
+        print("waiting for in_port: ", in_port)
+        while not yarp.Network.exists(in_port):
+            yarp.Network.waitPort(in_port, quiet=True)
+        print("connected to in_port: ", in_port)
+        self._port = yarp.BufferedPortBottle()
+        rnd_id = str(np.random.randint(100000, size=1)[0])
+        self._port.open(in_port + ":in" + rnd_id)
+        self.__netconnect__ = yarp.Network.connect(in_port, in_port + ":in" + rnd_id, carrier)
 
-@Listeners.register("Matrix")
-class YarpMatrixListener(Listener):
-    def __init__(self):
-        super().__init__()
-        raise NotImplementedError
+    def listen(self):
+        obj = self._port.read(shouldWait=True)
+        if obj is not None:
+            iobj = obj.get(0).asString()
+            iobj = json.loads(iobj)
+        else:
+            iobj = None
+        return iobj
 
 @Listeners.register("Properties")
 class YarpPropertiesListener(Listener):

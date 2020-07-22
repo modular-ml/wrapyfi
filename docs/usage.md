@@ -97,6 +97,5 @@ The publishers and listeners of the same message type should have identical cons
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
-* **NativeObject**: Transmits a `json` string supporting all native python objects using `yarp.BufferedPortBottle`
-* **Matrix**: Transmits a `numpy` matrix of any size [*coming soon*]
+* **NativeObject**: Transmits a `json` string supporting all native python objects and `numpy` arrays using `yarp.BufferedPortBottle`
 * **Properties**: Transmits properties [*coming soon*]

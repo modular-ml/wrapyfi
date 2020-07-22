@@ -30,7 +30,7 @@ class ConfigManager(metaclass=SingletonOptimized):
             self.config = config
             print("loaded configuration", self.config)
         else:
-            self.config = None
+            self.config = []
 
     @staticmethod
     def __loadfile__(filename):

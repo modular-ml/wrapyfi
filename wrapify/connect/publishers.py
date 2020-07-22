@@ -3,6 +3,7 @@ import cv2
 
 yarp.Network.init()
 
+from wrapify.utils import JsonEncoder as json
 
 class Publishers(object):
     registry = {}
@@ -117,18 +118,35 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._port.write()
             self._dummy_port.write(self._dummy_sound)
 
-# TODO (fabawi): send as a bottle string using json.dumps
+
+
 @Publishers.register("NativeObject")
 class YarpNativeObjectPublisher(Publisher):
-    def __init__(self):
+    """
+        The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
+        and numpy arrays as input
+        """
+    def __init__(self, name, out_port, carrier=""):
+        """
+        Initializing the NativeObjectPublisher
+        :param name: Name of the publisher
+        :param out_port: The published port name preceded by "/"
+        :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
+        """
         super().__init__()
-        raise NotImplementedError
+        self.__name__ = name
 
-@Publishers.register("Matrix")
-class YarpMatrixPublisher(Publisher):
-    def __init__(self):
-        super().__init__()
-        raise NotImplementedError
+        self._port = yarp.BufferedPortBottle()
+        self._port.open(out_port)
+        self.__netconnect__ = yarp.Network.connect(out_port, out_port + ":out", carrier)
+
+    def publish(self, obj):
+        obj = json.dumps(obj)
+        oobj = self._port.prepare()
+        oobj.clear()
+        oobj.addString(obj)
+        # print(oobj.get(0).asString())
+        self._port.write()
 
 @Publishers.register("Properties")
 class YarpPropertiesPublisher(Publisher):
