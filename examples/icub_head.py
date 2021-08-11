@@ -48,7 +48,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                               "port_cam_right": "/icubSim/cam/right"}
         else:
             props.put("remote", "/icub/head")
-            self.cam_props = {"port_cam": "/icub/cam",
+            self.cam_props = {"port_cam": "/icub/cam/left",
                               "port_cam_left": "/icub/cam/left",
                               "port_cam_right": "/icub/cam/right"}
         self._curr_eyes = [0, 0, 0]
