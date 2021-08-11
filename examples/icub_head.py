@@ -145,16 +145,16 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self._curr_head[0] -= 1
             print("head pitch down")
         elif k == 83: # Right key
-            self._curr_head[2] += 1
+            self._curr_head[2] -= 1
             print("head yaw left")
         elif k == 81: # Left key
-            self._curr_head[2] -= 1
+            self._curr_head[2] += 1
             print("head yaw right")
         elif k == 97: # A key
-            self._curr_head[1] += 1
+            self._curr_head[1] -= 1
             print("head roll right")
         elif k == 100: # D key
-            self._curr_head[1] -= 1
+            self._curr_head[1] += 1
             print("head roll left")
         elif k == 119: # W key
             self._curr_eyes[0] += 1
@@ -163,10 +163,10 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self._curr_eyes[0] -= 1
             print("eye pitch down")
         elif k == 122:  # Z key
-            self._curr_eyes[1] += 1
+            self._curr_eyes[1] -= 1
             print("eye yaw left")
         elif k == 99:  # C key
-            self._curr_eyes[1] -= 1
+            self._curr_eyes[1] += 1
             print("eye yaw right")
         elif k == 114: # R key: reset the pose
             self._curr_eyes = [0,0,0]
