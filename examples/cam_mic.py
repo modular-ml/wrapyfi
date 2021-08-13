@@ -35,7 +35,7 @@ Run:
 
 class CamMic(MiddlewareCommunicator):
     def __init__(self, *args, stream=("audio", "video"), aud_source=0,
-                 aud_rate=44100, aud_chunk=10000, aud_channels=1, img_source="0",
+                 aud_rate=44100, aud_chunk=10000, aud_channels=1, img_source=0,
                  img_width=320, img_height=240, **kwargs):
         super(MiddlewareCommunicator, self).__init__()
         self.aud_source = aud_source
@@ -63,9 +63,14 @@ class CamMic(MiddlewareCommunicator):
         if self.vid_cap.isOpened():
             # capture the video stream from the webcam
             grabbed, img = self.vid_cap.read()
+            
             if not grabbed:
+                print("video not grabbed")
                 img = np.random.random((img_width, img_height, 3)) * 255
+            else:
+                print("video grabbed")
         else:
+            print("video capturer not opened")
             img = np.random.random((img_width, img_height, 3)) * 255
         return img,
 
@@ -100,7 +105,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
     parser.add_argument("--stream", nargs="+", default=["video", "audio"], choices={"video", "audio"}, help="The streamed sensor data")
-    parser.add_argument("--img-source", type=str, default="0", help="The video capture device id (string camera id)")
+    parser.add_argument("--img-source", type=int, default=0, help="The video capture device id (int camera id)")
     parser.add_argument("--img-width", type=int, default=320, help="The image width")
     parser.add_argument("--img-height", type=int, default=240, help="The image height")
     parser.add_argument("--aud-source", type=int, default=44100, help="The audio capture device id (int micrphone id)")
