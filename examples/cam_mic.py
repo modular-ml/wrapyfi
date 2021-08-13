@@ -17,30 +17,33 @@ Here we demonstrate
 Run:
     # Alternative 1
     # On machine 1 (or process 1): The audio stream publishing
-    python3 cam_mic.py --mode publish --stream audio
+    python3 cam_mic.py --mode publish --stream audio --img-source="/dev/video0" --aud-source 0
     # On machine 2 (or process 2): The video stream publishing
-    python3 cam_mic.py --mode publish --stream video
+    python3 cam_mic.py --mode publish --stream video --img-source="/dev/video0" --aud-source 0
     # On machine 3 (or process 3): The audio stream listening
     python3 cam_mic.py --mode listen --stream audio
-    # On machine 4 (or process 4): The video stream publishing
+    # On machine 4 (or process 4): The video stream listening
     python3 cam_mic.py --mode listen --stream video
     
     # Alternative 2 (concurrent audio and video publishing)
     # On machine 1 (or process 1): The audio/video stream publishing
-    python3 cam_mic.py --mode publish --stream audio video
+    python3 cam_mic.py --mode publish --stream audio video --img-source="/dev/video0" --aud-source 0
     # On machine 2 (or process 2): The audio/video stream listening
-    python3 cam_mic.py --mode listen --stream video video
+    python3 cam_mic.py --mode listen --stream audio video
 """
 
 
 class CamMic(MiddlewareCommunicator):
-    def __init__(self, *args, stream=("audio", "video"),
-                 aud_rate=44100, aud_chunk=10000, aud_channels=1,
+    def __init__(self, *args, stream=("audio", "video"), aud_source=0,
+                 aud_rate=44100, aud_chunk=10000, aud_channels=1, img_source="0",
                  img_width=320, img_height=240, **kwargs):
         super(MiddlewareCommunicator, self).__init__()
+        self.aud_source = aud_source
         self.aud_rate = aud_rate
         self.aud_chunk = aud_chunk
         self.aud_channels = aud_channels
+        
+        self.img_source = img_source
         self.img_width = img_width
         self.img_height = img_height
 
@@ -49,7 +52,7 @@ class CamMic(MiddlewareCommunicator):
         else:
             self.enable_audio = False
         if "video" in stream:
-            self.vid_cap = cv2.VideoCapture(0)
+            self.vid_cap = cv2.VideoCapture(img_source)
             self.enable_video = True
         else:
             self.enable_video = False
@@ -75,7 +78,7 @@ class CamMic(MiddlewareCommunicator):
     def capture_cam_mic(self):
         if self.enable_audio:
             # capture the audio stream from the microphone
-            with sd.InputStream(device=0, channels=self.aud_channels, callback=self.__mic_callback__,
+            with sd.InputStream(device=self.aud_source, channels=self.aud_channels, callback=self.__mic_callback__,
                             blocksize=self.aud_chunk,
                             samplerate=self.aud_rate):
                 while True:
@@ -97,8 +100,10 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
     parser.add_argument("--stream", nargs="+", default=["video", "audio"], choices={"video", "audio"}, help="The streamed sensor data")
+    parser.add_argument("--img-source", type=str, default="0", help="The video capture device id (string camera id)")
     parser.add_argument("--img-width", type=int, default=320, help="The image width")
     parser.add_argument("--img-height", type=int, default=240, help="The image height")
+    parser.add_argument("--aud-source", type=int, default=44100, help="The audio capture device id (int micrphone id)")
     parser.add_argument("--aud-rate", type=int, default=44100, help="The audio sampling rate")
     parser.add_argument("--aud-channels", type=int, default=1, help="The audio channels")
     parser.add_argument("--aud-chunk", type=int, default=10000, help="The transmitted audio chunk size")
@@ -118,11 +123,11 @@ if __name__ == "__main__":
         cam_mic.activate_communication("collect_mic", mode="listen")
         while True:
             if "audio" in args.stream:
-                aud, = cam_mic.collect_mic(aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)
+                aud, = cam_mic.collect_mic(aud_source=args.aud_source, aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)
             else:
                 aud = None
             if "video" in args.stream:
-                img, = cam_mic.collect_cam(img_width=args.img_width, img_height=args.img_height)
+                img, = cam_mic.collect_cam(img_source=args.img_source, img_width=args.img_width, img_height=args.img_height)
             else:
                 img = None
             if img is not None:
