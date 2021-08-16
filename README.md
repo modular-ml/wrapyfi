@@ -32,7 +32,7 @@ For examples on usage, refer to the [usage documentation](docs/usage.md). Run sc
 
 # TODO
 Visit the issues section for more details 
-* **Support ROS**
-* **Support encapsulating wrapped calls to publishers and listeners**
-* **Support wrapping for module functions**
-* **Support multiple class instances for functions set to publish**
+* [ ] **Support ROS**
+* [ ] **Support encapsulating wrapped calls to publishers and listeners**
+* [ ] **Support wrapping for module functions**
+* [ ] **Support multiple class instances for functions set to publish**
