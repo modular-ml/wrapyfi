@@ -18,7 +18,7 @@ Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message. (First message is ignored)
     python3 object_notify.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 object_notify.py --mode publish
+    python3 object_notify.py --mode listen
 
 """
 
