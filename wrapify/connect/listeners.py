@@ -1,12 +1,16 @@
 import time
 
-import yarp
 import cv2
 import numpy as np
 
-yarp.Network.init()
-
 from wrapify.utils import JsonEncoder as json
+
+try:
+    import yarp
+    yarp.Network.init()
+except:
+    print("Install YARP to use wrapify")
+
 
 class Listeners(object):
     registry = {}
