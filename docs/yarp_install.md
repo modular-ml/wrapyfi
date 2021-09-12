@@ -61,3 +61,20 @@ Install from the source by following the [official installation documentation](h
     You can also manually control the joints by using the YARP's built-in motor controller GUI 
 
     ```yarpmotorgui```
+
+# Running YARP on multiple machines
+1. Run the yarp server on the host machine:
+    
+    ```yarpserver --ip <YOUR NETWORK IP> --socket 10000```
+    
+2. Detect the yarp server on the client machine(s):
+    ```yarp conf <YOUR NETWORK IP> 10000
+       # alternatively
+       # yarp detect --write
+    ```
+    
+    **NOTE**: if YARP was installed in in `usr/local` then the configuration written with the YARP tools needs to be copied to the shared directory for finding the configuration:
+    
+    ```HOMEDIR=$(eval echo ~$HOME)
+       sudo cp $HOMEDIR/.config/yarp.conf /usr/local/share/yarp/config/
+    ```
