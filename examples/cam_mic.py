@@ -17,9 +17,9 @@ Here we demonstrate
 Run:
     # Alternative 1
     # On machine 1 (or process 1): The audio stream publishing
-    python3 cam_mic.py --mode publish --stream audio --img-source="/dev/video0" --aud-source 0
+    python3 cam_mic.py --mode publish --stream audio --img-source 0 --aud-source 0
     # On machine 2 (or process 2): The video stream publishing
-    python3 cam_mic.py --mode publish --stream video --img-source="/dev/video0" --aud-source 0
+    python3 cam_mic.py --mode publish --stream video --img-source 0 --aud-source 0
     # On machine 3 (or process 3): The audio stream listening
     python3 cam_mic.py --mode listen --stream audio
     # On machine 4 (or process 4): The video stream listening
@@ -27,7 +27,7 @@ Run:
     
     # Alternative 2 (concurrent audio and video publishing)
     # On machine 1 (or process 1): The audio/video stream publishing
-    python3 cam_mic.py --mode publish --stream audio video --img-source="/dev/video0" --aud-source 0
+    python3 cam_mic.py --mode publish --stream audio video --img-source 0 --aud-source 0
     # On machine 2 (or process 2): The audio/video stream listening
     python3 cam_mic.py --mode listen --stream audio video
 """
