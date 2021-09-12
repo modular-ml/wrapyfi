@@ -13,10 +13,15 @@ Set the environment variable ```YARP_ROOT``` to the YARP source location:
 Once YARP has been successfully installed, we proceed by installing the python bindings
 1. Go to the YARP directory ```cd $YARP_ROOT/bindings```
 2. Create a build directory ```mkdir build```
-3. Compile the Python bindings (Assuming Python3.8 is installed):
+3. Compile the Python bindings (Assuming Python3.9 is installed):
     ```
    cmake -DYARP_COMPILE_BINDINGS:BOOL=ON -DCREATE_PYTHON:BOOL=ON -DYARP_USE_PYTHON_VERSION=3.8 -DPYTHON_INCLUDE_DIR=/usr/include/python3.8 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.8.so -DCMAKE_INSTALL_PYTHONDIR=lib/python3.8/dist-packages -DPYTHON_EXECUTABLE=/usr/bin/python3.8 ..
    ``` 
+   **NOTE**: Specify the following env. vars if Python3 libraries cannot be found (make sure that the locations exist):
+   ```
+   export PYTHON_INCLUDE_DIR=/usr/include/python3.8
+   export PYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.8.so
+   ```
 4. Install the Python bindings
     ```
    make
