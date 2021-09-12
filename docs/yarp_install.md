@@ -74,9 +74,3 @@ Install from the source by following the [official installation documentation](h
     # alternatively
     # yarp detect --write
     ```
-    **NOTE**: if YARP was installed in in `usr/local` then the configuration written with the YARP tools needs to be copied to the shared directory for finding the configuration:
-    
-    ```
-    HOMEDIR=$(eval echo ~$HOME)
-    sudo cp $HOMEDIR/.config/yarp.conf /usr/local/share/yarp/config/
-    ```
