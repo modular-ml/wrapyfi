@@ -68,12 +68,12 @@ Install from the source by following the [official installation documentation](h
     ```yarpserver --ip <YOUR NETWORK IP> --socket 10000```
     
 2. Detect the yarp server on the client machine(s):
+    
     ```
     yarp conf <YOUR NETWORK IP> 10000
     # alternatively
     # yarp detect --write
     ```
-    
     **NOTE**: if YARP was installed in in `usr/local` then the configuration written with the YARP tools needs to be copied to the shared directory for finding the configuration:
     
     ```
