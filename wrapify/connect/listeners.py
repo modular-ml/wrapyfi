@@ -4,12 +4,27 @@ import cv2
 import numpy as np
 
 from wrapify.utils import JsonEncoder as json
+from wrapify.utils import SingletonOptimized
 
 try:
     import yarp
     yarp.Network.init()
 except:
     print("Install YARP to use wrapify")
+
+class ListenerWatchDog(metaclass=SingletonOptimized):
+    def __init__(self):
+        self.listener_ring = []
+
+    def add_listener(self, listener, listener_kwargs):
+        self.listener_ring.append((listener, listener_kwargs))
+
+    def scan(self):
+        while self.listener_ring:
+            for listener in self.listener_ring:
+                found_listener = listener[0].establish(**listener[1])
+                if found_listener:
+                    self.listener_ring.remove(listener)
 
 
 class Listeners(object):
@@ -26,6 +41,9 @@ class Listeners(object):
 class Listener(object):
     def __init__(self):
         pass
+
+    def establish(self):
+        raise NotImplementedError
 
     def listen(self):
         raise NotImplementedError

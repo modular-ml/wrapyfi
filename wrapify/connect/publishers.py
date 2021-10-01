@@ -123,7 +123,6 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._dummy_port.write(self._dummy_sound)
 
 
-
 @Publishers.register("NativeObject")
 class YarpNativeObjectPublisher(Publisher):
     """
@@ -151,6 +150,7 @@ class YarpNativeObjectPublisher(Publisher):
         oobj.addString(obj)
         # print(oobj.get(0).asString())
         self._port.write()
+
 
 @Publishers.register("Properties")
 class YarpPropertiesPublisher(Publisher):
