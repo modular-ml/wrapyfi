@@ -1,6 +1,7 @@
 import cv2
 
 from wrapify.utils import JsonEncoder as json
+from wrapify.utils import SingletonOptimized
 
 try:
     import yarp
@@ -20,11 +21,34 @@ class Publishers(object):
         return decorator
 
 
+# TODO (fabawi): The watch dog is not running yet. Relying on lazy publishing for now
+class PublisherWatchDog(metaclass=SingletonOptimized):
+    def __init__(self):
+        self.publisher_ring = []
+
+    def add_publisher(self, publisher):
+        self.publisher_ring.append(publisher)
+
+    def scan(self):
+        while self.publisher_ring:
+            for publisher in self.publisher_ring:
+                found_listener = publisher.establish()
+                if found_listener:
+                    self.publisher_ring.remove(publisher)
+
+
 # TODO (fabawi): Support multiple instance publishing of the same class,
 #  currently only an issue with the output port naming convention
 class Publisher(object):
-    def __init__(self):
-        pass
+    def __init__(self, name, out_port, carrier="", **kwargs):
+        self.__name__ = name
+        self.out_port = out_port
+        self.carrier = carrier
+
+        self.established = False
+
+    def establish(self, **kwargs):
+        raise NotImplementedError
 
     def publish(self, obj):
         raise NotImplementedError
@@ -45,18 +69,25 @@ class YarpImagePublisher(Publisher):
         :param height: Image height
         :param rgb: Transmits an RGB unsigned int image when "True". Transmits a float when "False"
         """
-        super().__init__()
-        self.__name__ = name
+        super().__init__(name, out_port, carrier=carrier)
         self.width = width
         self.height = height
-        if rgb:
+        self.rgb = rgb
+
+        self._port, self.__netconnect__ = [None] * 2
+        PublisherWatchDog().add_publisher(self)
+
+    def establish(self):
+        if self.rgb:
             self._port = yarp.BufferedPortImageRgb()
-            self._port.open(out_port)
-            self.__netconnect__ = yarp.Network.connect(out_port, out_port + ":out", carrier)
+            self._port.open(self.out_port)
+            self.__netconnect__ = yarp.Network.connect(self.out_port, self.out_port + ":out", self.carrier)
         else:
             self._port = yarp.BufferedPortImageFloat()
-            self._port.open(out_port)
-            self.__netconnect__ = yarp.Network.connect(out_port, out_port + ":out", carrier)
+            self._port.open(self.out_port)
+            self.__netconnect__ = yarp.Network.connect(self.out_port, self.out_port + ":out", self.carrier)
+
+        self.established = True
 
     def publish(self, img):
         """
@@ -64,6 +95,8 @@ class YarpImagePublisher(Publisher):
         :param img: The cv2 image (img_width, img_height, channels)
         :return: None
         """
+        if not self.established:
+            self.establish()
         img = cv2.resize(img, dsize=(self.width, self.height), interpolation=cv2.INTER_CUBIC)
         oimg = self._port.prepare()
         oimg.setExternal(img.data, img.shape[1], img.shape[0])
@@ -101,13 +134,19 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         self.rate = rate
         self.chunk = chunk
 
+        self._dummy_sound, self._dummy_port, self.__dummy_netconnect__ = [None] * 3
+        PublisherWatchDog().add_publisher(self)
+
+    def establish(self):
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
         self._dummy_port = yarp.Port()
-        self._dummy_port.open(out_port + "_SND")
-        self.__dummy_netconnect__ = yarp.Network.connect(out_port + "_SND", out_port + "_SND:out", carrier)
+        self._dummy_port.open(self.out_port + "_SND")
+        self.__dummy_netconnect__ = yarp.Network.connect(self.out_port + "_SND", self.out_port + "_SND:out", self.carrier)
         self._dummy_sound = yarp.Sound()
         self._dummy_sound.setFrequency(self.rate)
         self._dummy_sound.resize(self.chunk, self.channels)
+
+        super(YarpAudioChunkPublisher, self).establish()
 
     def publish(self, aud):
         """
@@ -115,6 +154,8 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :param aud: The np audio signal ((audio_chunk, channels), samplerate)
         :return: None
         """
+        if not self.established:
+            self.establish()
         aud, _ = aud
         if aud is not None:
             oaud = self._port.prepare()
@@ -136,14 +177,21 @@ class YarpNativeObjectPublisher(Publisher):
         :param out_port: The published port name preceded by "/"
         :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
         """
-        super().__init__()
-        self.__name__ = name
+        super().__init__(name, out_port, carrier=carrier)
 
+        self._port, self.__netconnect__ = [None] * 2
+        PublisherWatchDog().add_publisher(self)
+
+    def establish(self):
         self._port = yarp.BufferedPortBottle()
-        self._port.open(out_port)
-        self.__netconnect__ = yarp.Network.connect(out_port, out_port + ":out", carrier)
+        self._port.open(self.out_port)
+        self.__netconnect__ = yarp.Network.connect(self.out_port, self.out_port + ":out", self.carrier)
+
+        self.established = True
 
     def publish(self, obj):
+        if not self.established:
+            self.establish()
         obj = json.dumps(obj)
         oobj = self._port.prepare()
         oobj.clear()
@@ -154,7 +202,7 @@ class YarpNativeObjectPublisher(Publisher):
 
 @Publishers.register("Properties")
 class YarpPropertiesPublisher(Publisher):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name, in_port, **kwargs):
+        super().__init__(name, in_port, **kwargs)
         raise NotImplementedError
 
