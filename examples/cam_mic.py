@@ -17,9 +17,9 @@ Here we demonstrate
 Run:
     # Alternative 1
     # On machine 1 (or process 1): The audio stream publishing
-    python3 cam_mic.py --mode publish --stream audio --img-source 0 --aud-source 0
+    python3 cam_mic.py --mode publish --stream audio --aud-source 0
     # On machine 2 (or process 2): The video stream publishing
-    python3 cam_mic.py --mode publish --stream video --img-source 0 --aud-source 0
+    python3 cam_mic.py --mode publish --stream video --img-source 0
     # On machine 3 (or process 3): The audio stream listening
     python3 cam_mic.py --mode listen --stream audio
     # On machine 4 (or process 4): The video stream listening
@@ -108,7 +108,7 @@ def parse_args():
     parser.add_argument("--img-source", type=int, default=0, help="The video capture device id (int camera id)")
     parser.add_argument("--img-width", type=int, default=320, help="The image width")
     parser.add_argument("--img-height", type=int, default=240, help="The image height")
-    parser.add_argument("--aud-source", type=int, default=44100, help="The audio capture device id (int micrphone id)")
+    parser.add_argument("--aud-source", type=int, default=0, help="The audio capture device id (int micrphone id)")
     parser.add_argument("--aud-rate", type=int, default=44100, help="The audio sampling rate")
     parser.add_argument("--aud-channels", type=int, default=1, help="The audio channels")
     parser.add_argument("--aud-chunk", type=int, default=10000, help="The transmitted audio chunk size")
