@@ -1,3 +1,6 @@
+import json
+import threading
+lock = threading.Lock()
 
 def get_default_args(fnc):
     import inspect
@@ -30,10 +33,17 @@ def match_args(args, kwargs, src_args, src_kwargs):
     return tuple(new_args), new_kwargs
 
 
+class SingletonOptimized(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            with lock:
+                if cls not in cls._instances:
+                    cls._instances[cls] = super(SingletonOptimized, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
 # code adapted from: https://stackoverflow.com/a/27948073
-import json
-
-
 class JsonEncoder(json.JSONEncoder):
     def __init__(self, *args, **kwargs):
         super(JsonEncoder, self).__init__(*args, **kwargs)
