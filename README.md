@@ -56,6 +56,7 @@ hello_world = HelloWorld()
 
 
 
+    
 
 while True:
     my_message, = hello_world.send_message()
@@ -85,7 +86,8 @@ class HelloWorld(MiddlewareCommunicator):
 hello_world = HelloWorld()
 
 LISTEN = True
-hello_world.activate_communication("send_message", mode="listen"if LISTEN else "publish")
+mode = "listen" if LISTEN else "publish"
+hello_world.activate_communication("send_message", mode=mode)
 
 while True:
     my_message, = hello_world.send_message()
