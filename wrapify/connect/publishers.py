@@ -59,7 +59,7 @@ class YarpImagePublisher(Publisher):
     """
     The ImagePublisher using the BufferedPortImage construct assuming a cv2 image as an input
     """
-    def __init__(self, name, out_port, carrier="", width=320, height=240, rgb=True):
+    def __init__(self, name, out_port, carrier="", width=320, height=240, rgb=True, **kwargs):
         """
         Initializing the ImagePublisher
         :param name: Name of the publisher
@@ -119,7 +119,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
     Using the ImagePublisher to carry the sound signal. There are better alternatives (Sound) but
     don't seem to work with the python bindings at the moment
     """
-    def __init__(self, name, out_port, carrier="", channels=1, rate=44100, chunk=-1):
+    def __init__(self, name, out_port, carrier="", channels=1, rate=44100, chunk=-1, **kwargs):
         """
         Initializing the AudioPublisher
         :param name: Name of the publisher
@@ -170,7 +170,7 @@ class YarpNativeObjectPublisher(Publisher):
         The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
         and numpy arrays as input
         """
-    def __init__(self, name, out_port, carrier=""):
+    def __init__(self, name, out_port, carrier="", **kwargs):
         """
         Initializing the NativeObjectPublisher
         :param name: Name of the publisher
