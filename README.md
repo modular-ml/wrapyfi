@@ -28,7 +28,29 @@ python3 setup.py install
 
 # Usage
 
-For examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapify in action. 
+```python
+from wrapify.connect.wrapper import MiddlewareCommunicator
+
+
+class HelloWorld(MiddlewareCommunicator):
+    @MiddlewareCommunicator.register("NativeObject", "HelloWorld", "/hello/my_message", carrier="", should_wait=True)
+    def send_message(self):
+        msg = input("Type your message: ")
+        obj = {"message": msg}
+        return obj,
+
+
+hello_world = HelloWorld()
+
+LISTEN = True
+hello_world.activate_communication("send_message", mode="listen"if LISTEN else "publish")
+
+while True:
+    my_message, = hello_world.send_message()
+    print(my_message["message"])
+```
+
+For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapify in action. 
 
 # TODO
 Visit the issues section for more details 
