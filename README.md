@@ -28,12 +28,54 @@ python3 setup.py install
 
 # Usage
 
+<table>
+<tr>
+<th> Without Wrapify </th>
+<th> With Wrapify </th>
+</tr>
+<tr>
+<td>
+<sub>
+
+```python
+# Just your usual python class
+
+
+class HelloWorld(object):
+    
+    
+    
+    
+    def send_message(self):
+        msg = input("Type your message: ")
+        obj = {"message": msg}
+        return obj,
+
+
+hello_world = HelloWorld()
+
+
+
+
+while True:
+    my_message, = hello_world.send_message()
+    print(my_message["message"])
+```
+    
+</sub>
+</td>
+<td>
+<sub>
+
 ```python
 from wrapify.connect.wrapper import MiddlewareCommunicator
 
 
 class HelloWorld(MiddlewareCommunicator):
-    @MiddlewareCommunicator.register("NativeObject", "HelloWorld", "/hello/my_message", carrier="", should_wait=True)
+    @MiddlewareCommunicator.register("NativeObject", 
+                                     "HelloWorld", 
+                                     "/hello/my_message", 
+                                     carrier="", should_wait=True)
     def send_message(self):
         msg = input("Type your message: ")
         obj = {"message": msg}
@@ -49,6 +91,13 @@ while True:
     my_message, = hello_world.send_message()
     print(my_message["message"])
 ```
+    
+</sub>
+</td>
+</tr>
+</table>
+
+Run `yarpserver` from the command line. Now execute the python script above (with wrapify) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listiner's
 
 For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapify in action. 
 
