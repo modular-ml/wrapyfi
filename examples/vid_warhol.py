@@ -103,7 +103,7 @@ class Warholify(MiddlewareCommunicator):
         else:
             return img
 
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/darken_bg",
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/darken_bg",
                                      carrier="tcp", width="$img_width", height="$img_height", rgb=True)
     def darken_bg(self, img, color, img_width, img_height):
         img = self.cv2_to_pil(img)
@@ -113,7 +113,7 @@ class Warholify(MiddlewareCommunicator):
         masked_img = self.pil_to_cv2(masked_img)
         return masked_img,
 
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/color_bg_fg",
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/color_bg_fg",
                                      carrier="tcp", width="$img_width", height="$img_height", rgb=True)
     def color_bg_fg(self, img, bg_color, fg_color, img_width, img_height):
         img = self.cv2_to_pil(img)
@@ -124,7 +124,7 @@ class Warholify(MiddlewareCommunicator):
         masked_img = self.pil_to_cv2(masked_img)
         return masked_img,
 
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/white_to_color",
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/white_to_color",
                                      carrier="tcp", width="$img_width", height="$img_height", rgb=True)
     def white_to_color(self, img, color, img_width, img_height):
         img = self.cv2_to_pil(img).convert('RGBA')
@@ -159,7 +159,7 @@ class Warholify(MiddlewareCommunicator):
         out = Image.composite(bg_fg_layer, skin_layer, skin_mask)
         return out
 
-    @MiddlewareCommunicator.register(*[["Image", "Warholify", "/vid_warhol/warhol_" + str(x), {"carrier": "tcp", "width": "$img_width", "height": "$img_height"}] for x in range(9)])
+    @MiddlewareCommunicator.register(*[["Image", "yarp", "Warholify", "/vid_warhol/warhol_" + str(x), {"carrier": "tcp", "width": "$img_width", "height": "$img_height"}] for x in range(9)])
     @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/warhol_combined", carrier="tcp", width = "$img_width", height = "$img_height")
     def combine_to_one(self, warhols, img_width, img_height):
         warhols_new = []
@@ -198,7 +198,7 @@ class Warholify(MiddlewareCommunicator):
 
         return blank_img
 
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/feed", carrier="tcp", width="$img_width",
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/feed", carrier="tcp", width="$img_width",
                                      height="$img_height")
     def capture_vid(self, img_width, img_height):
         if self.vid_cap is None:
@@ -219,7 +219,7 @@ class Warholify(MiddlewareCommunicator):
             return img
 
 
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/final_img",
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/final_img",
                                      carrier="tcp", width="$img_width", height="$img_height", rgb=True)
     def display(self, img, img_width, img_height):
         cv2.imshow("Warhol", img)

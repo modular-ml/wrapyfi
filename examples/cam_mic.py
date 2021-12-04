@@ -57,7 +57,7 @@ class CamMic(MiddlewareCommunicator):
         else:
             self.enable_video = False
 
-    @MiddlewareCommunicator.register("Image", "CamMic", "/cam_mic/cam_feed",
+    @MiddlewareCommunicator.register("Image", "yarp", "CamMic", "/cam_mic/cam_feed",
                                      carrier="", width="$img_width", height="$img_height", rgb=True)
     def collect_cam(self, img_width=320, img_height=240):
         if self.vid_cap.isOpened():
@@ -74,7 +74,7 @@ class CamMic(MiddlewareCommunicator):
             img = np.random.random((img_width, img_height, 3)) * 255
         return img,
 
-    @MiddlewareCommunicator.register("AudioChunk", "CamMic", "/cam_mic/audio_feed",
+    @MiddlewareCommunicator.register("AudioChunk", "yarp", "CamMic", "/cam_mic/audio_feed",
                                      carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels")
     def collect_mic(self, aud=None, aud_rate=44100, aud_chunk=int(44100/5), aud_channels=1):
         aud = aud, aud_rate

@@ -16,7 +16,7 @@ class Publishers(object):
     @classmethod
     def register(cls, *args):
         def decorator(fn):
-            cls.registry[args[0]] = fn
+            cls.registry[args[0]+":"+args[1]] = fn
             return fn
         return decorator
 
@@ -54,7 +54,7 @@ class Publisher(object):
         raise NotImplementedError
 
 
-@Publishers.register("Image")
+@Publishers.register("Image", "yarp")
 class YarpImagePublisher(Publisher):
     """
     The ImagePublisher using the BufferedPortImage construct assuming a cv2 image as an input
@@ -113,7 +113,7 @@ class YarpImagePublisher(Publisher):
         self.close()
 
 
-@Publishers.register("AudioChunk")
+@Publishers.register("AudioChunk", "yarp")
 class YarpAudioChunkPublisher(YarpImagePublisher):
     """
     Using the ImagePublisher to carry the sound signal. There are better alternatives (Sound) but
@@ -164,7 +164,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._dummy_port.write(self._dummy_sound)
 
 
-@Publishers.register("NativeObject")
+@Publishers.register("NativeObject", "yarp")
 class YarpNativeObjectPublisher(Publisher):
     """
         The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
@@ -200,7 +200,7 @@ class YarpNativeObjectPublisher(Publisher):
         self._port.write()
 
 
-@Publishers.register("Properties")
+@Publishers.register("Properties", "yarp")
 class YarpPropertiesPublisher(Publisher):
     def __init__(self, name, in_port, **kwargs):
         super().__init__(name, in_port, **kwargs)

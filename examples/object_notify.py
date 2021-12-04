@@ -23,7 +23,7 @@ Run:
 """
 
 class Notify(MiddlewareCommunicator):
-    @MiddlewareCommunicator.register("NativeObject", "Notify", "/notify/test_native_bottle_exchange",
+    @MiddlewareCommunicator.register("NativeObject", "yarp", "Notify", "/notify/test_native_bottle_exchange",
                                      carrier="", should_wait=True)
     def exchange_object(self, msg):
         obj = [{"message": msg,

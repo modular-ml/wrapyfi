@@ -108,11 +108,11 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         self._curr_head = list(head)
         self._curr_eyes = list(eyes)
 
-    @MiddlewareCommunicator.register("Image", "ICub", "$port_cam",
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam",
                                      carrier="", width=320, height=240, rgb=True)
-    @MiddlewareCommunicator.register("Image", "ICub", "$port_cam_left",
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_left",
                                      carrier="", width=320, height=240, rgb=True)
-    @MiddlewareCommunicator.register("Image", "ICub", "$port_cam_right",
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_right",
                                      carrier="", width=320, height=240, rgb=True)
     def receive_images(self, port_cam, port_cam_left, port_cam_right):
         external_cam, left_cam, right_cam = None, None, None

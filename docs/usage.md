@@ -29,14 +29,16 @@ while True:
 
 The primary component for facilitating communication is the `MiddlewareCommunicator`. To register the 
 functions for a given class, it should inherit the `MiddlewareCommunicator`. Any function decorated with
-`@MiddlewareCommunicator.register(<Data structure type>, <Class name>, <Port name>)`. 
+`@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Port name>)`. 
 
 The `<Data structure type>` is the publisher/listener type for a given function's return. The supported data
 types are listed in the [publishers and listeners](#publishers-and-listeners) section.
- 
+
+The `<Communicator>` defines the communication medium e.g.: `yarp` or `ros2`.
+
 The `<Class name>` serves no purpose in the current Wrapify version, but has been left for future support of module-level decoration, 
 where the functions don't belong to a class, and must therefore have a unique identifier for declaration in the 
-[configuration files](#configuration) 
+[configuration files](#configuration).
 
 The `<Port name>` is the name used for the connected port and is dependent on the Middleware platform. The listener and publisher receive 
 the same port name.
