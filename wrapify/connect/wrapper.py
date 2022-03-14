@@ -5,6 +5,7 @@ import wrapify.connect.listeners as lsn
 from wrapify.utils import get_default_args, match_args
 from wrapify.config.manager import ConfigManager
 
+
 class MiddlewareCommunicator(object):
     __registry__ = {}
 
