@@ -35,7 +35,7 @@ class Listeners(object):
     @classmethod
     def register(cls, *args):
         def decorator(fn):
-            cls.registry[args[0]] = fn
+            cls.registry[args[0]+":"+args[1]] = fn
             return fn
         return decorator
 
@@ -56,7 +56,7 @@ class Listener(object):
         raise NotImplementedError
 
 
-@Listeners.register("Image")
+@Listeners.register("Image", "yarp")
 class YarpImageListener(Listener):
     def __init__(self, name, in_port, carrier="", should_wait=False, width=320, height=240, rgb=True):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
@@ -146,7 +146,7 @@ class YarpImageListener(Listener):
         self.close()
 
 
-@Listeners.register("AudioChunk")
+@Listeners.register("AudioChunk", "yarp")
 class YarpAudioChunkListener(YarpImageListener):
     def __init__(self, name, in_port, carrier="", should_wait=False, channels=1, rate=44100, chunk=44100):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait,
@@ -188,7 +188,7 @@ class YarpAudioChunkListener(YarpImageListener):
         return self.__listener__(), self.rate
 
 
-@Listeners.register("NativeObject")
+@Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(Listener):
     def __init__(self, name, in_port, carrier="", should_wait=False):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
@@ -220,7 +220,7 @@ class YarpNativeObjectListener(Listener):
         return iobj
 
 
-@Listeners.register("Properties")
+@Listeners.register("Properties", "yarp")
 class YarpPropertiesListener(Listener):
     def __init__(self, name, in_port, **kwargs):
         super().__init__(name, in_port, **kwargs)

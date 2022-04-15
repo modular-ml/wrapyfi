@@ -5,6 +5,8 @@ import wrapify.connect.listeners as lsn
 from wrapify.utils import get_default_args, match_args
 from wrapify.config.manager import ConfigManager
 
+DEFAULT_COMMUNICATOR = "yarp"
+
 
 class MiddlewareCommunicator(object):
     __registry__ = {}
@@ -20,21 +22,22 @@ class MiddlewareCommunicator(object):
         def encapsulate(fnc):
             # define the communication message type (single element)
             if isinstance(args[0], str):
-                return_func_listen = lsn.Listeners.registry[args[0]]
-                return_func_publish = pub.Publishers.registry[args[0]]
-                return_func_args = args[1:]
+                return_func_listen = lsn.Listeners.registry[args[0]+":"+args[1]]
+                return_func_publish = pub.Publishers.registry[args[0]+":"+args[1]]
+                return_func_args = args[2:]
                 return_func_kwargs = kwargs
-                return_func_type = args[0]
+                return_func_type = args[0]+":"+args[1]
 
             # define the communication message type (list for single return). NOTE: supports 1 layer depth only
             elif isinstance(args[0], list):
-                return_func_listen, return_func_publish, return_func_args, return_func_kwargs, return_func_type = [], [], [], [], []
+                return_func_listen, return_func_publish, \
+                return_func_args, return_func_kwargs, return_func_type = [], [], [], [], []
                 for arg in args:
-                    return_func_listen.append(lsn.Listeners.registry[arg[0]])
-                    return_func_publish.append(pub.Publishers.registry[arg[0]])
-                    return_func_args.append([a for a in arg[1:] if not isinstance(a, dict)])
-                    return_func_kwargs.append(*[a for a in arg[1:] if isinstance(a, dict)])
-                    return_func_type.append(arg[0])
+                    return_func_listen.append(lsn.Listeners.registry[arg[0]+":"+arg[1]])
+                    return_func_publish.append(pub.Publishers.registry[arg[0]+":"+arg[1]])
+                    return_func_args.append([a for a in arg[2:] if not isinstance(a, dict)])
+                    return_func_kwargs.append(*[a for a in arg[2:] if isinstance(a, dict)])
+                    return_func_type.append(arg[0]+":"+arg[1])
 
             # define the communication message type (dict for single return). NOTE: supports 1 layer depth only
             elif isinstance(args[0], dict):
