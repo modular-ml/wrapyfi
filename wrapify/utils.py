@@ -2,6 +2,7 @@ import json
 import threading
 lock = threading.Lock()
 
+
 def get_default_args(fnc):
     import inspect
     signature = inspect.signature(fnc)
@@ -31,6 +32,22 @@ def match_args(args, kwargs, src_args, src_kwargs):
         else:
             new_kwargs[kwarg_key] =  kwarg_val
     return tuple(new_args), new_kwargs
+
+
+def dynamic_module_import(modules, globals):
+    import importlib
+    for module_name in modules:
+        if not module_name.endswith(".py") or module_name.endswith("__.py"):
+            continue
+        module_name = module_name[:-3]
+        module_name = module_name.replace("/", ".")
+        module = __import__(module_name, fromlist=['*'])
+        # importlib.import_module(module_name)
+        if hasattr(module, '__all__'):
+            all_names = module.__all__
+        else:
+            all_names = [name for name in dir(module) if not name.startswith('_')]
+        globals.update({name: getattr(module, name) for name in all_names})
 
 
 class SingletonOptimized(type):
