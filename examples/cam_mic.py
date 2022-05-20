@@ -96,6 +96,7 @@ class CamMic(MiddlewareCommunicator):
         if self.enable_video:
             self.collect_cam(img_width=self.img_width, img_height=self.img_height)
         self.collect_mic(audio, aud_rate=self.aud_rate, aud_chunk=self.aud_chunk, aud_channels=self.aud_channels)
+        print(audio.flatten(), audio.min(), audio.mean(), audio.max())
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.vid_cap.release()
@@ -108,7 +109,7 @@ def parse_args():
     parser.add_argument("--img-source", type=int, default=0, help="The video capture device id (int camera id)")
     parser.add_argument("--img-width", type=int, default=320, help="The image width")
     parser.add_argument("--img-height", type=int, default=240, help="The image height")
-    parser.add_argument("--aud-source", type=int, default=0, help="The audio capture device id (int micrphone id)")
+    parser.add_argument("--aud-source", type=int, default=None, help="The audio capture device id (int microphone id from python3 -m sounddevice)")
     parser.add_argument("--aud-rate", type=int, default=44100, help="The audio sampling rate")
     parser.add_argument("--aud-channels", type=int, default=1, help="The audio channels")
     parser.add_argument("--aud-chunk", type=int, default=10000, help="The transmitted audio chunk size")
@@ -118,7 +119,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    cam_mic = CamMic(stream=args.stream)
+    cam_mic = CamMic(stream=args.stream, aud_source=args.aud_source)
     if args.mode == "publish":
         cam_mic.activate_communication("collect_cam", mode="publish")
         cam_mic.activate_communication("collect_mic", mode="publish")
@@ -128,7 +129,7 @@ if __name__ == "__main__":
         cam_mic.activate_communication("collect_mic", mode="listen")
         while True:
             if "audio" in args.stream:
-                aud, = cam_mic.collect_mic(aud_source=args.aud_source, aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)
+                aud, = cam_mic.collect_mic(aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)
             else:
                 aud = None
             if "video" in args.stream:
