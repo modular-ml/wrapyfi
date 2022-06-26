@@ -22,7 +22,7 @@ class YarpImageListener(Listener):
         self.height = height
         self.rgb = rgb
 
-        self._port, self._iarray, self.__netconnect__, self.__type__, self.__listener__ = [None] * 5
+        self._port, self._iarray, self.__netconnect, self.__type, self.__listener = [None] * 5
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
@@ -34,58 +34,58 @@ class YarpImageListener(Listener):
             self._port = yarp.BufferedPortImageRgb()
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port.open(self.in_port + ":in" + rnd_id)
-            self.__netconnect__ = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
+            self.__netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
             if self.height != -1 and self.width != -1:
                 self._iarray = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-            self.__type__ = np.uint8
+            self.__type = np.uint8
         else:
             self._port = yarp.BufferedPortImageFloat()
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port.open(self.in_port + ":in" + rnd_id)
-            self.__netconnect__ = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
+            self.__netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
             if self.height != -1 and self.width != -1:
                 self._iarray = np.zeros((self.height, self.width), dtype=np.float32)
-            self.__type__ = np.float32
+            self.__type = np.float32
 
         # set the listener
         if self.width == -1 and self.height == -1:
-            self.__listener__ = self.__listen_unk_width_height__
+            self.__listener = self.__listen_unk_width_height
         elif self.width == -1:
-            self.__listener__ = self.__listen_unk_width__
+            self.__listener = self.__listen_unk_width
         elif self.height == -1:
-            self.__listener__ = self.__listen_unk_height__
+            self.__listener = self.__listen_unk_height
         else:
-            self.__listener__ = self.__listen__
+            self.__listener = self.__listen
 
         self.established = True
 
-    def __listen_unk_width__(self):
+    def __listen_unk_width(self):
         # TODO (fabawi): dynamic width only
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
-            self._iarray = np.zeros((img.height(), img.width()), dtype=self.__type__)
+            self._iarray = np.zeros((img.height(), img.width()), dtype=self.__type)
             img.setExternal(self._iarray.data,
                             img.width(), img.height())
         return self._iarray
 
-    def __listen_unk_height__(self):
+    def __listen_unk_height(self):
         # TODO (fabawi): dynamic height only
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
-            self._iarray = np.zeros((img.height(), img.width()), dtype=self.__type__)
+            self._iarray = np.zeros((img.height(), img.width()), dtype=self.__type)
             img.setExternal(self._iarray.data,
                             img.width(), img.height())
         return self._iarray
 
-    def __listen_unk_width_height__(self):
+    def __listen_unk_width_height(self):
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
-            self._iarray = np.zeros((img.height(), img.width()), dtype=self.__type__)
+            self._iarray = np.zeros((img.height(), img.width()), dtype=self.__type)
             img.setExternal(self._iarray.data,
                             img.width(), img.height())
         return self._iarray
 
-    def __listen__(self):
+    def __listen(self):
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
             img.setExternal(self._iarray.data,
@@ -95,12 +95,12 @@ class YarpImageListener(Listener):
     def listen(self):
         if not self.established:
             self.establish()
-        return self.__listener__()
+        return self.__listener()
 
     def close(self):
         self._port.close()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __del__(self, exc_type, exc_val, exc_tb):
         self.close()
 
 
@@ -113,7 +113,7 @@ class YarpAudioChunkListener(YarpImageListener):
         self.rate = rate
         self.chunk = chunk
 
-        self._dummy_sound, self._dummy_port, self.__dummy_netconnect__ = [None] * 3
+        self._dummy_sound, self._dummy_port, self.__dummy_netconnect = [None] * 3
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
@@ -127,7 +127,7 @@ class YarpAudioChunkListener(YarpImageListener):
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._dummy_port = yarp.Port()
             self._dummy_port.open(self.in_port + "_SND:in" + rnd_id)
-            self.__dummy_netconnect__ = yarp.Network.connect(self.in_port + "_SND",
+            self.__dummy_netconnect = yarp.Network.connect(self.in_port + "_SND",
                                                              self.in_port + "_SND:in" + rnd_id,
                                                              self.carrier)
             self._dummy_sound = yarp.Sound()
@@ -143,7 +143,7 @@ class YarpAudioChunkListener(YarpImageListener):
     def listen(self):
         if not self.established:
             self.establish()
-        return self.__listener__(), self.rate
+        return self.__listener(), self.rate
 
 
 @Listeners.register("NativeObject", "yarp")
@@ -151,7 +151,7 @@ class YarpNativeObjectListener(Listener):
     def __init__(self, name, in_port, carrier="", should_wait=False):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
 
-        self._port, self.__netconnect__ = [None] * 2
+        self._port, self.__netconnect = [None] * 2
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
@@ -162,7 +162,7 @@ class YarpNativeObjectListener(Listener):
         self._port = yarp.BufferedPortBottle()
         rnd_id = str(np.random.randint(100000, size=1)[0])
         self._port.open(self.in_port + ":in" + rnd_id)
-        self.__netconnect__ = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
+        self.__netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
 
         self.established = True
 

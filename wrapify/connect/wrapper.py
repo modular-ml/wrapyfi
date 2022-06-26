@@ -1,4 +1,5 @@
 from functools import wraps
+import inspect
 
 import wrapify.connect.publishers as pub
 import wrapify.connect.listeners as lsn
@@ -9,7 +10,7 @@ DEFAULT_COMMUNICATOR = "yarp"
 
 
 class MiddlewareCommunicator(object):
-    __registry__ = {}
+    __registry = {}
 
     def __init__(self):
         self.config = ConfigManager(None).config
@@ -43,40 +44,40 @@ class MiddlewareCommunicator(object):
             elif isinstance(args[0], dict):
                 raise NotImplementedError("Dictionaries are not yet supported as a return type")
 
-            if fnc.__name__ in cls.__registry__:
-                cls.__registry__[fnc.__name__]["communicator"].append({
+            if fnc.__qualname__ in cls.__registry:
+                cls.__registry[fnc.__qualname__]["communicator"].append({
                     "return_func_listen": return_func_listen,
                     "return_func_publish": return_func_publish,
                     "return_func_args": return_func_args,
                     "return_func_kwargs": return_func_kwargs,
                     "return_func_type": return_func_type})
             else:
-                cls.__registry__[fnc.__name__] = {"communicator": [{
+                cls.__registry[fnc.__qualname__] = {"communicator": [{
                     "return_func_listen": return_func_listen,
                     "return_func_publish": return_func_publish,
                     "return_func_args": return_func_args,
                     "return_func_kwargs": return_func_kwargs,
                     "return_func_type": return_func_type}]}
-            cls.__registry__[fnc.__name__]["mode"] = None
+            cls.__registry[fnc.__qualname__]["mode"] = None
 
             @wraps(fnc)
             def wrapper(*wds, **kwds):
                 # triggers on calling the function
                 kwd = get_default_args(fnc)
                 kwd.update(kwds)
-                cls.__registry__[fnc.__name__]["args"] = wds
-                cls.__registry__[fnc.__name__]["kwargs"] = kwd
+                cls.__registry[fnc.__qualname__]["args"] = wds
+                cls.__registry[fnc.__qualname__]["kwargs"] = kwd
 
                 # execute the function as usual
-                if cls.__registry__[fnc.__name__]["mode"] is None:
+                if cls.__registry[fnc.__qualname__]["mode"] is None:
                     return fnc(*wds, **kwds)
 
                 # publishes the functions returns
-                elif cls.__registry__[fnc.__name__]["mode"] == "publish":
-                    if "wrapped_executor" not in cls.__registry__[fnc.__name__]["communicator"][0]:
-                        cls.__registry__[fnc.__name__]["communicator"].reverse()
+                elif cls.__registry[fnc.__qualname__]["mode"] == "publish":
+                    if "wrapped_executor" not in cls.__registry[fnc.__qualname__]["communicator"][0]:
+                        cls.__registry[fnc.__qualname__]["communicator"].reverse()
                         # instantiate the publishers
-                        for communicator in cls.__registry__[fnc.__name__]["communicator"]:
+                        for communicator in cls.__registry[fnc.__qualname__]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(
@@ -91,7 +92,7 @@ class MiddlewareCommunicator(object):
                                     communicator["wrapped_executor"].append(communicator["return_func_publish"][comm_idx](*new_args, **new_kwargs))
                     returns = fnc(*wds, **kwds)
                     for ret_idx, ret in enumerate(returns):
-                        wrp_exec = cls.__registry__[fnc.__name__]["communicator"][ret_idx]["wrapped_executor"]
+                        wrp_exec = cls.__registry[fnc.__qualname__]["communicator"][ret_idx]["wrapped_executor"]
                         # single element
                         if isinstance(wrp_exec, pub.Publisher):
                             wrp_exec.publish(ret)
@@ -102,11 +103,11 @@ class MiddlewareCommunicator(object):
                     return returns
 
                 # listens to the publisher and returns the messages
-                elif cls.__registry__[fnc.__name__]["mode"] == "listen":
-                    if "wrapped_executor" not in cls.__registry__[fnc.__name__]["communicator"][0]:
-                        cls.__registry__[fnc.__name__]["communicator"].reverse()
+                elif cls.__registry[fnc.__qualname__]["mode"] == "listen":
+                    if "wrapped_executor" not in cls.__registry[fnc.__qualname__]["communicator"][0]:
+                        cls.__registry[fnc.__qualname__]["communicator"].reverse()
                         # instantiate the listeners
-                        for communicator in cls.__registry__[fnc.__name__]["communicator"]:
+                        for communicator in cls.__registry[fnc.__qualname__]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
@@ -117,34 +118,34 @@ class MiddlewareCommunicator(object):
                                 for comm_idx in range(len(communicator["return_func_type"])):
                                     new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx], communicator["return_func_kwargs"][comm_idx], wds[1:], kwd)
                                     communicator["wrapped_executor"].append(communicator["return_func_listen"][comm_idx](*new_args, **new_kwargs))
-                    cls.__registry__[fnc.__name__]["last_results"] = []
-                    for ret_idx in range(len(cls.__registry__[fnc.__name__]["communicator"])):
-                        wrp_exec = cls.__registry__[fnc.__name__]["communicator"][ret_idx]["wrapped_executor"]
+                    cls.__registry[fnc.__qualname__]["last_results"] = []
+                    for ret_idx in range(len(cls.__registry[fnc.__qualname__]["communicator"])):
+                        wrp_exec = cls.__registry[fnc.__qualname__]["communicator"][ret_idx]["wrapped_executor"]
                         # single element
                         if isinstance(wrp_exec, lsn.Listener):
-                            cls.__registry__[fnc.__name__]["last_results"].append(wrp_exec.listen())
+                            cls.__registry[fnc.__qualname__]["last_results"].append(wrp_exec.listen())
                             # list for single return
                         elif isinstance(wrp_exec, list):
                             ret = []
                             for wrp_idx, wrp in enumerate(wrp_exec):
                                 ret.append(wrp.listen())
-                            cls.__registry__[fnc.__name__]["last_results"].append(ret)
+                            cls.__registry[fnc.__qualname__]["last_results"].append(ret)
 
-                    return cls.__registry__[fnc.__name__]["last_results"]
+                    return cls.__registry[fnc.__qualname__]["last_results"]
 
                 # WARNING: use with caution. This produces "None" for all the function's returns
-                elif  cls.__registry__[fnc.__name__]["mode"] == "disable":
-                    cls.__registry__[fnc.__name__]["last_results"] = []
-                    for ret_idx in range(len(cls.__registry__[fnc.__name__]["communicator"])):
-                        cls.__registry__[fnc.__name__]["last_results"].append(None)
-                    return cls.__registry__[fnc.__name__]["last_results"]
+                elif  cls.__registry[fnc.__qualname__]["mode"] == "disable":
+                    cls.__registry[fnc.__qualname__]["last_results"] = []
+                    for ret_idx in range(len(cls.__registry[fnc.__qualname__]["communicator"])):
+                        cls.__registry[fnc.__qualname__]["last_results"].append(None)
+                    return cls.__registry[fnc.__qualname__]["last_results"]
 
             return wrapper
         return encapsulate
 
     def activate_communication(self, fnc_name, mode="publish"):
-        if fnc_name in self.__registry__:
-            self.__registry__[fnc_name]["mode"] = mode
+        if self.__class__.__name__+"."+fnc_name in self.__registry:
+            self.__registry[self.__class__.__name__+"."+fnc_name]["mode"] = mode
 
 
 

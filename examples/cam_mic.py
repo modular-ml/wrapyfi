@@ -34,6 +34,8 @@ Run:
 
 
 class CamMic(MiddlewareCommunicator):
+    __registry__ = {}
+
     def __init__(self, *args, stream=("audio", "video"), aud_source=0,
                  aud_rate=44100, aud_chunk=10000, aud_channels=1, img_source=0,
                  img_width=320, img_height=240, **kwargs):
@@ -97,7 +99,7 @@ class CamMic(MiddlewareCommunicator):
             self.collect_cam(img_width=self.img_width, img_height=self.img_height)
         self.collect_mic(audio, aud_rate=self.aud_rate, aud_chunk=self.aud_chunk, aud_channels=self.aud_channels)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __del__(self, exc_type, exc_val, exc_tb):
         self.vid_cap.release()
 
 
