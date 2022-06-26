@@ -1,3 +1,4 @@
+import argparse
 from wrapify.connect.wrapper import MiddlewareCommunicator
 
 
@@ -10,10 +11,13 @@ class HelloWorld(MiddlewareCommunicator):
         return obj,
 
 
-hello_world = HelloWorld()
+parser = argparse.ArgumentParser()
+parser.add_argument("--publish", dest="mode", action="store_const", const="publish", default="listen", help="Publish mode")
+parser.add_argument("--listen", dest="mode", action="store_const", const="listen", default="listen", help="Listen mode (default)")
+args = parser.parse_args()
 
-LISTEN = False
-hello_world.activate_communication("send_message", mode="listen" if LISTEN else "publish")
+hello_world = HelloWorld()
+hello_world.activate_communication("send_message", mode=args.mode)
 
 while True:
     my_message, = hello_world.send_message()
