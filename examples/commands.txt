@@ -1,0 +1,34 @@
+Commands for Running Examples
+=============================
+
+# Leave running in a separate terminal before running any example
+yarpserver
+
+# Run first in every new terminal that you open (adjust paths!)
+cd ~/Code/wrapify && conda activate yarp && export PYTHONPATH=~/Code/wrapify
+
+# To kill something that Ctrl+C won't kill use Ctrl+Alt+C or...
+Ctrl+Z
+kill -SIGTERM %1
+
+-----------------------------------------------------------------------------------------
+
+# Run hello world example
+python3 examples/hello_world.py --publish
+python3 examples/hello_world.py --listen
+
+# Run encapsulation example
+python3 examples/encapsulation.py --publish
+python3 examples/encapsulation.py --listen
+
+# Run object notify example
+python3 examples/object_notify.py --mode publish
+python3 examples/object_notify.py --mode listen
+
+# Run camera example
+python3 examples/cam_mic.py --mode publish --stream video --img-source 0
+python3 examples/cam_mic.py --mode listen --stream video
+
+# Run audio example
+python3 examples/cam_mic.py --mode publish --stream audio --aud-source 0
+python3 examples/cam_mic.py --mode listen --stream audio
