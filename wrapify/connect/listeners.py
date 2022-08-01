@@ -1,7 +1,6 @@
 import os
 from glob import glob
 
-
 from wrapify.utils import SingletonOptimized, dynamic_module_import
 
 
@@ -25,12 +24,11 @@ class Listeners(object):
     registry = {}
 
     @classmethod
-    def register(cls, *args):
-        def decorator(fn):
-            cls.registry[args[0]+":"+args[1]] = fn
-            return fn
+    def register(cls, data_type, communicator):
+        def decorator(klass):
+            cls.registry[data_type + ":" + communicator] = klass
+            return klass
         return decorator
-
 
     @staticmethod
     def scan():

@@ -24,8 +24,8 @@ parser.add_argument("--listen", dest="mode", action="store_const", const="listen
 args = parser.parse_args()
 
 encapsulator = Encapsulator()
-encapsulator.activate_communication("encapsulating_send_message", mode=args.mode)
-encapsulator.activate_communication("encapsulated_modify_message", mode=args.mode)
+encapsulator.activate_communication(Encapsulator.encapsulating_send_message, mode=args.mode)
+encapsulator.activate_communication(Encapsulator.encapsulated_modify_message, mode=args.mode)
 
 while True:
     my_message, = encapsulator.encapsulating_send_message()

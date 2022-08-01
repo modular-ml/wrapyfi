@@ -69,7 +69,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         self._ienc.getEncoders(self._encs.data())
 
         # control the listening properties from within the app
-        self.activate_communication("receive_images", "listen")
+        self.activate_communication(ICub.receive_images, "listen")
 
     def reset_gaze(self):
         """

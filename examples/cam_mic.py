@@ -123,12 +123,12 @@ if __name__ == "__main__":
 
     cam_mic = CamMic(stream=args.stream, aud_source=args.aud_source)
     if args.mode == "publish":
-        cam_mic.activate_communication("collect_cam", mode="publish")
-        cam_mic.activate_communication("collect_mic", mode="publish")
+        cam_mic.activate_communication(CamMic.collect_cam, mode="publish")
+        cam_mic.activate_communication(CamMic.collect_mic, mode="publish")
         cam_mic.capture_cam_mic()
     if args.mode == "listen":
-        cam_mic.activate_communication("collect_cam", mode="listen")
-        cam_mic.activate_communication("collect_mic", mode="listen")
+        cam_mic.activate_communication(CamMic.collect_cam, mode="listen")
+        cam_mic.activate_communication(CamMic.collect_mic, mode="listen")
         while True:
             if "audio" in args.stream:
                 aud, = cam_mic.collect_mic(aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)

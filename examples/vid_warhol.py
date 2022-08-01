@@ -159,8 +159,8 @@ class Warholify(MiddlewareCommunicator):
         out = Image.composite(bg_fg_layer, skin_layer, skin_mask)
         return out
 
-    @MiddlewareCommunicator.register(*[["Image", "yarp", "Warholify", "/vid_warhol/warhol_" + str(x), {"carrier": "tcp", "width": "$img_width", "height": "$img_height"}] for x in range(9)])
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/warhol_combined", carrier="tcp", width = "$img_width", height = "$img_height")
+    @MiddlewareCommunicator.register([["Image", "yarp", "Warholify", "/vid_warhol/warhol_" + str(x), {"carrier": "tcp", "width": "$img_width", "height": "$img_height"}] for x in range(9)])
+    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/warhol_combined", carrier="tcp", width="$img_width", height="$img_height")
     def combine_to_one(self, warhols, img_width, img_height):
         warhols_new = []
         for warhol in warhols:

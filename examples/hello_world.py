@@ -17,7 +17,7 @@ parser.add_argument("--listen", dest="mode", action="store_const", const="listen
 args = parser.parse_args()
 
 hello_world = HelloWorld()
-hello_world.activate_communication("send_message", mode=args.mode)
+hello_world.activate_communication(HelloWorld.send_message, mode=args.mode)
 
 while True:
     my_message, = hello_world.send_message()
