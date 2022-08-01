@@ -70,9 +70,10 @@ class YarpImagePublisher(Publisher):
         Close the port
         :return: None
         """
-        self._port.close()
+        if self._port:
+            self._port.close()
 
-    def __del__(self, exc_type, exc_val, exc_tb):
+    def __del__(self):
         self.close()
 
 

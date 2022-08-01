@@ -98,9 +98,10 @@ class YarpImageListener(Listener):
         return self.__listener()
 
     def close(self):
-        self._port.close()
+        if self._port:
+            self._port.close()
 
-    def __del__(self, exc_type, exc_val, exc_tb):
+    def __del__(self):
         self.close()
 
 
@@ -143,7 +144,7 @@ class YarpAudioChunkListener(YarpImageListener):
     def listen(self):
         if not self.established:
             self.establish()
-        return self.__listener(), self.rate
+        return self._YarpImageListener__listener(), self.rate
 
 
 @Listeners.register("NativeObject", "yarp")

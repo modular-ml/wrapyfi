@@ -57,6 +57,7 @@ class CamMic(MiddlewareCommunicator):
             self.vid_cap = cv2.VideoCapture(img_source)
             self.enable_video = True
         else:
+            self.vid_cap = None
             self.enable_video = False
 
     @MiddlewareCommunicator.register("Image", "yarp", "CamMic", "/cam_mic/cam_feed",
@@ -100,8 +101,9 @@ class CamMic(MiddlewareCommunicator):
         self.collect_mic(audio, aud_rate=self.aud_rate, aud_chunk=self.aud_chunk, aud_channels=self.aud_channels)
         print(audio.flatten(), audio.min(), audio.mean(), audio.max())
 
-    def __del__(self, exc_type, exc_val, exc_tb):
-        self.vid_cap.release()
+    def __del__(self):
+        if self.vid_cap:
+            self.vid_cap.release()
 
 
 def parse_args():
