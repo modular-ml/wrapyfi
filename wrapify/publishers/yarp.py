@@ -1,18 +1,13 @@
 import json
-import logging
+import atexit
 import cv2
-
-try:
-    import yarp
-    yarp.Network.init()
-    logging.info("YARP is found and can be used")
-except:
-    # print("Install YARP to use wrapify")
-    logging.warning("YARP is not found and cannot be used")
-    pass
+import yarp
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapify.utils import JsonEncoder
+
+yarp.Network.init()
+atexit.register(yarp.Network.fini)
 
 
 @Publishers.register("Image", "yarp")

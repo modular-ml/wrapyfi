@@ -50,7 +50,10 @@ def dynamic_module_import(modules, globals):
             continue
         module_name = module_name[:-3]
         module_name = module_name.replace("/", ".")
-        module = __import__(module_name, fromlist=['*'])
+        try:
+            module = __import__(module_name, fromlist=['*'])
+        except ImportError:
+            continue
         if hasattr(module, '__all__'):
             all_names = module.__all__
         else:
