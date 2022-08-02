@@ -1,3 +1,4 @@
+import json
 import logging
 
 import numpy as np
@@ -10,8 +11,8 @@ except:
     logging.warning("YARP is not found and cannot be used")
     pass
 
-from wrapify.utils import JsonEncoder as json
 from wrapify.connect.listeners import Listener, ListenerWatchDog, Listeners
+import wrapify.utils
 
 
 @Listeners.register("Image", "yarp")
@@ -152,6 +153,7 @@ class YarpNativeObjectListener(Listener):
     def __init__(self, name, in_port, carrier="", should_wait=False):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
 
+        self._json_object_hook = wrapify.utils.JsonDecodeHook().object_hook
         self._port, self.__netconnect = [None] * 2
         ListenerWatchDog().add_listener(self)
 
@@ -173,7 +175,7 @@ class YarpNativeObjectListener(Listener):
         obj = self._port.read(shouldWait=self.should_wait)
         if obj is not None:
             iobj = obj.get(0).asString()
-            iobj = json.loads(iobj)
+            iobj = json.loads(iobj, object_hook=self._json_object_hook)
         else:
             iobj = None
         return iobj

@@ -1,8 +1,7 @@
-import time
+import json
 import logging
-
 import cv2
-import numpy as np
+
 try:
     import yarp
     yarp.Network.init()
@@ -13,7 +12,7 @@ except:
     pass
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
-from wrapify.utils import JsonEncoder as json
+from wrapify.utils import JsonEncoder
 
 
 @Publishers.register("Image", "yarp")
@@ -160,7 +159,7 @@ class YarpNativeObjectPublisher(Publisher):
     def publish(self, obj):
         if not self.established:
             self.establish()
-        obj = json.dumps(obj)
+        obj = json.dumps(obj, cls=JsonEncoder)
         oobj = self._port.prepare()
         oobj.clear()
         oobj.addString(obj)
