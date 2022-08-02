@@ -163,7 +163,6 @@ class YarpNativeObjectPublisher(Publisher):
         oobj = self._port.prepare()
         oobj.clear()
         oobj.addString(obj)
-        # print(oobj.get(0).asString())
         self._port.write()
 
 

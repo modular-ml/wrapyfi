@@ -73,7 +73,10 @@ class JsonEncoder(json.JSONEncoder):
 
     def default(self, obj):
 
-        if isinstance(obj, np.ndarray):
+        if isinstance(obj, set):
+            return dict(__wrapify__=('set', list(obj)))
+
+        elif isinstance(obj, np.ndarray):
             with io.BytesIO() as memfile:
                 np.save(memfile, obj)
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
@@ -100,7 +103,10 @@ class JsonDecodeHook:
             if wrapify is not None:
                 obj_type = wrapify[0]
 
-                if obj_type == 'numpy.ndarray':
+                if obj_type == 'set':
+                    return set(wrapify[1])
+
+                elif obj_type == 'numpy.ndarray':
                     with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
                         return np.load(memfile)
 

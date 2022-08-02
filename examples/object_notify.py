@@ -24,6 +24,7 @@ class Notify(MiddlewareCommunicator):
     def exchange_object(self, msg):
         ret = [{"message": msg,
                 "numpy": np.ones((2, 4)),
+                "set": {'a', 1, None},
                 "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": np.zeros((2, 3))}]
         return ret,
 
