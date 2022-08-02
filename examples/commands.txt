@@ -5,7 +5,7 @@ Commands for Running Examples
 yarpserver
 
 # Run first in every new terminal that you open (adjust paths!)
-cd ~/Code/wrapify && conda activate yarp && export PYTHONPATH=~/Code/wrapify
+cd ~/Code/wrapify && conda activate yarp && export PYTHONPATH=~/Code/wrapify:/opt/ros/noetic/lib/python3/dist-packages
 
 # To kill something that Ctrl+C won't kill use Ctrl+Alt+C or...
 Ctrl+Z

@@ -104,7 +104,7 @@ class YarpImageListener(Listener):
 
 @Listeners.register("AudioChunk", "yarp")
 class YarpAudioChunkListener(YarpImageListener):
-    def __init__(self, name, in_port, carrier="", should_wait=False, channels=1, rate=44100, chunk=44100):
+    def __init__(self, name, in_port, carrier="", should_wait=False, channels=1, rate=44100, chunk=-1):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait,
                          width=chunk, height=channels, rgb=False)
         self.channels = channels

@@ -19,22 +19,24 @@ Run:
 
 """
 
-class Notify(MiddlewareCommunicator):
-    @MiddlewareCommunicator.register("NativeObject", "yarp", "Notify", "/notify/test_native_bottle_exchange", carrier="", should_wait=True)
-    def exchange_object(self, msg):
-        ret = [{"message": msg,
-                "numpy": np.ones((2, 4)),
-                "set": {'a', 1, None},
-                "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": np.zeros((2, 3))}]
-        return ret,
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
+    parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros"}, help="The middleware to use for transmission")
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
+
+    class Notify(MiddlewareCommunicator):
+
+        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_bottle_exchange", carrier="", should_wait=True)
+        def exchange_object(self, msg):
+            ret = [{"message": msg,
+                    "numpy": np.ones((2, 4)),
+                    "set": {'a', 1, None},
+                    "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": np.zeros((2, 3))}]
+            return ret,
 
     notify = Notify()
 
