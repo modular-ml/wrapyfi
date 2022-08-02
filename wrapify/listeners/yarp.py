@@ -150,10 +150,10 @@ class YarpAudioChunkListener(YarpImageListener):
 
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(Listener):
-    def __init__(self, name, in_port, carrier="", should_wait=False):
+    def __init__(self, name, in_port, carrier="", should_wait=False, load_torch_device=None):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
 
-        self._json_object_hook = wrapify.utils.JsonDecodeHook().object_hook
+        self._json_object_hook = wrapify.utils.JsonDecodeHook(torch_device=load_torch_device).object_hook
         self._port, self.__netconnect = [None] * 2
         ListenerWatchDog().add_listener(self)
 

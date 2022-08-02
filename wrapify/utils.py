@@ -4,6 +4,12 @@ import base64
 import threading
 import numpy as np
 
+try:
+    import torch
+    HAVE_TORCH = True
+except ImportError:
+    HAVE_TORCH = False
+
 lock = threading.Lock()
 
 
@@ -73,6 +79,12 @@ class JsonEncoder(json.JSONEncoder):
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
             return dict(__wrapify__=('numpy.ndarray', obj_data))
 
+        elif HAVE_TORCH and isinstance(obj, torch.Tensor):
+            with io.BytesIO() as memfile:
+                torch.save(obj, memfile)
+                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            return dict(__wrapify__=('torch.Tensor', obj_data))
+
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
@@ -87,8 +99,13 @@ class JsonDecodeHook:
             wrapify = obj.get('__wrapify__', None)
             if wrapify is not None:
                 obj_type = wrapify[0]
+
                 if obj_type == 'numpy.ndarray':
                     with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
                         return np.load(memfile)
+
+                elif HAVE_TORCH and obj_type == 'torch.Tensor':
+                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
+                        return torch.load(memfile, map_location=self.torch_device)
 
         return obj
