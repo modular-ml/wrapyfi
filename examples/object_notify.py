@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     class Notify(MiddlewareCommunicator):
 
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_bottle_exchange", carrier="", should_wait=True)
+        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange", carrier="", should_wait=True)
         def exchange_object(self, msg):
             ret = [{"message": msg,
                     "numpy": np.ones((2, 4)),
