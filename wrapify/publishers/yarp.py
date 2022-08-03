@@ -1,17 +1,21 @@
 import json
-import atexit
 import cv2
 import yarp
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
+from wrapify.middlewares.yarp import YarpMiddleware
 from wrapify.utils import JsonEncoder
 
-yarp.Network.init()
-atexit.register(yarp.Network.fini)
+
+class YarpPublisher(Publisher):
+
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        YarpMiddleware.activate()
 
 
 @Publishers.register("Image", "yarp")
-class YarpImagePublisher(Publisher):
+class YarpImagePublisher(YarpPublisher):
     """
     The ImagePublisher using the BufferedPortImage construct assuming a cv2 image as an input
     """
@@ -126,7 +130,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
 
 
 @Publishers.register("NativeObject", "yarp")
-class YarpNativeObjectPublisher(Publisher):
+class YarpNativeObjectPublisher(YarpPublisher):
     """
         The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
         and numpy arrays as input
@@ -162,7 +166,7 @@ class YarpNativeObjectPublisher(Publisher):
 
 
 @Publishers.register("Properties", "yarp")
-class YarpPropertiesPublisher(Publisher):
+class YarpPropertiesPublisher(YarpPublisher):
     def __init__(self, name, out_port, **kwargs):
         super().__init__(name, out_port, **kwargs)
         raise NotImplementedError

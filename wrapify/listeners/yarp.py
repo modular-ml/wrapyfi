@@ -1,18 +1,22 @@
 import json
 import time
-import atexit
 import numpy as np
 import yarp
 
 from wrapify.connect.listeners import Listener, ListenerWatchDog, Listeners
-import wrapify.utils
+from wrapify.middlewares.yarp import YarpMiddleware
+from wrapify.utils import JsonDecodeHook
 
-yarp.Network.init()
-atexit.register(yarp.Network.fini)
+
+class YarpListener(Listener):
+
+    def __init__(self, name, in_port, carrier="", should_wait=False):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
+        YarpMiddleware.activate()
 
 
 @Listeners.register("Image", "yarp")
-class YarpImageListener(Listener):
+class YarpImageListener(YarpListener):
     def __init__(self, name, in_port, carrier="", should_wait=False, width=320, height=240, rgb=True):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
         self.width = width
@@ -145,11 +149,11 @@ class YarpAudioChunkListener(YarpImageListener):
 
 
 @Listeners.register("NativeObject", "yarp")
-class YarpNativeObjectListener(Listener):
+class YarpNativeObjectListener(YarpListener):
     def __init__(self, name, in_port, carrier="", should_wait=False, load_torch_device=None):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
 
-        self._json_object_hook = wrapify.utils.JsonDecodeHook(torch_device=load_torch_device).object_hook
+        self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
         self._port, self.__netconnect = [None] * 2
         ListenerWatchDog().add_listener(self)
 
@@ -183,7 +187,7 @@ class YarpNativeObjectListener(Listener):
 
 
 @Listeners.register("Properties", "yarp")
-class YarpPropertiesListener(Listener):
+class YarpPropertiesListener(YarpListener):
     def __init__(self, name, in_port, **kwargs):
         super().__init__(name, in_port, **kwargs)
         raise NotImplementedError
