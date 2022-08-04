@@ -51,17 +51,17 @@ class YarpImageListener(YarpListener):
 
         # set the listener
         if self.width == -1 and self.height == -1:
-            self._listener = self.__listen_unk_width_height
+            self._listener = self._listen_unk_width_height
         elif self.width == -1:
-            self._listener = self.__listen_unk_width
+            self._listener = self._listen_unk_width
         elif self.height == -1:
-            self._listener = self.__listen_unk_height
+            self._listener = self._listen_unk_height
         else:
-            self._listener = self.__listen
+            self._listener = self._listen
 
         self.established = True
 
-    def __listen_unk_width(self):
+    def _listen_unk_width(self):
         # TODO (fabawi): dynamic width only
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
@@ -70,7 +70,7 @@ class YarpImageListener(YarpListener):
                             img.width(), img.height())
         return self._iarray
 
-    def __listen_unk_height(self):
+    def _listen_unk_height(self):
         # TODO (fabawi): dynamic height only
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
@@ -79,7 +79,7 @@ class YarpImageListener(YarpListener):
                             img.width(), img.height())
         return self._iarray
 
-    def __listen_unk_width_height(self):
+    def _listen_unk_width_height(self):
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
             self._iarray = np.zeros((img.height(), img.width()), dtype=self._type)
@@ -87,7 +87,7 @@ class YarpImageListener(YarpListener):
                             img.width(), img.height())
         return self._iarray
 
-    def __listen(self):
+    def _listen(self):
         img = self._port.read(shouldWait=self.should_wait)
         if img is not None:
             img.setExternal(self._iarray.data, self._iarray.shape[1], self._iarray.shape[0])
