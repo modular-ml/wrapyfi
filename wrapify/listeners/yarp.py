@@ -160,10 +160,10 @@ class YarpNativeObjectListener(YarpListener):
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
-        print("waiting for in_port: ", self.in_port)
+        print("Waiting for input port:", self.in_port)
         while not yarp.Network.exists(self.in_port):
             yarp.Network.waitPort(self.in_port, quiet=True)
-        print("connected to in_port: ", self.in_port)
+        print("Connected to input port:", self.in_port)
         self._port = yarp.BufferedPortBottle()
         rnd_id = str(np.random.randint(100000, size=1)[0])
         self._port.open(self.in_port + ":in" + rnd_id)

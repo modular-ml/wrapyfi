@@ -1,4 +1,5 @@
 import json
+import time
 import cv2
 import yarp
 
@@ -12,6 +13,14 @@ class YarpPublisher(Publisher):
     def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         YarpMiddleware.activate()
+
+    def await_connection(self, port, out_port=None):
+        if out_port is None:
+            out_port = self.out_port
+        print("Waiting for output connection:", out_port)
+        while port.getOutputCount() < 1:
+            time.sleep(0.02)
+        print("Output connection established:", out_port)
 
 
 @Publishers.register("Image", "yarp")
@@ -47,7 +56,7 @@ class YarpImagePublisher(YarpPublisher):
             self._port = yarp.BufferedPortImageFloat()
             self._port.open(self.out_port)
             self.__netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
-
+        self.await_connection(self._port)
         self.established = True
 
     def publish(self, img):
@@ -105,12 +114,11 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
         self._dummy_port = yarp.Port()
         self._dummy_port.open(self.out_port + "_SND")
-        self.__dummy_netconnect = yarp.Network.connect(self.out_port + "_SND", self.out_port_connect + "_SND",
-                                                         self.carrier)
+        self.__dummy_netconnect = yarp.Network.connect(self.out_port + "_SND", self.out_port_connect + "_SND", self.carrier)
         self._dummy_sound = yarp.Sound()
         self._dummy_sound.setFrequency(self.rate)
         self._dummy_sound.resize(self.chunk, self.channels)
-
+        self.await_connection(self._dummy_port, out_port=self.out_port + "_SND")
         super(YarpAudioChunkPublisher, self).establish()
 
     def publish(self, aud):
@@ -152,7 +160,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
         self._port = yarp.BufferedPortBottle()
         self._port.open(self.out_port)
         self.__netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
-
+        self.await_connection(self._port)
         self.established = True
 
     def publish(self, obj):
