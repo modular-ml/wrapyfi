@@ -43,19 +43,18 @@ class YarpImagePublisher(YarpPublisher):
         self.width = width
         self.height = height
         self.rgb = rgb
-
-        self._port, self.__netconnect = [None] * 2
+        self._port = self._netconnect = None
         PublisherWatchDog().add_publisher(self)
 
     def establish(self):
         if self.rgb:
             self._port = yarp.BufferedPortImageRgb()
             self._port.open(self.out_port)
-            self.__netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
         else:
             self._port = yarp.BufferedPortImageFloat()
             self._port.open(self.out_port)
-            self.__netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
         self.await_connection(self._port)
         self.established = True
 
@@ -107,14 +106,14 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         self.rate = rate
         self.chunk = chunk
 
-        self._dummy_sound, self._dummy_port, self.__dummy_netconnect = [None] * 3
+        self._dummy_sound = self._dummy_port = self._dummy_netconnect = None
         PublisherWatchDog().add_publisher(self)
 
     def establish(self):
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
         self._dummy_port = yarp.Port()
         self._dummy_port.open(self.out_port + "_SND")
-        self.__dummy_netconnect = yarp.Network.connect(self.out_port + "_SND", self.out_port_connect + "_SND", self.carrier)
+        self._dummy_netconnect = yarp.Network.connect(self.out_port + "_SND", self.out_port_connect + "_SND", self.carrier)
         self._dummy_sound = yarp.Sound()
         self._dummy_sound.setFrequency(self.rate)
         self._dummy_sound.resize(self.chunk, self.channels)
@@ -152,14 +151,13 @@ class YarpNativeObjectPublisher(YarpPublisher):
         :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
-
-        self._port, self.__netconnect = [None] * 2
+        self._port = self._netconnect = None
         PublisherWatchDog().add_publisher(self)
 
     def establish(self):
         self._port = yarp.BufferedPortBottle()
         self._port.open(self.out_port)
-        self.__netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
         self.await_connection(self._port)
         self.established = True
 

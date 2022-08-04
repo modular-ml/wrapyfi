@@ -11,7 +11,7 @@ from wrapify.utils import JsonDecodeHook
 
 class ROSListener(Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=False, queue_size=5):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
         ROSMiddleware.activate()
         self.queue_size = queue_size
@@ -20,7 +20,7 @@ class ROSListener(Listener):
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=False, queue_size=5, load_torch_device=None):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, load_torch_device=None):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size)
         self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
         self._subscriber = None
@@ -51,7 +51,7 @@ class ROSNativeObjectListener(ROSListener):
 @Listeners.register("Image", "ros")
 class ROSImageListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=False, width=320, height=240, rgb=True):
+    def __init__(self, name, in_port, carrier="", should_wait=True, width=320, height=240, rgb=True):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
         self.width = width
         self.height = height
@@ -63,7 +63,7 @@ class ROSImageListener(ROSListener):
 @Listeners.register("AudioChunk", "ros")
 class ROSAudioChunkListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=False, channels=1, rate=44100, chunk=-1):
+    def __init__(self, name, in_port, carrier="", should_wait=True, channels=1, rate=44100, chunk=-1):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
         self.channels = channels
         self.rate = rate

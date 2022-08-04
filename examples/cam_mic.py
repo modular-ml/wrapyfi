@@ -141,7 +141,7 @@ if __name__ == "__main__":
             else:
                 img = None
             if img is not None:
-                cv2.imshow("Received Image", img)
+                cv2.imshow("Received image", img)
                 cv2.waitKey(1)
             if aud is not None:
                 print(aud)
