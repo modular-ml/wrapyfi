@@ -86,16 +86,14 @@ class CamMic(MiddlewareCommunicator):
     def capture_cam_mic(self):
         if self.enable_audio:
             # capture the audio stream from the microphone
-            with sd.InputStream(device=self.aud_source, channels=self.aud_channels, callback=self.__mic_callback__,
-                            blocksize=self.aud_chunk,
-                            samplerate=self.aud_rate):
+            with sd.InputStream(device=self.aud_source, channels=self.aud_channels, callback=self._mic_callback, blocksize=self.aud_chunk, samplerate=self.aud_rate):
                 while True:
                     pass
         elif self.enable_video:
             while True:
                 self.collect_cam()
 
-    def __mic_callback__(self, audio, frames, time, status):
+    def _mic_callback(self, audio, frames, time, status):
         if self.enable_video:
             self.collect_cam(img_width=self.img_width, img_height=self.img_height)
         self.collect_mic(audio, aud_rate=self.aud_rate, aud_chunk=self.aud_chunk, aud_channels=self.aud_channels)
