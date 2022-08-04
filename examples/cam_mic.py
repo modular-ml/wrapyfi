@@ -49,36 +49,32 @@ class CamMic(MiddlewareCommunicator):
         self.img_width = img_width
         self.img_height = img_height
 
-        if "audio" in stream:
-            self.enable_audio = True
-        else:
-            self.enable_audio = False
-        if "video" in stream:
-            self.vid_cap = cv2.VideoCapture(img_source)
-            self.enable_video = True
-        else:
-            self.vid_cap = None
-            self.enable_video = False
+        self.enable_audio = "audio" in stream
+        self.enable_video = self.vid_cap = "video" in stream
 
-    @MiddlewareCommunicator.register("Image", "yarp", "CamMic", "/cam_mic/cam_feed",
-                                     carrier="", width="$img_width", height="$img_height", rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "CamMic", "/cam_mic/cam_feed", carrier="", width="$img_width", height="$img_height", rgb=True)
     def collect_cam(self, img_width=320, img_height=240):
-        if self.vid_cap.isOpened():
-            # capture the video stream from the webcam
+        if self.vid_cap is True:
+            self.vid_cap = cv2.VideoCapture(self.img_source)
+            if img_width > 0 and img_height > 0:
+                self.vid_cap.set(cv2.CAP_PROP_FRAME_WIDTH, img_width)
+                self.vid_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, img_height)
+            if not self.vid_cap.isOpened():
+                self.vid_cap.release()
+                self.vid_cap = False
+        if self.vid_cap:
             grabbed, img = self.vid_cap.read()
-            
-            if not grabbed:
-                print("video not grabbed")
-                img = np.random.random((img_width, img_height, 3)) * 255
+            if grabbed:
+                print("Video frame grabbed")
             else:
-                print("video grabbed")
+                print("Video frame not grabbed")
+                img = np.random.randint(256, size=(img_height, img_width, 3), dtype=np.uint8)
         else:
-            print("video capturer not opened")
-            img = np.random.random((img_width, img_height, 3)) * 255
+            print("Video capturer not opened")
+            img = np.random.randint(256, size=(img_height, img_width, 3), dtype=np.uint8)
         return img,
 
-    @MiddlewareCommunicator.register("AudioChunk", "yarp", "CamMic", "/cam_mic/audio_feed",
-                                     carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels")
+    @MiddlewareCommunicator.register("AudioChunk", "yarp", "CamMic", "/cam_mic/audio_feed", carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels")
     def collect_mic(self, aud=None, aud_rate=44100, aud_chunk=int(44100/5), aud_channels=1):
         aud = aud, aud_rate
         return aud,
@@ -100,7 +96,7 @@ class CamMic(MiddlewareCommunicator):
         print(audio.flatten(), audio.min(), audio.mean(), audio.max())
 
     def __del__(self):
-        if self.vid_cap:
+        if not isinstance(self.vid_cap, bool):
             self.vid_cap.release()
 
 
