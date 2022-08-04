@@ -19,32 +19,34 @@ Run:
 
 """
 
-class Notify(MiddlewareCommunicator):
-
-    @MiddlewareCommunicator.register("NativeObject", "yarp", "Notify", "/notify/test_native_bottle_exchange", carrier="", should_wait=True, load_torch_device='cpu')
-    def exchange_object(self, msg):
-        ret = [{"message": msg,
-                "tensor": torch.ones((2, 4), device='cpu'),
-                "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": torch.zeros((2, 3), device='cuda')}]
-        return ret,
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
+    parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros"}, help="The middleware to use for transmission")
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
+
+    class Notify(MiddlewareCommunicator):
+
+        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange", carrier="", should_wait=True, load_torch_device='cpu')
+        def exchange_object(self, msg):
+            ret = [{"message": msg,
+                    "tensor": torch.ones((2, 4), device='cpu'),
+                    "set": {'a', 1, None},
+                    "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": torch.zeros((2, 3), device='cuda')}]
+            return ret,
 
     notify = Notify()
 
     if args.mode == "publish":
         notify.activate_communication(Notify.exchange_object, mode="publish")
         while True:
-            notify.exchange_object(input("Type your message: "))
+            msg_object, = notify.exchange_object(input("Type your message: "))
+            print("Method result:", msg_object)
     elif args.mode == "listen":
         notify.activate_communication(Notify.exchange_object, mode="listen")
         while True:
-            obj = notify.exchange_object(None)
-            if obj and obj[0] is not None:
-                print(obj)
+            msg_object, = notify.exchange_object(None)
+            print("Method result:", msg_object)

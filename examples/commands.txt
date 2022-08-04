@@ -3,6 +3,7 @@ Commands for Running Examples
 
 # Leave running in a separate terminal before running any example
 yarpserver
+roscore
 
 # Run first in every new terminal that you open (adjust paths!)
 cd ~/Code/wrapify && conda activate yarp && export PYTHONPATH=~/Code/wrapify:/opt/ros/noetic/lib/python3/dist-packages
@@ -14,20 +15,20 @@ kill -SIGTERM %1
 -----------------------------------------------------------------------------------------
 
 # Run hello world example
-python3 examples/hello_world.py --publish
-python3 examples/hello_world.py --listen
+python3 examples/hello_world.py --publish  [--mware ros]
+python3 examples/hello_world.py --listen  [--mware ros]
 
 # Run encapsulation example
-python3 examples/encapsulation.py --publish
-python3 examples/encapsulation.py --listen
+python3 examples/encapsulation.py --publish  [--mware ros]
+python3 examples/encapsulation.py --listen  [--mware ros]
 
 # Run object notify example
-python3 examples/object_notify.py --mode publish
-python3 examples/object_notify.py --mode listen
+python3 examples/object_notify.py --mode publish  [--mware ros]
+python3 examples/object_notify.py --mode listen  [--mware ros]
 
 # Run torch tensor example
-python3 examples/torch_tensor.py --mode publish
-python3 examples/torch_tensor.py --mode listen
+python3 examples/torch_tensor.py --mode publish  [--mware ros]
+python3 examples/torch_tensor.py --mode listen  [--mware ros]
 
 # Run camera example
 python3 examples/cam_mic.py --mode publish --stream video --img-source 0
