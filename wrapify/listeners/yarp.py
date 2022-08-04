@@ -176,12 +176,7 @@ class YarpNativeObjectListener(YarpListener):
                 time.sleep(0.005)
             else:
                 break
-        if obj is not None:
-            iobj = obj.get(0).asString()
-            iobj = json.loads(iobj, object_hook=self._json_object_hook)
-        else:
-            iobj = None
-        return iobj
+        return json.loads(obj.get(0).asString(), object_hook=self._json_object_hook) if obj is not None else None
 
 
 @Listeners.register("Properties", "yarp")
