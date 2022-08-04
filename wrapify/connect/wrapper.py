@@ -83,9 +83,8 @@ class MiddlewareCommunicator(object):
                 # publishes the functions returns
                 elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
                     if "wrapped_executor" not in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
-                        cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
                         # instantiate the publishers
-                        for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
+                        for communicator in reversed(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(
@@ -113,9 +112,8 @@ class MiddlewareCommunicator(object):
                 # listens to the publisher and returns the messages
                 elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "listen":
                     if "wrapped_executor" not in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
-                        cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
                         # instantiate the listeners
-                        for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
+                        for communicator in reversed(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
