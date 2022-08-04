@@ -1,5 +1,6 @@
 import json
 import time
+import numpy as np
 import cv2
 import yarp
 
@@ -25,10 +26,8 @@ class YarpPublisher(Publisher):
 
 @Publishers.register("Image", "yarp")
 class YarpImagePublisher(YarpPublisher):
-    """
-    The ImagePublisher using the BufferedPortImage construct assuming a cv2 image as an input
-    """
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=320, height=240, rgb=True, **kwargs):
+
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
         """
         Initializing the ImagePublisher
         :param name: Name of the publisher
@@ -37,38 +36,42 @@ class YarpImagePublisher(YarpPublisher):
         :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
         :param width: Image width
         :param height: Image height
-        :param rgb: Transmits an RGB unsigned int image when "True". Transmits a float when "False"
+        :param rgb: Transmits an RGB image when "True", or mono image when "False"
+        :param fp: Transmits 32-bit floating point image when "True", or 8-bit integer image when "False"
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
         self.width = width
         self.height = height
         self.rgb = rgb
-        self._port = self._netconnect = None
+        self.fp = fp
+        self._port = self._type = self._netconnect = None
         PublisherWatchDog().add_publisher(self)
 
     def establish(self):
         if self.rgb:
-            self._port = yarp.BufferedPortImageRgb()
-            self._port.open(self.out_port)
-            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+            self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
         else:
-            self._port = yarp.BufferedPortImageFloat()
-            self._port.open(self.out_port)
-            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+            self._port = yarp.BufferedPortImageFloat() if self.fp else yarp.BufferedPortImageMono()
+        self._type = np.float32 if self.fp else np.uint8
+        self._port.open(self.out_port)
+        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
         self.await_connection(self._port)
         self.established = True
 
     def publish(self, img):
         """
         Publish the image
-        :param img: The cv2 image (img_width, img_height, channels)
+        :param img: The cv2 image (img_height, img_width, channels)
         :return: None
         """
         if not self.established:
             self.establish()
-        img = cv2.resize(img, dsize=(self.width, self.height), interpolation=cv2.INTER_CUBIC)
-        oimg = self._port.prepare()
-        oimg.setExternal(img.data, img.shape[1], img.shape[0])
+        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+            raise ValueError("Incorrect image shape for publisher")
+        img = np.require(img, dtype=self._type, requirements='C')
+        yarp_img = self._port.prepare()
+        yarp_img.resize(img.shape[1], img.shape[0])
+        yarp_img.setExternal(img, img.shape[1], img.shape[0])
         self._port.write()
 
     def close(self):
@@ -100,8 +103,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :param rate: Sampling rate of the audio signal
         :param chunk: Size of the chunk in samples. Transmits 1 second when chunk=rate
         """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect,
-                         width=chunk, height=channels, rgb=False)
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, width=chunk, height=channels, rgb=False, fp=True)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
