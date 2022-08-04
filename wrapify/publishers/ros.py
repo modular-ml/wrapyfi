@@ -1,4 +1,5 @@
 import json
+import time
 import rospy
 import std_msgs.msg
 
@@ -14,6 +15,14 @@ class ROSPublisher(Publisher):
         ROSMiddleware.activate()
         self.queue_size = queue_size
 
+    def await_connection(self, publisher, out_port=None):
+        if out_port is None:
+            out_port = self.out_port
+        print("Waiting for topic subscriber:", out_port)
+        while publisher.get_num_connections() < 1:
+            time.sleep(0.02)
+        print("Topic subscriber connected:", out_port)
+
 
 @Publishers.register("NativeObject", "ros")
 class ROSNativeObjectPublisher(ROSPublisher):
@@ -25,6 +34,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
 
     def establish(self):
         self._publisher = rospy.Publisher(self.out_port, std_msgs.msg.String, queue_size=self.queue_size)
+        self.await_connection(self._publisher)
         self.established = True
 
     def publish(self, obj):
