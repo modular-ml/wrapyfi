@@ -61,7 +61,7 @@ class YarpImagePublisher(YarpPublisher):
         img = cv2.resize(img, dsize=(self.width, self.height), interpolation=cv2.INTER_CUBIC)
         oimg = self._port.prepare()
         oimg.setExternal(img.data, img.shape[1], img.shape[0])
-        self._port.write()
+        self._port.write(forceStrict=True)
 
     def close(self):
         """
@@ -125,7 +125,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         if aud is not None:
             oaud = self._port.prepare()
             oaud.setExternal(aud.data, self.chunk if self.chunk != -1 else oaud.shape[1], self.channels)
-            self._port.write()
+            self._port.write(forceStrict=True)
             self._dummy_port.write(self._dummy_sound)
 
 
@@ -162,7 +162,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
         oobj = self._port.prepare()
         oobj.clear()
         oobj.addString(obj)
-        self._port.write()
+        self._port.write(forceStrict=True)
 
 
 @Publishers.register("Properties", "yarp")
