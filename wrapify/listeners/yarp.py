@@ -34,7 +34,6 @@ class YarpImageListener(YarpListener):
             self._port = yarp.BufferedPortImageRgb()
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port.open(self.in_port + ":in" + rnd_id)
-            self._port.setStrict()
             self._netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
             if self.height != -1 and self.width != -1:
                 self._iarray = np.zeros((self.height, self.width, 3), dtype=np.uint8)
@@ -43,7 +42,6 @@ class YarpImageListener(YarpListener):
             self._port = yarp.BufferedPortImageFloat()
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port.open(self.in_port + ":in" + rnd_id)
-            self._port.setStrict()
             self._netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
             if self.height != -1 and self.width != -1:
                 self._iarray = np.zeros((self.height, self.width), dtype=np.float32)
@@ -163,7 +161,6 @@ class YarpNativeObjectListener(YarpListener):
         self._port = yarp.BufferedPortBottle()
         rnd_id = str(np.random.randint(100000, size=1)[0])
         self._port.open(self.in_port + ":in" + rnd_id)
-        self._port.setStrict()
         self._netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
         self.established = True
 
