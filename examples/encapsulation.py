@@ -26,6 +26,7 @@ encapsulator = Encapsulator()
 encapsulator.activate_communication(Encapsulator.encapsulating_send_message, mode=args.mode)
 encapsulator.activate_communication(Encapsulator.encapsulated_modify_message, mode=args.mode)
 
+encapsulator.encapsulated_modify_message('')
 while True:
     my_message, = encapsulator.encapsulating_send_message()
     print("Method result:", my_message["message"])
