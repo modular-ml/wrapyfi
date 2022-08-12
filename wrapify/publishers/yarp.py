@@ -1,7 +1,6 @@
 import json
 import time
 import numpy as np
-import cv2
 import yarp
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
@@ -22,6 +21,41 @@ class YarpPublisher(Publisher):
         while port.getOutputCount() < 1:
             time.sleep(0.02)
         print("Output connection established:", out_port)
+
+
+@Publishers.register("NativeObject", "yarp")
+class YarpNativeObjectPublisher(YarpPublisher):
+    """
+        The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
+        and numpy arrays as input
+        """
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
+        """
+        Initializing the NativeObjectPublisher
+        :param name: Name of the publisher
+        :param out_port: The published port name preceded by "/"
+        :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
+        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
+        """
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        self._port = self._netconnect = None
+        PublisherWatchDog().add_publisher(self)
+
+    def establish(self):
+        self._port = yarp.BufferedPortBottle()
+        self._port.open(self.out_port)
+        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+        self.await_connection(self._port)
+        self.established = True
+
+    def publish(self, obj):
+        if not self.established:
+            self.establish()
+        obj = json.dumps(obj, cls=JsonEncoder)
+        oobj = self._port.prepare()
+        oobj.clear()
+        oobj.addString(obj)
+        self._port.write()
 
 
 @Publishers.register("Image", "yarp")
@@ -138,43 +172,9 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._dummy_port.write(self._dummy_sound)
 
 
-@Publishers.register("NativeObject", "yarp")
-class YarpNativeObjectPublisher(YarpPublisher):
-    """
-        The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
-        and numpy arrays as input
-        """
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
-        """
-        Initializing the NativeObjectPublisher
-        :param name: Name of the publisher
-        :param out_port: The published port name preceded by "/"
-        :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
-        """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
-        self._port = self._netconnect = None
-        PublisherWatchDog().add_publisher(self)
-
-    def establish(self):
-        self._port = yarp.BufferedPortBottle()
-        self._port.open(self.out_port)
-        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
-        self.await_connection(self._port)
-        self.established = True
-
-    def publish(self, obj):
-        if not self.established:
-            self.establish()
-        obj = json.dumps(obj, cls=JsonEncoder)
-        oobj = self._port.prepare()
-        oobj.clear()
-        oobj.addString(obj)
-        self._port.write()
-
-
 @Publishers.register("Properties", "yarp")
 class YarpPropertiesPublisher(YarpPublisher):
+
     def __init__(self, name, out_port, **kwargs):
         super().__init__(name, out_port, **kwargs)
         raise NotImplementedError

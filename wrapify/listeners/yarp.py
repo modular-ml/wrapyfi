@@ -31,6 +31,33 @@ class YarpListener(Listener):
                 return obj
 
 
+@Listeners.register("NativeObject", "yarp")
+class YarpNativeObjectListener(YarpListener):
+
+    def __init__(self, name, in_port, carrier="", should_wait=True, load_torch_device=None):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
+        self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
+        self._port = self._netconnect = None
+        ListenerWatchDog().add_listener(self)
+
+    def establish(self):
+        print("Waiting for input port:", self.in_port)
+        while not yarp.Network.exists(self.in_port):
+            time.sleep(0.2)
+        print("Connected to input port:", self.in_port)
+        self._port = yarp.BufferedPortBottle()
+        rnd_id = str(np.random.randint(100000, size=1)[0])
+        self._port.open(self.in_port + ":in" + rnd_id)
+        self._netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
+        self.established = True
+
+    def listen(self):
+        if not self.established:
+            self.establish()
+        obj = self.read_port(self._port)
+        return json.loads(obj.get(0).asString(), object_hook=self._json_object_hook) if obj is not None else None
+
+
 @Listeners.register("Image", "yarp")
 class YarpImageListener(YarpListener):
 
@@ -112,33 +139,6 @@ class YarpAudioChunkListener(YarpImageListener):
         if not self.established:
             self.establish()
         return self._listener(), self.rate
-
-
-@Listeners.register("NativeObject", "yarp")
-class YarpNativeObjectListener(YarpListener):
-
-    def __init__(self, name, in_port, carrier="", should_wait=True, load_torch_device=None):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
-        self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
-        self._port = self._netconnect = None
-        ListenerWatchDog().add_listener(self)
-
-    def establish(self):
-        print("Waiting for input port:", self.in_port)
-        while not yarp.Network.exists(self.in_port):
-            time.sleep(0.2)
-        print("Connected to input port:", self.in_port)
-        self._port = yarp.BufferedPortBottle()
-        rnd_id = str(np.random.randint(100000, size=1)[0])
-        self._port.open(self.in_port + ":in" + rnd_id)
-        self._netconnect = yarp.Network.connect(self.in_port, self.in_port + ":in" + rnd_id, self.carrier)
-        self.established = True
-
-    def listen(self):
-        if not self.established:
-            self.establish()
-        obj = self.read_port(self._port)
-        return json.loads(obj.get(0).asString(), object_hook=self._json_object_hook) if obj is not None else None
 
 
 @Listeners.register("Properties", "yarp")
