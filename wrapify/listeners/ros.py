@@ -103,8 +103,33 @@ class ROSAudioChunkListener(ROSListener):
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
-        raise NotImplementedError  # TODO: Adapt ImageListener implementation for Audio chunk (chunk is expected length of array, channels is width)
+        self._subscriber = self._queue = None
         ListenerWatchDog().add_listener(self)
+
+    def establish(self):
+        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
+        self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
+        self.established = True
+
+    def listen(self):
+        if not self.established:
+            self.establish()
+        try:
+            chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+            if encoding != '32FC1':
+                raise ValueError("Incorrect encoding for listener")
+            elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+                raise ValueError("Incorrect audio shape for listener")
+            aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape((chunk, channels))
+            return aud, self.rate
+        except queue.Empty:
+            return None, self.rate
+
+    def _message_callback(self, data):
+        try:
+            self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+        except queue.Full:
+            print(f"Discarding data because listener queue is full: {self.in_port}")
 
 
 @Listeners.register("Properties", "ros")
