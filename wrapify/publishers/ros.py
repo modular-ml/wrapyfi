@@ -56,16 +56,17 @@ class ROSImagePublisher(ROSPublisher):
         self.height = height
         self.rgb = rgb
         self.fp = fp
-        self._publisher = self._type = None
         if self.fp:
             self._encoding = '32FC3' if self.rgb else '32FC1'
+            self._type = np.float32
         else:
             self._encoding = 'bgr8' if self.rgb else 'mono8'
+            self._type = np.uint8
+        self._publisher = None
         PublisherWatchDog().add_publisher(self)
 
     def establish(self):
         self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
-        self._type = np.float32 if self.fp else np.uint8
         self.await_connection(self._publisher)
         self.established = True
 

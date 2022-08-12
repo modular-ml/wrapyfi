@@ -57,17 +57,19 @@ class ROSImageListener(ROSListener):
         self.height = height
         self.rgb = rgb
         self.fp = fp
-        self._subscriber = self._type = self._queue = None
         if self.fp:
             self._encoding = '32FC3' if self.rgb else '32FC1'
+            self._type = np.float32
         else:
             self._encoding = 'bgr8' if self.rgb else 'mono8'
+            self._type = np.uint8
+        self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
+        self._subscriber = self._queue = None
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
-        self._type = np.float32 if self.fp else np.uint8
         self.established = True
 
     def listen(self):
@@ -75,12 +77,14 @@ class ROSImageListener(ROSListener):
             self.establish()
         try:
             height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            # TODO: Check height width against expected
-            # TODO: Check encoding against expected
-            # TODO: Check data length against expected
-            # TODO: Convert data to numpy array of required dtype/shape, respecting is_bigendian (required only for fp=true)
-            # TODO: Return numpy image
-            raise NotImplementedError
+            if encoding != self._encoding:
+                raise ValueError("Incorrect encoding for listener")
+            elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                raise ValueError("Incorrect image shape for listener")
+            img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
+            if img.shape[2] == 1:
+                img = img.squeeze(axis=2)
+            return img
         except queue.Empty:
             return None
 
