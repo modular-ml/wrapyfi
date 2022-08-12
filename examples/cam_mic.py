@@ -68,7 +68,7 @@ if __name__ == "__main__":
             self.enable_audio = "audio" in stream
             self.enable_video = self.vid_cap = "video" in stream
 
-        @MiddlewareCommunicator.register("Image", args.mware, "CamMic", "/cam_mic/cam_feed", carrier="", width="$img_width", height="$img_height", rgb=True)
+        @MiddlewareCommunicator.register("Image", args.mware, "CamMic", "/cam_mic/cam_feed", carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10)
         def collect_cam(self, img_width=320, img_height=240):
             if self.vid_cap is True:
                 self.vid_cap = cv2.VideoCapture(self.img_source)

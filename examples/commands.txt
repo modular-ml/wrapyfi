@@ -31,9 +31,9 @@ python3 examples/torch_tensor.py --mode publish  [--mware ros]
 python3 examples/torch_tensor.py --mode listen  [--mware ros]
 
 # Run camera example
-python3 examples/cam_mic.py --mode publish --stream video --img-source 0
-python3 examples/cam_mic.py --mode listen --stream video
+python3 examples/cam_mic.py --mode publish --stream video --img-source 0  [--mware ros]
+python3 examples/cam_mic.py --mode listen --stream video  [--mware ros]
 
 # Run audio example
-python3 examples/cam_mic.py --mode publish --stream audio --aud-source 0
-python3 examples/cam_mic.py --mode listen --stream audio
+python3 examples/cam_mic.py --mode publish --stream audio --aud-source 0  [--mware ros]
+python3 examples/cam_mic.py --mode listen --stream audio  [--mware ros]
