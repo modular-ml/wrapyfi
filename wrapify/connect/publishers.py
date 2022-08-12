@@ -46,7 +46,6 @@ class Publisher(object):
         self.out_port = out_port
         self.carrier = carrier
         self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
-
         self.established = False
 
     def establish(self, **kwargs):

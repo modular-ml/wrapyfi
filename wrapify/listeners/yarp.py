@@ -10,8 +10,8 @@ from wrapify.utils import JsonDecodeHook
 
 class YarpListener(Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
+    def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         YarpMiddleware.activate()
 
     def await_connection(self, port=None):
@@ -34,8 +34,8 @@ class YarpListener(Listener):
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(YarpListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, load_torch_device=None):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
+    def __init__(self, name, in_port, carrier="", should_wait=True, load_torch_device=None, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
         self._port = self._netconnect = None
         ListenerWatchDog().add_listener(self)
@@ -61,8 +61,8 @@ class YarpNativeObjectListener(YarpListener):
 @Listeners.register("Image", "yarp")
 class YarpImageListener(YarpListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, width=-1, height=-1, rgb=True, fp=False):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait)
+    def __init__(self, name, in_port, carrier="", should_wait=True, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -111,8 +111,8 @@ class YarpImageListener(YarpListener):
 
 @Listeners.register("AudioChunk", "yarp")
 class YarpAudioChunkListener(YarpImageListener):
-    def __init__(self, name, in_port, carrier="", should_wait=True, channels=1, rate=44100, chunk=-1):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True)
+    def __init__(self, name, in_port, carrier="", should_wait=True, channels=1, rate=44100, chunk=-1, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -143,6 +143,7 @@ class YarpAudioChunkListener(YarpImageListener):
 
 @Listeners.register("Properties", "yarp")
 class YarpPropertiesListener(YarpListener):
+
     def __init__(self, name, in_port, **kwargs):
         super().__init__(name, in_port, **kwargs)
         raise NotImplementedError
