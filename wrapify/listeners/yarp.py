@@ -41,10 +41,7 @@ class YarpNativeObjectListener(YarpListener):
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
-        print("Waiting for input port:", self.in_port)
-        while not yarp.Network.exists(self.in_port):
-            time.sleep(0.2)
-        print("Connected to input port:", self.in_port)
+        self.await_connection()
         self._port = yarp.BufferedPortBottle()
         rnd_id = str(np.random.randint(100000, size=1)[0])
         self._port.open(self.in_port + ":in" + rnd_id)
@@ -111,6 +108,7 @@ class YarpImageListener(YarpListener):
 
 @Listeners.register("AudioChunk", "yarp")
 class YarpAudioChunkListener(YarpImageListener):
+
     def __init__(self, name, in_port, carrier="", should_wait=True, channels=1, rate=44100, chunk=-1, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
         self.channels = channels
@@ -121,24 +119,25 @@ class YarpAudioChunkListener(YarpImageListener):
 
     def establish(self):
         self.await_connection(port=self.in_port + "_SND")
-        if self.channels == -1 or self.rate == -1 or self.chunk == -1:
-            # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
-            rnd_id = str(np.random.randint(100000, size=1)[0])
-            self._dummy_port = yarp.Port()
-            self._dummy_port.open(self.in_port + "_SND:in" + rnd_id)
-            self._dummy_netconnect = yarp.Network.connect(self.in_port + "_SND", self.in_port + "_SND:in" + rnd_id, self.carrier)
-            self._dummy_sound = yarp.Sound()
-            self.rate = self._dummy_sound.getFrequency()
-            self.chunk = self._dummy_sound.getSamples()
-            self.channels = self._dummy_sound.getChannels()
-            self.width = self.chunk
-            self.height = self.channels
+        # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
+        rnd_id = str(np.random.randint(100000, size=1)[0])
+        self._dummy_port = yarp.Port()
+        self._dummy_port.open(self.in_port + "_SND:in" + rnd_id)
+        self._dummy_netconnect = yarp.Network.connect(self.in_port + "_SND", self.in_port + "_SND:in" + rnd_id, self.carrier)
         super(YarpAudioChunkListener, self).establish()
+        self._dummy_sound = yarp.Sound()
+        self._dummy_port.read(self._dummy_sound)
+        self.rate = self._dummy_sound.getFrequency()
+        self.width = self.chunk = self._dummy_sound.getSamples()
+        self.height = self.channels = self._dummy_sound.getChannels()
 
     def listen(self):
-        if not self.established:
-            self.establish()
-        return self._listener(), self.rate
+        return super().listen(), self.rate
+
+    def close(self):
+        super().close()
+        if self._dummy_port:
+            self._dummy_port.close()
 
 
 @Listeners.register("Properties", "yarp")

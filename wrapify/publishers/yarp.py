@@ -141,7 +141,6 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
-
         self._dummy_sound = self._dummy_port = self._dummy_netconnect = None
         PublisherWatchDog().add_publisher(self)
 
@@ -155,6 +154,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         self._dummy_sound.resize(self.chunk, self.channels)
         self.await_connection(self._dummy_port, out_port=self.out_port + "_SND")
         super(YarpAudioChunkPublisher, self).establish()
+        self._dummy_port.write(self._dummy_sound)
 
     def publish(self, aud):
         """
@@ -169,7 +169,11 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             oaud = self._port.prepare()
             oaud.setExternal(aud.data, self.chunk if self.chunk != -1 else oaud.shape[1], self.channels)
             self._port.write()
-            self._dummy_port.write(self._dummy_sound)
+
+    def close(self):
+        super().close()
+        if self._dummy_port:
+            self._dummy_port.close()
 
 
 @Publishers.register("Properties", "yarp")
