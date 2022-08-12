@@ -126,9 +126,9 @@ if __name__ == "__main__":
         cam_mic.activate_communication(CamMic.collect_mic, mode="listen")
         while True:
             if "audio" in args.stream:
-                aud, = cam_mic.collect_mic(aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)
+                (aud, aud_rate), = cam_mic.collect_mic(aud_rate=args.aud_rate, aud_chunk=args.aud_chunk, aud_channels=args.aud_channels)
             else:
-                aud = None
+                aud = aud_rate = None
             if "video" in args.stream:
                 img, = cam_mic.collect_cam(img_source=args.img_source, img_width=args.img_width, img_height=args.img_height)
             else:
@@ -137,6 +137,6 @@ if __name__ == "__main__":
                 cv2.imshow("Received image", img)
                 cv2.waitKey(1)
             if aud is not None:
-                print(aud)
-                sd.play(aud[0].flatten(), samplerate=aud[1])
+                print(aud.flatten(), aud.min(), aud.mean(), aud.max())
+                sd.play(aud.flatten(), samplerate=aud_rate)
                 sd.wait(1)
