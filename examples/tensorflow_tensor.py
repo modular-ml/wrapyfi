@@ -1,23 +1,24 @@
 import argparse
-import numpy as np
+import tensorflow
 
 from wrapify.connect.wrapper import MiddlewareCommunicator
 
 """
-A message publisher and listener for native python objects and numpy arrays
+A message publisher and listener for tensorflow tensors
 
-Here we demonstrate 
+Here we demonstrate
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim numpy arrays
+2. Transmit a nested dummy python object with native objects and multidim tensorflow tensors
 3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 object_notify.py --mode publish
+    python3 tensorflow_tensor.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 object_notify.py --mode listen
+    python3 tensorflow_tensor.py --mode listen
 
 """
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -25,17 +26,18 @@ def parse_args():
     parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros"}, help="The middleware to use for transmission")
     return parser.parse_args()
 
+
 if __name__ == "__main__":
     args = parse_args()
 
     class Notify(MiddlewareCommunicator):
 
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange", carrier="", should_wait=True)
+        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
+                                         carrier="", should_wait=True)
         def exchange_object(self, msg):
-            ret = [{"message": msg,
-                    "numpy": np.ones((2, 4)),
-                    "set": {'a', 1, None},
-                    "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": np.zeros((2, 3))}]
+            ret = {"message": msg,
+                   "tf_ones": tensorflow.ones((2, 4)),
+                   "tf_string": tensorflow.constant("This is string")}
             return ret,
 
     notify = Notify()

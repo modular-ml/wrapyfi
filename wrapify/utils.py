@@ -10,6 +10,12 @@ try:
 except ImportError:
     HAVE_TORCH = False
 
+try:
+    import tensorflow
+    HAVE_TENSORFLOW = True
+except ImportError:
+    HAVE_TENSORFLOW = False
+
 lock = threading.Lock()
 
 
@@ -91,8 +97,15 @@ class JsonEncoder(json.JSONEncoder):
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
             return dict(__wrapify__=('torch.Tensor', obj_data))
 
+        elif HAVE_TENSORFLOW and isinstance(obj, tensorflow.Tensor):
+            with io.BytesIO() as memfile:
+                np.save(memfile, obj.numpy())
+                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            return dict(__wrapify__=('tensorflow.Tensor', obj_data))
+
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
+
 
 class JsonDecodeHook:
 
@@ -116,5 +129,9 @@ class JsonDecodeHook:
                 elif HAVE_TORCH and obj_type == 'torch.Tensor':
                     with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
                         return torch.load(memfile, map_location=self.torch_device)
+
+                elif HAVE_TENSORFLOW and obj_type == 'tensorflow.Tensor':
+                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
+                        return tensorflow.convert_to_tensor(np.load(memfile))
 
         return obj

@@ -1,21 +1,21 @@
 import argparse
-import torch
+import numpy as np
 
 from wrapify.connect.wrapper import MiddlewareCommunicator
 
 """
-A message publisher and listener for torch tensors
+A message publisher and listener for native python objects and numpy arrays
 
-Here we demonstrate
+Here we demonstrate 
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim torch tensors
+2. Transmit a nested dummy python object with native objects and multidim numpy arrays
 3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 torch_tensor.py --mode publish
+    python3 numpy_arrays.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 torch_tensor.py --mode listen
+    python3 numpy_arrays.py --mode listen
 
 """
 
@@ -32,12 +32,12 @@ if __name__ == "__main__":
 
     class Notify(MiddlewareCommunicator):
 
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="", should_wait=True, load_torch_device='cpu')
+        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange", carrier="", should_wait=True)
         def exchange_object(self, msg):
-            ret = {"message": msg,
-                   "torch_ones": torch.ones((2, 4), device='cpu'),
-                   "torch_zeros_cuda": torch.zeros((2, 3), device='cuda')}
+            ret = [{"message": msg,
+                    "numpy": np.ones((2, 4)),
+                    "set": {'a', 1, None},
+                    "list": [[[3, 4, 5.677890, 1.2]]]}, "some", "arbitrary", 0.4344, {"other": np.zeros((2, 3))}]
             return ret,
 
     notify = Notify()

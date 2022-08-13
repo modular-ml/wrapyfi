@@ -4,21 +4,23 @@ Wrapify is a middleware communication wrapper for transmitting data across nodes
 alter the operation pipeline of your python scripts. Wrapify introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
-Wrapify is currently compatible with the[Yarp python bindings](https://www.yarp.it/yarp_swig.html) package only, but can be extended to support other middleware
-platforms.
+Wrapify supports [Yarp](https://www.yarp.it/yarp_swig.html) and [ROS](http://wiki.ros.org/rospy).
 
 To Wrapify a class, simply add the decorators describing the publisher and listener parameters. Wrapify imposes an object-oriented
 requirement on your coding style: All wrapify compatible functions need to be defined within a class. 
 
 ## Installation
 
-Before using Wrapify, Yarp must be installed. Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
+Before using Wrapify, Yarp or ROS must be installed. Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
 Note that the iCub package is not needed for Wrapify to work and does not have to be installed if you do not intend on using the iCub robot.
+For installation of ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
+We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
 
 #### compatibility
 * Python >= 3.6
-* Yarp >= v3.3.2 
 * OpenCV >= 4.2
+* Yarp >= v3.3.2 
+* ROS Noetic Ninjemys
 
 To install Warpify:
 
@@ -107,7 +109,15 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 
 # TODO
 Visit the issues section for more details 
-* [ ] **Support ROS**
-* [ ] **Support encapsulating wrapped calls to publishers and listeners**
+* [x] **Support ROS**
+* [ ] **Support ROS 2**
+* [ ] **Support ZeroMQ**
+* [x] **Support Pytorch**
+* [x] **Support Tensorflow 2**
+* [x] **Support Keras (TF 2)**
+* [ ] **Support Pandas dataframes**
+* [ ] **Support Image formats: tensorflow, Pytorch, Scikit Image, ImageIO and Pillow**
+* [ ] **Support msgpack as a serialization format**
+* [x] **Support encapsulating wrapped calls to publishers and listeners**
 * [ ] **Support wrapping for module functions**
 * [ ] **Support multiple class instances for functions set to publish**
