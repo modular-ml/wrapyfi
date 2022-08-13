@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name             = 'wrapify',
-    version          = '0.1',
+    version          = '0.2',
     description      = 'Wrapify is a wrapper for simplifying Middleware communication',
     url              = 'https://git.informatik.uni-hamburg.de/abawi/wrapify/',
     author           = 'Fares Abawi',
