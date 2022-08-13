@@ -69,7 +69,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         self._ienc.getEncoders(self._encs.data())
 
         # control the listening properties from within the app
-        self.activate_communication("receive_images", "listen")
+        self.activate_communication(ICub.receive_images, "listen")
 
     def reset_gaze(self):
         """
@@ -108,12 +108,9 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         self._curr_head = list(head)
         self._curr_eyes = list(eyes)
 
-    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam",
-                                     carrier="", width=320, height=240, rgb=True)
-    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_left",
-                                     carrier="", width=320, height=240, rgb=True)
-    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_right",
-                                     carrier="", width=320, height=240, rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam", carrier="", width=320, height=240, rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_left", carrier="", width=320, height=240, rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_right", carrier="", width=320, height=240, rgb=True)
     def receive_images(self, port_cam, port_cam_left, port_cam_right):
         external_cam, left_cam, right_cam = None, None, None
         return external_cam, left_cam, right_cam

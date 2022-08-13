@@ -1,5 +1,21 @@
+import io
 import json
+import base64
 import threading
+import numpy as np
+
+try:
+    import torch
+    HAVE_TORCH = True
+except ImportError:
+    HAVE_TORCH = False
+
+try:
+    import tensorflow
+    HAVE_TENSORFLOW = True
+except ImportError:
+    HAVE_TENSORFLOW = False
+
 lock = threading.Lock()
 
 
@@ -30,19 +46,20 @@ def match_args(args, kwargs, src_args, src_kwargs):
         elif isinstance(kwarg_val, str) and "$" in kwarg_val and not kwarg_val[1:].isdigit():
             new_kwargs[kwarg_key] = src_kwargs[kwarg_val[1:]]
         else:
-            new_kwargs[kwarg_key] =  kwarg_val
+            new_kwargs[kwarg_key] = kwarg_val
     return tuple(new_args), new_kwargs
 
 
 def dynamic_module_import(modules, globals):
-    import importlib
     for module_name in modules:
         if not module_name.endswith(".py") or module_name.endswith("__.py"):
             continue
         module_name = module_name[:-3]
         module_name = module_name.replace("/", ".")
-        module = __import__(module_name, fromlist=['*'])
-        # importlib.import_module(module_name)
+        try:
+            module = __import__(module_name, fromlist=['*'])
+        except ImportError:
+            continue
         if hasattr(module, '__all__'):
             all_names = module.__all__
         else:
@@ -52,6 +69,7 @@ def dynamic_module_import(modules, globals):
 
 class SingletonOptimized(type):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             with lock:
@@ -60,59 +78,60 @@ class SingletonOptimized(type):
         return cls._instances[cls]
 
 
-# code adapted from: https://stackoverflow.com/a/27948073
 class JsonEncoder(json.JSONEncoder):
-    def __init__(self, *args, **kwargs):
-        super(JsonEncoder, self).__init__(*args, **kwargs)
 
     def default(self, obj):
-        """
-        if input object is a ndarray it will be converted into a dict holding dtype, shape and the data base64 encoded
-        """
-        import base64
-        import numpy as np
-        if isinstance(obj, np.ndarray):
-            data_b64 = base64.b64encode(obj.data).decode()
-            return dict(__ndarray__=data_b64,
-                        dtype=str(obj.dtype),
-                        shape=obj.shape)
+
+        if isinstance(obj, set):
+            return dict(__wrapify__=('set', list(obj)))
+
+        elif isinstance(obj, np.ndarray):
+            with io.BytesIO() as memfile:
+                np.save(memfile, obj)
+                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            return dict(__wrapify__=('numpy.ndarray', obj_data))
+
+        elif HAVE_TORCH and isinstance(obj, torch.Tensor):
+            with io.BytesIO() as memfile:
+                torch.save(obj, memfile)
+                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            return dict(__wrapify__=('torch.Tensor', obj_data))
+
+        elif HAVE_TENSORFLOW and isinstance(obj, tensorflow.Tensor):
+            with io.BytesIO() as memfile:
+                np.save(memfile, obj.numpy())
+                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            return dict(__wrapify__=('tensorflow.Tensor', obj_data))
 
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
-    @staticmethod
-    def json_numpy_obj_hook(dct):
-        """
-        Decodes a previously encoded numpy ndarray
-        with proper shape and dtype
-        :param dct: (dict) json encoded ndarray
-        :return: (ndarray) if input was an encoded ndarray
-        """
-        import base64
-        import numpy as np
 
-        if isinstance(dct, dict) and '__ndarray__' in dct:
-            data = base64.b64decode(dct['__ndarray__'])
-            return np.frombuffer(data, dct['dtype']).reshape(dct['shape'])
-        return dct
+class JsonDecodeHook:
 
-    # Overload dump/load to default use this behavior.
-    @staticmethod
-    def dumps(*args, **kwargs):
-        kwargs.setdefault('cls', JsonEncoder)
-        return json.dumps(*args, **kwargs)
+    def __init__(self, torch_device=None):
+        self.torch_device = torch_device
 
-    @staticmethod
-    def loads(*args, **kwargs):
-        kwargs.setdefault('object_hook', JsonEncoder.json_numpy_obj_hook)
-        return json.loads(*args, **kwargs)
+    def object_hook(self, obj):
 
-    @staticmethod
-    def dump(*args, **kwargs):
-        kwargs.setdefault('cls', JsonEncoder)
-        return json.dump(*args, **kwargs)
+        if isinstance(obj, dict):
+            wrapify = obj.get('__wrapify__', None)
+            if wrapify is not None:
+                obj_type = wrapify[0]
 
-    @staticmethod
-    def load(*args, **kwargs):
-        kwargs.setdefault('object_hook', JsonEncoder.json_numpy_obj_hook)
-        return json.load(*args, **kwargs)
+                if obj_type == 'set':
+                    return set(wrapify[1])
+
+                elif obj_type == 'numpy.ndarray':
+                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
+                        return np.load(memfile)
+
+                elif HAVE_TORCH and obj_type == 'torch.Tensor':
+                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
+                        return torch.load(memfile, map_location=self.torch_device)
+
+                elif HAVE_TENSORFLOW and obj_type == 'tensorflow.Tensor':
+                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
+                        return tensorflow.convert_to_tensor(np.load(memfile))
+
+        return obj

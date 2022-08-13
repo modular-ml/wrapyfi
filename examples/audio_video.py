@@ -61,6 +61,7 @@ class CamMic(MiddlewareCommunicator):
             self.vid_cap = cv2.VideoCapture(img_source)
             self.enable_video = True
         else:
+            self.vid_cap = None
             self.enable_video = False
 
         self.last_img = None
@@ -95,7 +96,7 @@ class CamMic(MiddlewareCommunicator):
     def capture_cam_mic(self):
         if self.enable_audio:
             # capture the audio stream from the microphone
-            with sd.InputStream(device=self.aud_source, channels=self.aud_channels, callback=self.__mic_callback__,
+            with sd.InputStream(device=self.aud_source, channels=self.aud_channels, callback=self._mic_callback,
                             blocksize=self.aud_chunk,
                             samplerate=self.aud_rate):
                 while True:
@@ -104,13 +105,14 @@ class CamMic(MiddlewareCommunicator):
             while True:
                 self.collect_cam()
 
-    def __mic_callback__(self, audio, frames, time, status):
+    def _mic_callback(self, audio, frames, time, status):
         if self.enable_video:
             self.collect_cam(img_width=self.img_width, img_height=self.img_height)
         self.collect_mic(audio, aud_rate=self.aud_rate, aud_chunk=self.aud_chunk, aud_channels=self.aud_channels)
 
-    def __del__(self, exc_type, exc_val, exc_tb):
-        self.vid_cap.release()
+    def __del__(self):
+        if self.vid_cap:
+            self.vid_cap.release()
 
  
 def parse_args():
@@ -155,12 +157,12 @@ if __name__ == "__main__":
                                             aud_port=args.aud_port, aud_port_connect=args.aud_port_connect)
 
     if args.mode == "publish":
-        cam_mic.activate_communication("collect_cam", mode="publish")
-        cam_mic.activate_communication("collect_mic", mode="publish")
+        cam_mic.activate_communication(CamMic.collect_cam, mode="publish")
+        cam_mic.activate_communication(CamMic.collect_mic, mode="publish")
         cam_mic.capture_cam_mic()
     if args.mode == "listen":
-        cam_mic.activate_communication("collect_cam", mode="listen")
-        cam_mic.activate_communication("collect_mic", mode="listen")
+        cam_mic.activate_communication(CamMic.collect_cam, mode="listen")
+        cam_mic.activate_communication(CamMic.collect_mic, mode="listen")
 
         while True:
             if "audio" in args.stream:
