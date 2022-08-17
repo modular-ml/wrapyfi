@@ -75,7 +75,7 @@ from wrapify.connect.wrapper import MiddlewareCommunicator
 
 
 class HelloWorld(MiddlewareCommunicator):
-    @MiddlewareCommunicator.register("NativeObject", 
+    @MiddlewareCommunicator.register("NativeObject", "Yarp",
                                      "HelloWorld", 
                                      "/hello/my_message", 
                                      carrier="", should_wait=True)
@@ -89,7 +89,7 @@ hello_world = HelloWorld()
 
 LISTEN = True
 mode = "listen" if LISTEN else "publish"
-hello_world.activate_communication("send_message", mode=mode)
+hello_world.activate_communication(hello_world.send_message, mode=mode)
 
 while True:
     my_message, = hello_world.send_message()
