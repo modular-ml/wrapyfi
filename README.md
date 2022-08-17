@@ -75,7 +75,7 @@ from wrapify.connect.wrapper import MiddlewareCommunicator
 
 
 class HelloWorld(MiddlewareCommunicator):
-    @MiddlewareCommunicator.register("NativeObject", "Yarp",
+    @MiddlewareCommunicator.register("NativeObject", "yarp",
                                      "HelloWorld", 
                                      "/hello/my_message", 
                                      carrier="", should_wait=True)
