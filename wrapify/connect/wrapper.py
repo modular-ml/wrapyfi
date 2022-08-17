@@ -19,7 +19,7 @@ class MiddlewareCommunicator(object):
                 self.activate_communication(getattr(self.__class__, key), mode=value)
 
     @classmethod
-    def register(cls, data_type, middleware, *args, **kwargs):
+    def register(cls, data_type, middleware=DEFAULT_COMMUNICATOR, *args, **kwargs):
         def encapsulate(func):
             # define the communication message type (single element)
             if isinstance(data_type, str):
@@ -66,25 +66,26 @@ class MiddlewareCommunicator(object):
 
             @wraps(func)
             def wrapper(*wds, **kwds):  # Triggers on calling the function
-
-                instance_address = hex(id(wds[0]))
-                instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPIFY_INSTANCES"].index(instance_address) + 1
-                instance_id = "." + str(instance_id) if instance_id > 1 else ""
-
-                kwd = get_default_args(func)
-                kwd.update(kwds)
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["args"] = wds
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["kwargs"] = kwd
-
                 # execute the function as usual
-                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
+                if cls._MiddlewareCommunicator__registry[func.__qualname__]["mode"] is None:
                     return func(*wds, **kwds)
+                else:
+                    instance_address = hex(id(wds[0]))
+                    instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPIFY_INSTANCES"].index(instance_address) + 1
+                    instance_id = "." + str(instance_id) if instance_id > 1 else ""
+
+                    kwd = get_default_args(func)
+                    kwd.update(kwds)
+                    cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["args"] = wds
+                    cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["kwargs"] = kwd
+
 
                 # publishes the functions returns
-                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
+                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
                     if "wrapped_executor" not in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
                         # instantiate the publishers
-                        for communicator in reversed(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
+                        cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
+                        for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(
@@ -113,7 +114,8 @@ class MiddlewareCommunicator(object):
                 elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "listen":
                     if "wrapped_executor" not in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
                         # instantiate the listeners
-                        for communicator in reversed(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
+                        cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
+                        for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
