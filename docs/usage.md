@@ -22,7 +22,7 @@ class TheClass(MiddlewareCommunicator)
 
 
 the_class = TheClass()
-the_class.activate_communication("encapsulated_func", mode="publish")
+the_class.activate_communication(the_class.encapsulated_func, mode="publish")
 while True:
     the_class.encapsulating_func(...)
 ```
@@ -34,7 +34,7 @@ functions for a given class, it should inherit the `MiddlewareCommunicator`. Any
 The `<Data structure type>` is the publisher/listener type for a given function's return. The supported data
 types are listed in the [publishers and listeners](#publishers-and-listeners) section.
 
-The `<Communicator>` defines the communication medium e.g.: `yarp` or `ros2`.
+The `<Communicator>` defines the communication medium e.g.: `yarp` or `ros`.
 
 The `<Class name>` serves no purpose in the current Wrapify version, but has been left for future support of module-level decoration, 
 where the functions don't belong to a class, and must therefore have a unique identifier for declaration in the 
@@ -98,9 +98,26 @@ This is useful when running the same script on multiple machines, where one is s
 ## Publishers and Listeners
 
 The publishers and listeners of the same message type should have identical constructor signatures. The current Wrapify version supports
-4 types of messages (Yarp compatible only):
+4 types of messages 
+
+(Yarp):
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
-* **NativeObject**: Transmits a `json` string supporting all native python objects and `numpy` arrays using `yarp.BufferedPortBottle`
+* **NativeObject**: Transmits a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-formats) using `yarp.BufferedPortBottle`
 * **Properties**: Transmits properties [*coming soon*]
+
+(ROS):
+
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `rospy sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `rospy sensor_messages.msg.Image`
+* **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `rospy std_msgs.msg.String`
+* **Properties**: Transmits properties [*coming soon*]
+
+## Data Formats
+
+Other than native python objects, the following objects are supported:
+
+* `numpy.ndarray`
+* `torch.Tensor`
+* `tensorflow.Tensor` and `tensorflow.EagerTensor`

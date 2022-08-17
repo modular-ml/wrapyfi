@@ -75,7 +75,7 @@ from wrapify.connect.wrapper import MiddlewareCommunicator
 
 
 class HelloWorld(MiddlewareCommunicator):
-    @MiddlewareCommunicator.register("NativeObject", 
+    @MiddlewareCommunicator.register("NativeObject", "yarp",
                                      "HelloWorld", 
                                      "/hello/my_message", 
                                      carrier="", should_wait=True)
@@ -89,7 +89,7 @@ hello_world = HelloWorld()
 
 LISTEN = True
 mode = "listen" if LISTEN else "publish"
-hello_world.activate_communication("send_message", mode=mode)
+hello_world.activate_communication(hello_world.send_message, mode=mode)
 
 while True:
     my_message, = hello_world.send_message()
@@ -114,7 +114,7 @@ Visit the issues section for more details
 * [ ] **Support ZeroMQ**
 * [x] **Support Pytorch**
 * [x] **Support Tensorflow 2**
-* [x] **Support Keras (TF 2)**
+* [ ] ~~Support Keras (TF 2)~~
 * [ ] **Support Pandas dataframes**
 * [ ] **Support Image formats: tensorflow, Pytorch, Scikit Image, ImageIO and Pillow**
 * [ ] **Support msgpack as a serialization format**
