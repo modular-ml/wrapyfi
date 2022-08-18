@@ -14,13 +14,25 @@ class YarpPublisher(Publisher):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         YarpMiddleware.activate()
 
-    def await_connection(self, port, out_port=None):
+    def await_connection(self, port, out_port=None, repeats=None):
+        connected = False
         if out_port is None:
             out_port = self.out_port
         print("Waiting for output connection:", out_port)
-        while port.getOutputCount() < 1:
-            time.sleep(0.02)
+        if repeats is None:
+            if self.should_wait:
+                repeats = -1
+            else:
+                repeats = 1
+            while repeats > 0 or repeats <= -1:
+                repeats -= 1
+                connected = port.getOutputCount() < 1
+                if connected:
+                    break
+                time.sleep(0.02)
         print("Output connection established:", out_port)
+        return connected
+
 
 
 @Publishers.register("NativeObject", "yarp")
@@ -39,18 +51,23 @@ class YarpNativeObjectPublisher(YarpPublisher):
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         self._port = self._netconnect = None
-        PublisherWatchDog().add_publisher(self)
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
 
-    def establish(self):
+    def establish(self, repeats=None, **kwargs):
         self._port = yarp.BufferedPortBottle()
         self._port.open(self.out_port)
         self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
-        self.await_connection(self._port)
-        self.established = True
+        established = self.await_connection(self._port, repeats=repeats)
+        return self.check_establishment(established)
 
     def publish(self, obj):
         if not self.established:
-            self.establish()
+            established = self.establish()
+            if not established:
+                return
+            else:
+                time.sleep(0.2)
         obj = json.dumps(obj, cls=JsonEncoder)
         oobj = self._port.prepare()
         oobj.clear()
@@ -79,9 +96,10 @@ class YarpImagePublisher(YarpPublisher):
         self.rgb = rgb
         self.fp = fp
         self._port = self._type = self._netconnect = None
-        PublisherWatchDog().add_publisher(self)
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
 
-    def establish(self):
+    def establish(self, repeats=None, **kwargs):
         if self.rgb:
             self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
         else:
@@ -89,8 +107,8 @@ class YarpImagePublisher(YarpPublisher):
         self._type = np.float32 if self.fp else np.uint8
         self._port.open(self.out_port)
         self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
-        self.await_connection(self._port)
-        self.established = True
+        established = self.await_connection(self._port, repeats=repeats)
+        return self.check_establishment(established)
 
     def publish(self, img):
         """
@@ -99,7 +117,11 @@ class YarpImagePublisher(YarpPublisher):
         :return: None
         """
         if not self.established:
-            self.establish()
+            established = self.establish()
+            if not established:
+                return
+            else:
+                time.sleep(0.2)
         if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
@@ -142,9 +164,10 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         self.rate = rate
         self.chunk = chunk
         self._dummy_sound = self._dummy_port = self._dummy_netconnect = None
-        PublisherWatchDog().add_publisher(self)
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
 
-    def establish(self):
+    def establish(self, repeats=None, **kwargs):
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
         self._dummy_port = yarp.Port()
         self._dummy_port.open(self.out_port + "_SND")
@@ -152,9 +175,11 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         self._dummy_sound = yarp.Sound()
         self._dummy_sound.setFrequency(self.rate)
         self._dummy_sound.resize(self.chunk, self.channels)
-        self.await_connection(self._dummy_port, out_port=self.out_port + "_SND")
-        super(YarpAudioChunkPublisher, self).establish()
-        self._dummy_port.write(self._dummy_sound)
+        established = self.await_connection(self._dummy_port, out_port=self.out_port + "_SND")
+        if established:
+            super(YarpAudioChunkPublisher, self).establish(repeats=repeats)
+            self._dummy_port.write(self._dummy_sound)
+        return self.check_establishment(established)
 
     def publish(self, aud):
         """
@@ -163,7 +188,11 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :return: None
         """
         if not self.established:
-            self.establish()
+            established = self.establish()
+            if not established:
+                return
+            else:
+                time.sleep(0.2)
         aud, _ = aud
         if aud is not None:
             oaud = self._port.prepare()
