@@ -20,7 +20,7 @@ class YarpListener(Listener):
         connected = False
         if port is None:
             port = self.in_port
-        logging.info("Waiting for input port:", port)
+        logging.info(f"Waiting for input port: {port}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -31,7 +31,7 @@ class YarpListener(Listener):
                 repeats -= 1
                 connected = yarp.Network.exists(port)
                 if connected:
-                    logging.info("Connected to input port:", port)
+                    logging.info(f"Connected to input port: {port}")
                     break
                 time.sleep(0.2)
         return connected
