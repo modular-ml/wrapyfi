@@ -1,5 +1,7 @@
+import logging
 import json
 import time
+
 import numpy as np
 import yarp
 
@@ -18,7 +20,7 @@ class YarpPublisher(Publisher):
         connected = False
         if out_port is None:
             out_port = self.out_port
-        print("Waiting for output connection:", out_port)
+        logging.info(f"Waiting for output connection: {out_port}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -30,9 +32,8 @@ class YarpPublisher(Publisher):
                 if connected:
                     break
                 time.sleep(0.02)
-        print("Output connection established:", out_port)
+        logging.info(f"Output connection established: {out_port}")
         return connected
-
 
 
 @Publishers.register("NativeObject", "yarp")

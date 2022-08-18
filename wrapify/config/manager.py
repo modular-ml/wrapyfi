@@ -1,4 +1,5 @@
 import yaml
+import logging
 
 from wrapify.utils import SingletonOptimized
 
@@ -14,10 +15,10 @@ class ConfigManager(metaclass=SingletonOptimized):
         """
         if isinstance(config, str):
             self.config = self.__loadfile__(config)
-            print("loaded configuration", self.config)
+            logging.info(f"Loaded Wrapify configuration: {self.config}")
         elif isinstance(config, dict):
             self.config = config
-            print("loaded configuration", self.config)
+            logging.info(f"Loaded Wrapify configuration: {self.config}")
         else:
             self.config = []
 

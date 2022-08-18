@@ -1,6 +1,8 @@
+import logging
 import sys
 import json
 import time
+
 import numpy as np
 import rospy
 import std_msgs.msg
@@ -22,7 +24,7 @@ class ROSPublisher(Publisher):
         connected = False
         if out_port is None:
             out_port = self.out_port
-        print("Waiting for topic subscriber:", out_port)
+        logging.info(f"Waiting for topic subscriber: {out_port}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -34,7 +36,7 @@ class ROSPublisher(Publisher):
                 if connected:
                     break
                 time.sleep(0.02)
-        print("Topic subscriber connected:", out_port)
+        logging.info(f"Topic subscriber connected: {out_port}")
         return connected
 
 
