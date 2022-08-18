@@ -33,9 +33,9 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="", should_wait=False, load_torch_device='cpu')
+                                         carrier="", should_wait=True, load_torch_device='cpu')
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange2",
-                                         carrier="", should_wait=False, load_torch_device='cpu')
+                                         carrier="", should_wait=True, load_torch_device='cpu')
         def exchange_object(self, msg):
             ret = {"message": msg,
                    "torch_ones": torch.ones((2, 4), device='cpu'),
