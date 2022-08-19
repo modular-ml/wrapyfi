@@ -1,5 +1,7 @@
 import json
+import logging
 import queue
+
 import numpy as np
 import rospy
 import std_msgs.msg
@@ -45,7 +47,7 @@ class ROSNativeObjectListener(ROSListener):
         try:
             self._queue.put(data.data, block=False)
         except queue.Full:
-            print(f"Discarding data because listener queue is full: {self.in_port}")
+            logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
 @Listeners.register("Image", "ros")
@@ -92,7 +94,7 @@ class ROSImageListener(ROSListener):
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
-            print(f"Discarding data because listener queue is full: {self.in_port}")
+            logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
 @Listeners.register("AudioChunk", "ros")
@@ -129,7 +131,7 @@ class ROSAudioChunkListener(ROSListener):
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
-            print(f"Discarding data because listener queue is full: {self.in_port}")
+            logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
 @Listeners.register("Properties", "ros")

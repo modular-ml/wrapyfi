@@ -103,7 +103,7 @@ class Warholify(MiddlewareCommunicator):
         else:
             return img
 
-    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/darken_bg", carrier="tcp", width="$img_width", height="$img_height", rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/darken_bg", carrier="mcast", width="$img_width", height="$img_height", rgb=True, should_wait=False)
     def darken_bg(self, img, color, img_width, img_height):
         img = self.cv2_to_pil(img)
         # composite image on top of a single-color image, effectively turning all transparent parts to that color
@@ -112,7 +112,7 @@ class Warholify(MiddlewareCommunicator):
         masked_img = self.pil_to_cv2(masked_img)
         return masked_img,
 
-    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/color_bg_fg", carrier="tcp", width="$img_width", height="$img_height", rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/color_bg_fg", carrier="mcast", width="$img_width", height="$img_height", rgb=True, should_wait=False)
     def color_bg_fg(self, img, bg_color, fg_color, img_width, img_height):
         img = self.cv2_to_pil(img)
         # change transparent background to bg_color and change everything non-transparent to fg_color
@@ -122,11 +122,11 @@ class Warholify(MiddlewareCommunicator):
         masked_img = self.pil_to_cv2(masked_img)
         return masked_img,
 
-    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/white_to_color", carrier="tcp", width="$img_width", height="$img_height", rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/white_to_color", carrier="mcast", width="$img_width", height="$img_height", rgb=True, should_wait=False)
     def white_to_color(self, img, color, img_width, img_height):
         img = self.cv2_to_pil(img).convert('RGBA')
         # change all colors close to white and non-transparent (alpha > 0) to be color
-        threshold = 50
+        threshold = 20
         dist = 10
         arr = np.array(np.asarray(img))
         r, g, b, a = np.rollaxis(arr, axis=-1)
@@ -146,18 +146,22 @@ class Warholify(MiddlewareCommunicator):
     def make_warhol_single(self, img, bg_color, fg_color, skin_color):
         # create a single warhol-serigraph-style image
         bg_fg_layer, = self.color_bg_fg(img, bg_color, fg_color, img_width=img.size[0], img_height=img.size[1])
-        bg_fg_layer = self.cv2_to_pil(bg_fg_layer).convert('RGBA')
+        if bg_fg_layer is not None:
+            bg_fg_layer = self.cv2_to_pil(bg_fg_layer).convert('RGBA')
         temp_dark_image, = self.darken_bg(img, (0, 0, 0, 255), img_width=img.size[0], img_height=img.size[1])
-        temp_dark_image = self.cv2_to_pil(temp_dark_image).convert('RGBA')
-        skin_mask, = self.white_to_color(temp_dark_image, (0, 0, 0, 0), img_width=temp_dark_image.size[0], img_height=temp_dark_image.size[1])
-        skin_mask = self.cv2_to_pil(skin_mask).convert('RGBA')
+        skin_mask = None
+        if temp_dark_image is not None:
+            temp_dark_image = self.cv2_to_pil(temp_dark_image).convert('RGBA')
+            skin_mask, = self.white_to_color(temp_dark_image, (0, 0, 0, 0), img_width=temp_dark_image.size[0], img_height=temp_dark_image.size[1])
+        if skin_mask is not None:
+            skin_mask = self.cv2_to_pil(skin_mask).convert('RGBA')
 
         skin_layer = Image.new('RGBA', img.size, skin_color)
         out = Image.composite(bg_fg_layer, skin_layer, skin_mask)
         return out
 
-    @MiddlewareCommunicator.register([["Image", "yarp", "Warholify", "/vid_warhol/warhol_" + str(x), {"carrier": "tcp", "width": "$img_width", "height": "$img_height"}] for x in range(9)])
-    @MiddlewareCommunicator.register("Image", "Warholify", "/vid_warhol/warhol_combined", carrier="tcp", width="$img_width", height="$img_height")
+    @MiddlewareCommunicator.register([["Image", "yarp", "Warholify", "/vid_warhol/warhol_" + str(x), {"carrier": "mcast", "width": "$img_width", "height": "$img_height", "should_wait": False}] for x in range(9)])
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/warhol_combined", carrier="mcast", width="$img_width", height="$img_height", should_wait=False)
     def combine_to_one(self, warhols, img_width, img_height):
         warhols_new = []
         for warhol in warhols:
@@ -195,7 +199,7 @@ class Warholify(MiddlewareCommunicator):
 
         return blank_img
 
-    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/feed", carrier="tcp", width="$img_width", height="$img_height")
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/feed", carrier="mcast", width="$img_width", height="$img_height", should_wait=False)
     def capture_vid(self, img_width, img_height):
         if self.vid_cap is None:
             self.vid_cap = cv2.VideoCapture(self.vid_src)
@@ -215,7 +219,7 @@ class Warholify(MiddlewareCommunicator):
             return img
 
 
-    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/final_img", carrier="tcp", width="$img_width", height="$img_height", rgb=True)
+    @MiddlewareCommunicator.register("Image", "yarp", "Warholify", "/vid_warhol/final_img", carrier="mcast", width="$img_width", height="$img_height", rgb=True, should_wait=False)
     def display(self, img, img_width, img_height):
         cv2.imshow("Warhol", img)
         cv2.waitKey(1)
@@ -234,7 +238,7 @@ class Warholify(MiddlewareCommunicator):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg-file", type=str, default="vid_warhol_cfg1.yml",
+    parser.add_argument("--cfg-file", type=str,
                         help="The transmission mode configuration file")
     parser.add_argument("--vid-src", default=0,
                         help="The video source. A string indicating a filename or an integer indicating the device id")
@@ -245,7 +249,8 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    print(args.cfg_file)
-    ConfigManager(args.cfg_file)
+    if args.cfg_file:
+        print(args.cfg_file)
+        ConfigManager(args.cfg_file)
     warholify = Warholify(vid_src=args.vid_src, img_width=args.img_width, img_height=args.img_height)
     warholify.run()

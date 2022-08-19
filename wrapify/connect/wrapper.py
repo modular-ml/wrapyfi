@@ -19,23 +19,19 @@ class MiddlewareCommunicator(object):
                 self.activate_communication(getattr(self.__class__, key), mode=value)
 
     @classmethod
-    def register(cls, data_type, middleware, *args, **kwargs):
+    def register(cls, data_type, middleware=DEFAULT_COMMUNICATOR, *args, **kwargs):
         def encapsulate(func):
             # define the communication message type (single element)
             if isinstance(data_type, str):
                 return_func_type = data_type + ":" + middleware
-                return_func_listen = lsn.Listeners.registry[return_func_type]
-                return_func_publish = pub.Publishers.registry[return_func_type]
                 return_func_args = args
                 return_func_kwargs = kwargs
 
             # define the communication message type (list for single return). NOTE: supports 1 layer depth only
             elif isinstance(data_type, list):
-                return_func_listen, return_func_publish, return_func_args, return_func_kwargs, return_func_type = [], [], [], [], []
+                return_func_args, return_func_kwargs, return_func_type = [], [], []
                 for arg in data_type:
                     data_spec = arg[0] + ":" + arg[1]
-                    return_func_listen.append(lsn.Listeners.registry[data_spec])
-                    return_func_publish.append(pub.Publishers.registry[data_spec])
                     return_func_args.append([a for a in arg[2:] if not isinstance(a, dict)])
                     return_func_kwargs.append(*[a for a in arg[2:] if isinstance(a, dict)])
                     return_func_type.append(data_spec)
@@ -50,15 +46,11 @@ class MiddlewareCommunicator(object):
             func_qualname = func.__qualname__
             if func_qualname in cls.__registry:
                 cls.__registry[func_qualname]["communicator"].append({
-                    "return_func_listen": return_func_listen,
-                    "return_func_publish": return_func_publish,
                     "return_func_args": return_func_args,
                     "return_func_kwargs": return_func_kwargs,
                     "return_func_type": return_func_type})
             else:
                 cls.__registry[func_qualname] = {"communicator": [{
-                    "return_func_listen": return_func_listen,
-                    "return_func_publish": return_func_publish,
                     "return_func_args": return_func_args,
                     "return_func_kwargs": return_func_kwargs,
                     "return_func_type": return_func_type}]}
@@ -66,6 +58,9 @@ class MiddlewareCommunicator(object):
 
             @wraps(func)
             def wrapper(*wds, **kwds):  # Triggers on calling the function
+                # execute the function as usual
+                if cls._MiddlewareCommunicator__registry[func.__qualname__]["mode"] is None:
+                    return func(*wds, **kwds)
 
                 instance_address = hex(id(wds[0]))
                 instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPIFY_INSTANCES"].index(instance_address) + 1
@@ -76,12 +71,8 @@ class MiddlewareCommunicator(object):
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["args"] = wds
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["kwargs"] = kwd
 
-                # execute the function as usual
-                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
-                    return func(*wds, **kwds)
-
                 # publishes the functions returns
-                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
+                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
                     if "wrapped_executor" not in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
                         # instantiate the publishers
                         cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
@@ -90,14 +81,15 @@ class MiddlewareCommunicator(object):
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(
                                     communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
-                                communicator["wrapped_executor"] = communicator["return_func_publish"](*new_args, **new_kwargs)
+
+                                communicator["wrapped_executor"] = pub.Publishers.registry[communicator["return_func_type"]](*new_args, **new_kwargs)
                             # list for single return
                             elif isinstance(communicator["return_func_type"], list):
                                 communicator["wrapped_executor"] = []
                                 for comm_idx in range(len(communicator["return_func_type"])):
                                     new_args, new_kwargs = match_args(
                                         communicator["return_func_args"][comm_idx], communicator["return_func_kwargs"][comm_idx], wds[1:], kwd)
-                                    communicator["wrapped_executor"].append(communicator["return_func_publish"][comm_idx](*new_args, **new_kwargs))
+                                    communicator["wrapped_executor"].append(pub.Publishers.registry[communicator["return_func_type"][comm_idx]](*new_args, **new_kwargs))
                     returns = func(*wds, **kwds)
                     for ret_idx, ret in enumerate(returns):
                         wrp_exec = cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][ret_idx]["wrapped_executor"]
@@ -119,13 +111,13 @@ class MiddlewareCommunicator(object):
                             # single element
                             if isinstance(communicator["return_func_type"], str):
                                 new_args, new_kwargs = match_args(communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
-                                communicator["wrapped_executor"] = communicator["return_func_listen"](*new_args, **new_kwargs)
+                                communicator["wrapped_executor"] = lsn.Listeners.registry[communicator["return_func_type"]](*new_args, **new_kwargs)
                             # list for single return
                             elif isinstance(communicator["return_func_type"], list):
                                 communicator["wrapped_executor"] = []
                                 for comm_idx in range(len(communicator["return_func_type"])):
                                     new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx], communicator["return_func_kwargs"][comm_idx], wds[1:], kwd)
-                                    communicator["wrapped_executor"].append(communicator["return_func_listen"][comm_idx](*new_args, **new_kwargs))
+                                    communicator["wrapped_executor"].append(lsn.Listeners.registry[communicator["return_func_type"][comm_idx]](*new_args, **new_kwargs))
                     cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"] = []
                     for ret_idx in range(len(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"])):
                         wrp_exec = cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][ret_idx]["wrapped_executor"]
@@ -152,6 +144,8 @@ class MiddlewareCommunicator(object):
         return encapsulate
 
     def activate_communication(self, func, mode):
+        if isinstance(func, str):
+            func = getattr(self, func)
         entry = self.__registry.get(func.__qualname__, None)
         if entry is not None:
             instance_addr = hex(id(self))

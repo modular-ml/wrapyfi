@@ -6,16 +6,23 @@ from wrapify.utils import SingletonOptimized, dynamic_module_import
 
 # TODO (fabawi): The watch dog is not running yet. Relying on lazy listening for now
 class ListenerWatchDog(metaclass=SingletonOptimized):
-    def __init__(self):
+    def __init__(self, repeats=10, inner_repeats=10):
+        self.repeats = repeats
+        self.inner_repeats = inner_repeats
         self.listener_ring = []
 
     def add_listener(self, listener):
         self.listener_ring.append(listener)
 
+    def remove_listener(self, listener):
+        self.listener_ring.remove(listener)
+
     def scan(self):
-        while self.listener_ring:
+        repeats = self.repeats
+        while self.listener_ring and (repeats > 0 | repeats <= -1):
+            repeats -= 1
             for listener in self.listener_ring:
-                found_listener = listener.establish()
+                found_listener = listener.establish(repeats=self.inner_repeats)
                 if found_listener:
                     self.listener_ring.remove(listener)
 
@@ -46,7 +53,20 @@ class Listener(object):
         self.should_wait = should_wait
         self.established = False
 
-    def establish(self, **kwargs):
+    def check_establishment(self, established):
+        if established:
+            self.established = True
+            if not self.should_wait:
+                ListenerWatchDog().remove_listener(self)
+        elif not self.should_wait:
+            ListenerWatchDog().scan()
+            if self in ListenerWatchDog().listener_ring:
+                established = False
+            else:
+                established = True
+        return established
+
+    def establish(self, repeats=-1, **kwargs):
         raise NotImplementedError
 
     def listen(self):
