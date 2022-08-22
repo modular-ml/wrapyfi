@@ -48,11 +48,11 @@ if __name__ == "__main__":
     if args.mode == "publish":
         notify.activate_communication(Notify.exchange_object, mode="publish")
         while True:
-            msg_object, msg_str = notify.exchange_object(input("Type your message: "))
-            print("Method result:", msg_object, msg_str)
+            outputs = notify.exchange_object(input("Type your message: "))
+            print("Method result:", *outputs)
     elif args.mode == "listen":
         notify.activate_communication(Notify.exchange_object, mode="listen")
         while True:
-            msg_object, msg_str = notify.exchange_object(None)
-            if msg_object is not None:
-                print("Method result:", msg_object, msg_str)
+            outputs = notify.exchange_object(None)
+            if outputs[0] is not None:
+                print("Method result:", *outputs)
