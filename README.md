@@ -4,23 +4,26 @@ Wrapify is a middleware communication wrapper for transmitting data across nodes
 alter the operation pipeline of your python scripts. Wrapify introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
-Wrapify supports [Yarp](https://www.yarp.it/yarp_swig.html) and [ROS](http://wiki.ros.org/rospy).
+Wrapify supports [Yarp](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), and [ZeroMQ](http://zeromq.org/).
 
 To Wrapify a class, simply add the decorators describing the publisher and listener parameters. Wrapify imposes an object-oriented
 requirement on your coding style: All wrapify compatible functions need to be defined within a class. 
 
 ## Installation
 
-Before using Wrapify, Yarp or ROS must be installed. Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
+Before using Wrapify, Yarp, ROS, or ZeroMQ must be installed. Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
 Note that the iCub package is not needed for Wrapify to work and does not have to be installed if you do not intend on using the iCub robot.
 For installation of ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
 We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
+ZeroMQ can be installed using pip. ImageZMQ is required by Wrapify when using ZeroMQ as the middleware: `pip install imagezmq`.
 
 #### compatibility
 * Python >= 3.6
 * OpenCV >= 4.2
 * Yarp >= v3.3.2 
 * ROS Noetic Ninjemys
+* PyZMQ 16.0, 17.1 and 19.0
+* imageZMQ 1.1.1
 
 To install Warpify:
 
