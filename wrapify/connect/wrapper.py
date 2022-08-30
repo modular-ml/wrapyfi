@@ -58,9 +58,12 @@ class MiddlewareCommunicator(object):
 
             @wraps(func)
             def wrapper(*wds, **kwds):  # Triggers on calling the function
+                if hasattr(func, "__wrapped__"):
+                    return func(*wds, **kwds)
+
                 # execute the function as usual
                 if cls._MiddlewareCommunicator__registry[func.__qualname__]["mode"] is None:
-                    return func.__wrapped__(*wds, **kwds)
+                    return func(*wds, **kwds)
 
                 instance_address = hex(id(wds[0]))
                 instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPIFY_INSTANCES"].index(instance_address) + 1
@@ -90,7 +93,8 @@ class MiddlewareCommunicator(object):
                                     new_args, new_kwargs = match_args(
                                         communicator["return_func_args"][comm_idx], communicator["return_func_kwargs"][comm_idx], wds[1:], kwd)
                                     communicator["wrapped_executor"].append(pub.Publishers.registry[communicator["return_func_type"][comm_idx]](*new_args, **new_kwargs))
-                    returns = func.__wrapped__(*wds, **kwds)
+
+                    returns = func(*wds, **kwds)
                     for ret_idx, ret in enumerate(returns):
                         wrp_exec = cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][ret_idx]["wrapped_executor"]
                         # single element
