@@ -9,7 +9,7 @@ import sensor_msgs.msg
 
 from wrapify.connect.listeners import Listener, ListenerWatchDog, Listeners
 from wrapify.middlewares.ros import ROSMiddleware
-from wrapify.utils import JsonDecodeHook
+from wrapify.encoders import JsonDecodeHook
 
 
 class ROSListener(Listener):

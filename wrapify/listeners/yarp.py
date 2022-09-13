@@ -7,7 +7,7 @@ import yarp
 
 from wrapify.connect.listeners import Listener, ListenerWatchDog, Listeners
 from wrapify.middlewares.yarp import YarpMiddleware
-from wrapify.utils import JsonDecodeHook
+from wrapify.encoders import JsonDecodeHook
 
 
 class YarpListener(Listener):

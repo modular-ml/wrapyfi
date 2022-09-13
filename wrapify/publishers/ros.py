@@ -10,7 +10,7 @@ import sensor_msgs.msg
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapify.middlewares.ros import ROSMiddleware
-from wrapify.utils import JsonEncoder
+from wrapify.encoders import JsonEncoder
 
 
 class ROSPublisher(Publisher):
