@@ -34,25 +34,21 @@ if __name__ == "__main__":
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
                                          carrier="", should_wait=True, load_torch_device='cpu')
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange2",
-                                         carrier="", should_wait=True, load_torch_device='cpu')
         def exchange_object(self, msg):
             ret = {"message": msg,
                    "torch_ones": torch.ones((2, 4), device='cpu'),
                    "torch_zeros_cuda": torch.zeros((2, 3), device='cuda')}
-            str_ret = f"this is your message transmitted as a string {msg}"
-            return ret, str_ret
+            return ret,
 
     notify = Notify()
 
     if args.mode == "publish":
         notify.activate_communication(Notify.exchange_object, mode="publish")
         while True:
-            outputs = notify.exchange_object(input("Type your message: "))
-            print("Method result:", *outputs)
+            msg_object, = notify.exchange_object(input("Type your message: "))
+            print("Method result:", msg_object)
     elif args.mode == "listen":
         notify.activate_communication(Notify.exchange_object, mode="listen")
         while True:
-            outputs = notify.exchange_object(None)
-            if outputs[0] is not None:
-                print("Method result:", *outputs)
+            msg_object, = notify.exchange_object(None)
+            print("Method result:", msg_object)

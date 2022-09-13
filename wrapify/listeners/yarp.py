@@ -48,9 +48,9 @@ class YarpListener(Listener):
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(YarpListener):
 
-    def __init__(self, name, in_port, carrier="", load_torch_device=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", **kwargs):
         super().__init__(name, in_port, carrier=carrier, **kwargs)
-        self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
+        self._json_object_hook = JsonDecodeHook(**kwargs).object_hook
         self._port = self._netconnect = None
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)

@@ -16,6 +16,12 @@ try:
 except ImportError:
     HAVE_TENSORFLOW = False
 
+try:
+    import mxnet
+    HAVE_MXNET = True
+except ImportError:
+    HAVE_MXNET = False
+
 lock = threading.Lock()
 
 
@@ -103,14 +109,21 @@ class JsonEncoder(json.JSONEncoder):
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
             return dict(__wrapify__=('tensorflow.Tensor', obj_data))
 
+        elif HAVE_MXNET and isinstance(obj, mxnet.nd.NDArray):
+            with io.BytesIO() as memfile:
+                np.save(memfile, obj.asnumpy())
+                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            return dict(__wrapify__=('mxnet.Tensor', obj_data))
+
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
 
 class JsonDecodeHook:
 
-    def __init__(self, torch_device=None):
-        self.torch_device = torch_device
+    def __init__(self, load_torch_device=None, load_mxnet_device=None, **kwargs):
+        self.torch_device = load_torch_device
+        self.mxnet_device = load_mxnet_device
 
     def object_hook(self, obj):
 
@@ -133,5 +146,10 @@ class JsonDecodeHook:
                 elif HAVE_TENSORFLOW and obj_type == 'tensorflow.Tensor':
                     with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
                         return tensorflow.convert_to_tensor(np.load(memfile))
+
+
+                elif HAVE_TORCH and obj_type == 'mxnet.Tensor':
+                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
+                        return mxnet.nd.array(np.load(memfile), ctx=self.mxnet_device)
 
         return obj
