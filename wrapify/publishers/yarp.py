@@ -7,7 +7,7 @@ import yarp
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapify.middlewares.yarp import YarpMiddleware
-from wrapify.utils import JsonEncoder
+from wrapify.encoders import JsonEncoder
 
 
 class YarpPublisher(Publisher):

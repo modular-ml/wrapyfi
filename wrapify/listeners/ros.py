@@ -9,7 +9,7 @@ import sensor_msgs.msg
 
 from wrapify.connect.listeners import Listener, ListenerWatchDog, Listeners
 from wrapify.middlewares.ros import ROSMiddleware
-from wrapify.utils import JsonDecodeHook
+from wrapify.encoders import JsonDecodeHook
 
 
 class ROSListener(Listener):
@@ -23,9 +23,9 @@ class ROSListener(Listener):
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, load_torch_device=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
-        self._json_object_hook = JsonDecodeHook(torch_device=load_torch_device).object_hook
+        self._json_object_hook = JsonDecodeHook(**kwargs).object_hook
         self._subscriber = self._queue = None
         ListenerWatchDog().add_listener(self)
 

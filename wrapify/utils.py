@@ -1,20 +1,7 @@
-import io
-import json
-import base64
+import os
+from glob import glob
 import threading
-import numpy as np
 
-try:
-    import torch
-    HAVE_TORCH = True
-except ImportError:
-    HAVE_TORCH = False
-
-try:
-    import tensorflow
-    HAVE_TENSORFLOW = True
-except ImportError:
-    HAVE_TENSORFLOW = False
 
 lock = threading.Lock()
 
@@ -77,61 +64,26 @@ class SingletonOptimized(type):
                     cls._instances[cls] = super(SingletonOptimized, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+class Plugin(object):
+    def encode(self, *args, **kwargs):
+        raise NotImplementedError
 
-class JsonEncoder(json.JSONEncoder):
-
-    def default(self, obj):
-
-        if isinstance(obj, set):
-            return dict(__wrapify__=('set', list(obj)))
-
-        elif isinstance(obj, np.ndarray):
-            with io.BytesIO() as memfile:
-                np.save(memfile, obj)
-                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-            return dict(__wrapify__=('numpy.ndarray', obj_data))
-
-        elif HAVE_TORCH and isinstance(obj, torch.Tensor):
-            with io.BytesIO() as memfile:
-                torch.save(obj, memfile)
-                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-            return dict(__wrapify__=('torch.Tensor', obj_data))
-
-        elif HAVE_TENSORFLOW and isinstance(obj, tensorflow.Tensor):
-            with io.BytesIO() as memfile:
-                np.save(memfile, obj.numpy())
-                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-            return dict(__wrapify__=('tensorflow.Tensor', obj_data))
-
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
+    def decode(self, *args, **kwargs):
+        raise NotImplementedError
 
 
-class JsonDecodeHook:
+class PluginRegistrar(object):
+    registry = {}
 
-    def __init__(self, torch_device=None):
-        self.torch_device = torch_device
+    @staticmethod
+    def register(cls):
+        PluginRegistrar.registry[cls.__name__] = cls
+        return cls
 
-    def object_hook(self, obj):
+    @staticmethod
+    def scan():
+        # TODO (fabawi): also scan plugin directories in os env WRAPIFY_PLUGIN_PATHS
+        modules = glob(os.path.join(os.path.dirname(__file__), "plugins", "*.py"), recursive=True)
+        modules = ["wrapify.plugins." + module.replace(os.path.dirname(__file__) + "/plugins/", "") for module in modules]
+        dynamic_module_import(modules, globals())
 
-        if isinstance(obj, dict):
-            wrapify = obj.get('__wrapify__', None)
-            if wrapify is not None:
-                obj_type = wrapify[0]
-
-                if obj_type == 'set':
-                    return set(wrapify[1])
-
-                elif obj_type == 'numpy.ndarray':
-                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
-                        return np.load(memfile)
-
-                elif HAVE_TORCH and obj_type == 'torch.Tensor':
-                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
-                        return torch.load(memfile, map_location=self.torch_device)
-
-                elif HAVE_TENSORFLOW and obj_type == 'tensorflow.Tensor':
-                    with io.BytesIO(base64.b64decode(wrapify[1].encode('ascii'))) as memfile:
-                        return tensorflow.convert_to_tensor(np.load(memfile))
-
-        return obj
