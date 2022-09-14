@@ -8,7 +8,7 @@ import imagezmq
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapify.middlewares.zeromq import ZeroMQMiddleware
-from wrapify.utils import JsonEncoder
+from wrapify.encoders import JsonEncoder
 
 
 class ZeroMQPublisher(Publisher):
