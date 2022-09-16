@@ -39,9 +39,9 @@ class YarpPublisher(Publisher):
 @Publishers.register("NativeObject", "yarp")
 class YarpNativeObjectPublisher(YarpPublisher):
     """
-        The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
-        and numpy arrays as input
-        """
+    The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
+    and numpy arrays as input
+    """
     def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
         """
         Initializing the NativeObjectPublisher
