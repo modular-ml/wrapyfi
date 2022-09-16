@@ -9,10 +9,10 @@ from wrapify.utils import SingletonOptimized
 class ROSMiddleware(metaclass=SingletonOptimized):
 
     @staticmethod
-    def activate():
-        ROSMiddleware()
+    def activate(**kwargs):
+        ROSMiddleware(**kwargs)
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         logging.info("Initialising ROS middleware")
         rospy.init_node('wrapify', anonymous=True, disable_signals=True)
         atexit.register(self.deinit)

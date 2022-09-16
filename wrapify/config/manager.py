@@ -8,7 +8,7 @@ class ConfigManager(metaclass=SingletonOptimized):
     """
     The configuration manager is a singleton which is invoked once throughout the runtime
     """
-    def __init__(self, config):
+    def __init__(self, config, **kwargs):
         """
         Initializing the ConfigManager
         :param config: Loads a yaml configuration file when "str" type provided. Directly set when "dict" type provided

@@ -11,11 +11,18 @@ requirement on your coding style: All wrapify compatible functions need to be de
 
 ## Installation
 
-Before using Wrapify, Yarp, ROS, or ZeroMQ must be installed. Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
+Before using Wrapify, Yarp, ROS, or ZeroMQ must be installed. 
+
+Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
 Note that the iCub package is not needed for Wrapify to work and does not have to be installed if you do not intend on using the iCub robot.
-For installation of ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
+
+For the installation of ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
 We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
-ZeroMQ can be installed using pip. ImageZMQ is required by Wrapify when using ZeroMQ as the middleware: `pip install imagezmq`.
+
+ZeroMQ can be installed using pip. ImageZMQ is required by Wrapify when using ZeroMQ as the middleware: `pip install imagezmq`. 
+The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
+To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
+A standalone broker can be found [here](wrapify/standalone/zmq_proxy_broker.py)
 
 #### compatibility
 * Python >= 3.6
@@ -114,9 +121,10 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 Visit the issues section for more details 
 * [x] **Support ROS**
 * [ ] **Support ROS 2**
-* [ ] **Support ZeroMQ**
+* [x] **Support ZeroMQ** (TODO: image and audio chunk support; proper should_wait trigger instead of dummy)
 * [x] **Support Pytorch**
 * [x] **Support Tensorflow 2**
+* [x] **Support MXNet**
 * [ ] ~~Support Keras (TF 2)~~
 * [ ] **Support Pandas dataframes**
 * [ ] **Support Image formats: tensorflow, Pytorch, Scikit Image, ImageIO and Pillow**

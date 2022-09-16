@@ -23,7 +23,7 @@ Run:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
-    parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros"}, help="The middleware to use for transmission")
+    parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros", "zeromq"}, help="The middleware to use for transmission")
     return parser.parse_args()
 
 

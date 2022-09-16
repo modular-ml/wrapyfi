@@ -26,5 +26,5 @@ hello_world = ExampleClass()
 hello_world.activate_communication(ExampleClass.read_message, mode=args.mode)
 
 while True:
-    my_message, = hello_world.send_message()
+    my_message, = hello_world.read_message()
     print("Method result:", my_message["message"])
