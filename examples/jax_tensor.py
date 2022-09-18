@@ -1,7 +1,7 @@
 import argparse
 import jax.numpy as jnp
 
-from wrapify.connect.wrapper import MiddlewareCommunicator
+from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
 A message publisher and listener for Google JAX tensors
@@ -23,7 +23,7 @@ Run:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
-    parser.add_argument("--mware", type=str, default="yarp", choices=MiddlewareCommunicator.get_communicators(),
+    parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(),
                         help="The middleware to use for transmission")
     return parser.parse_args()
 
@@ -34,21 +34,17 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="", should_wait=True, load_torch_device='cpu')
-        def exchange_object(self, msg):
+                                         carrier="tcp", should_wait=True, load_torch_device='cpu')
+        def exchange_object(self):
+            msg = input("Type your message: ")
             ret = {"message": msg,
                    "jax_ones": jnp.ones((2, 4))}
             return ret,
 
     notify = Notify()
 
-    if args.mode == "publish":
-        notify.activate_communication(Notify.exchange_object, mode="publish")
-        while True:
-            msg_object, = notify.exchange_object(input("Type your message: "))
-            print("Method result:", msg_object)
-    elif args.mode == "listen":
-        notify.activate_communication(Notify.exchange_object, mode="listen")
-        while True:
-            msg_object, = notify.exchange_object(None)
-            print("Method result:", msg_object)
+    notify.activate_communication(Notify.exchange_object, mode=args.mode)
+    while True:
+        msg_object, = notify.exchange_object()
+        print("Method result:", msg_object)
+
