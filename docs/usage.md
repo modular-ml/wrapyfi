@@ -132,3 +132,4 @@ Other than native python objects, the following objects are supported:
 * `torch.Tensor`
 * `tensorflow.Tensor` and `tensorflow.EagerTensor`
 * `mxnet.nd.NDArray`
+* `jax.numpy.DeviceArray`

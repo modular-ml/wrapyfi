@@ -1,21 +1,21 @@
 import argparse
-import tensorflow
+import jax.numpy as jnp
 
 from wrapify.connect.wrapper import MiddlewareCommunicator
 
 """
-A message publisher and listener for tensorflow tensors
+A message publisher and listener for Google JAX tensors
 
 Here we demonstrate
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim tensorflow tensors
+2. Transmit a nested dummy python object with native objects and multidim torch tensors
 3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 tensorflow_tensor.py --mode publish
+    python3 jax_tensor.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 tensorflow_tensor.py --mode listen
+    python3 jax_tensor.py --mode listen
 
 """
 
@@ -34,11 +34,10 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="", should_wait=True)
+                                         carrier="", should_wait=True, load_torch_device='cpu')
         def exchange_object(self, msg):
             ret = {"message": msg,
-                   "tf_ones": tensorflow.ones((2, 4)),
-                   "tf_string": tensorflow.constant("This is string")}
+                   "jax_ones": jnp.ones((2, 4))}
             return ret,
 
     notify = Notify()

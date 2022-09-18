@@ -35,7 +35,8 @@ Run:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
-    parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros"}, help="The middleware to use for transmission")
+    parser.add_argument("--mware", type=str, default="yarp", choices=MiddlewareCommunicator.get_communicators(),
+                                                                             help="The middleware to use for transmission")
     parser.add_argument("--stream", nargs="+", default=["video", "audio"], choices={"video", "audio"}, help="The streamed sensor data")
     parser.add_argument("--img-source", type=int, default=0, help="The video capture device id (int camera id)")
     parser.add_argument("--img-width", type=int, default=320, help="The image width")

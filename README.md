@@ -124,6 +124,7 @@ Visit the issues section for more details
 * [x] **Support ZeroMQ** (TODO: image and audio chunk support; proper should_wait trigger instead of dummy)
 * [x] **Support Pytorch**
 * [x] **Support Tensorflow 2**
+* [x] **Support JAX**
 * [x] **Support MXNet**
 * [ ] ~~Support Keras (TF 2)~~
 * [ ] **Support Pandas dataframes**
