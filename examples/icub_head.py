@@ -70,7 +70,11 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
         # control the listening properties from within the app
         self.activate_communication(ICub.receive_images, "listen")
-
+        
+        # set movement speed
+        #self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0)),
+        #                        eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0)))
+        
     def reset_gaze(self):
         """
         Reset the eyes to their original position
@@ -80,7 +84,21 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
         while not self._ipos.checkMotionDone():
             pass
-
+    
+        def set_speed_gaze(self, head_vel=(10.0, 10.0, 20.0), eyes_vel=(20.0, 20.0, 20.0)):
+        """
+        Control the iCub head and eye speeds
+        :param head_vel: Head speed (tilt, swing, pan)
+        :param eyes_vel: Eye speed (tilt, pan, divergence)
+        :return: None
+        """
+        self._ipos.setRefSpeed(0, head_vel[0])
+        self._ipos.setRefSpeed(1, head_vel[1])
+        self._ipos.setRefSpeed(2, head_vel[2])
+        self._ipos.setRefSpeed(3, eyes_vel[0])
+        self._ipos.setRefSpeed(4, eyes_vel[1])
+        self._ipos.setRefSpeed(5, eyes_vel[2])
+        
     def control_gaze(self, head=(0, 0, 0), eyes=(0, 0, 0)):
         """
         Control the iCub head and eyes
