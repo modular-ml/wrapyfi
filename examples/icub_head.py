@@ -85,7 +85,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         while not self._ipos.checkMotionDone():
             pass
     
-        def set_speed_gaze(self, head_vel=(10.0, 10.0, 20.0), eyes_vel=(20.0, 20.0, 20.0)):
+    def set_speed_gaze(self, head_vel=(10.0, 10.0, 20.0), eyes_vel=(20.0, 20.0, 20.0)):
         """
         Control the iCub head and eye speeds
         :param head_vel: Head speed (tilt, swing, pan)
