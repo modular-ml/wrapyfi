@@ -117,19 +117,36 @@ Run `yarpserver` from the command line. Now execute the python script above (wit
 
 For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapify in action. 
 
-# TODO
-Visit the issues section for more details 
-* [x] **Support ROS**
-* [ ] **Support ROS 2**
-* [x] **Support ZeroMQ** (TODO: image and audio chunk support; proper should_wait trigger instead of dummy)
-* [x] **Support Pytorch**
-* [x] **Support Tensorflow 2**
-* [x] **Support JAX**
-* [x] **Support MXNet**
-* [ ] ~~Support Keras (TF 2)~~
-* [ ] **Support Pandas dataframes**
-* [ ] **Support Image formats: tensorflow, Pytorch, Scikit Image, ImageIO and Pillow**
-* [ ] **Support msgpack as a serialization format**
+# Supported Formats
+
+## Middleware
+* [x] **ROS**
+* [ ] **ROS 2**
+* [x] **ZeroMQ** (TODO: image and audio chunk support; proper should_wait trigger instead of dummy)
+
+## Data Structures
+* [x] **Numpy Array**
+* [x] **Pytorch Tensor**
+* [x] **Tensorflow 2 Tensor**
+* [x] **JAX Tensor**
+* [x] **MXNet Tensor**
+* [] **Paddlepaddle Tensor**
+* [ ] ~~Keras (TF 2)~~
+* [ ] **Pandas Dataframe|Series**
+
+## Serializers
+* [x] **JSON**
+* [ ] **msgpack**
+
+## Image
+* [x] **CV 2**
+* [ ] **Tensorflow**
+* [ ] **Pytorch**
+* [ ] **Scikit Image**
+* [ ] **ImageIO**
+* [ ] **Pillow**
+
+# TODOS
 * [x] **Support encapsulating wrapped calls to publishers and listeners**
 * [ ] **Support wrapping for module functions**
-* [ ] **Support multiple class instances for functions set to publish**
+* [x] **Support multiple class instances for functions set to publish [Experimental]**
