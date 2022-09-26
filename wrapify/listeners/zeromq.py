@@ -81,102 +81,67 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
             return None
 
 
-# @Listeners.register("Image", "zeromq")
-# class ZeroMQImageListener(ZeroMQListener):
-#
-#     def __init__(self, name, in_port, carrier="", width=-1, height=-1, rgb=True, fp=False, **kwargs):
-#         super().__init__(name, in_port, carrier=carrier, **kwargs)
-#         self.width = width
-#         self.height = height
-#         self.rgb = rgb
-#         self.fp = fp
-#         self._port = self._type = self._netconnect = None
-#         if not self.should_wait:
-#             ListenerWatchDog().add_listener(self)
-#
-#     def establish(self, repeats=None, **kwargs):
-#         established = self.await_connection(repeats=repeats)
-#         if established:
-#             if self.rgb:
-#                 self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
-#             else:
-#                 self._port = yarp.BufferedPortImageFloat() if self.fp else yarp.BufferedPortImageMono()
-#             self._type = np.float32 if self.fp else np.uint8
-#             in_port_connect = f"{self.in_port}:in{np.random.randint(100000, size=1).item()}"
-#             self._port.open(in_port_connect)
-#             self._netconnect = yarp.Network.connect(self.in_port, in_port_connect, self.carrier)
-#         return self.check_establishment(established)
-#
-#     def listen(self):
-#         if not self.established:
-#             established = self.establish()
-#             if not established:
-#                 return None
-#         yarp_img = self.read_port(self._port)
-#         if yarp_img is None:
-#             return None
-#         elif 0 < self.width != yarp_img.width() or 0 < self.height != yarp_img.height():
-#             raise ValueError("Incorrect image shape for listener")
-#         if self.rgb:
-#             img = np.zeros((yarp_img.height(), yarp_img.width(), 3), dtype=self._type, order='C')
-#             wrapper_img = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
-#         else:
-#             img = np.zeros((yarp_img.height(), yarp_img.width()), dtype=self._type, order='C')
-#             wrapper_img = yarp.ImageFloat() if self.fp else yarp.ImageMono()
-#         wrapper_img.resize(img.shape[1], img.shape[0])
-#         wrapper_img.setExternal(img, img.shape[1], img.shape[0])
-#         wrapper_img.copy(yarp_img)
-#         return img
-#
-#     def close(self):
-#         if self._port:
-#             self._port.close()
-#
-#     def __del__(self):
-#         self.close()
-#
-#
-# @Listeners.register("AudioChunk", "zeromq")
-# class ZeroMQAudioChunkListener(ZeroMQImageListener):
-#
-#     def __init__(self, name, in_port, carrier="", channels=1, rate=44100, chunk=-1, **kwargs):
-#         super().__init__(name, in_port, carrier=carrier, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
-#         self.channels = channels
-#         self.rate = rate
-#         self.chunk = chunk
-#         self._dummy_sound = self._dummy_port = self._dummy_netconnect = None
-#         if not self.should_wait:
-#             ListenerWatchDog().add_listener(self)
-#
-#     def establish(self, repeats=None, **kwargs):
-#         established = self.await_connection(port=self.in_port + "_SND", repeats=repeats)
-#         if established:
-#             # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
-#             rnd_id = str(np.random.randint(100000, size=1)[0])
-#             self._dummy_port = yarp.Port()
-#             self._dummy_port.open(self.in_port + "_SND:in" + rnd_id)
-#             self._dummy_netconnect = yarp.Network.connect(self.in_port + "_SND", self.in_port + "_SND:in" + rnd_id, self.carrier)
-#         established = self.check_establishment(established)
-#         established_parent = super(YarpAudioChunkListener, self).establish(repeats=repeats)
-#         if established_parent:
-#             self._dummy_sound = yarp.Sound()
-#             # self._dummy_port.read(self._dummy_sound)
-#             # self.rate = self._dummy_sound.getFrequency()
-#             # self.width = self.chunk = self._dummy_sound.getSamples()
-#             # self.height = self.channels = self._dummy_sound.getChannels()
-#         return established
-#
-#     def listen(self):
-#         return super().listen(), self.rate
-#
-#     def close(self):
-#         super().close()
-#         if self._dummy_port:
-#             self._dummy_port.close()
-#
-#
-# @Listeners.register("Properties", "zeromq")
-# class ZeroMQPropertiesListener(ZeroMQListener):
-#     def __init__(self, name, in_port, **kwargs):
-#         super().__init__(name, in_port, **kwargs)
-#         raise NotImplementedError
+@Listeners.register("Image", "zeromq")
+class ZeroMQImageListener(ZeroMQNativeObjectListener):
+
+    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False,
+                 **kwargs):
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
+        self.width = width
+        self.height = height
+        self.rgb = rgb
+        self.fp = fp
+        self._type = np.float32 if self.fp else np.uint8
+
+    def listen(self):
+        if not self.established:
+            established = self.establish()
+            if not established:
+                return None
+        if self._port.poll(timeout=None if self.should_wait else 0):
+            obj = self._port.recv_multipart()
+            img = json.loads(obj[1].decode(), object_hook=self._json_object_hook) if obj is not None else None
+            if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
+                    not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+                raise ValueError("Incorrect image shape for listener")
+            return img
+        else:
+            return None
+
+
+@Listeners.register("AudioChunk", "zeromq")
+class ZeroMQAudioChunkListener(ZeroMQImageListener):
+    def __init__(self, name, in_port, carrier="tcp", channels=1, rate=44100, chunk=-1, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+        self.channels = channels
+        self.rate = rate
+        self.chunk = chunk
+
+    def listen(self):
+        if not self.established:
+            established = self.establish()
+            if not established:
+                return None
+        if self._port.poll(timeout=None if self.should_wait else 0):
+            obj = self._port.recv_multipart()
+            aud = json.loads(obj[1].decode(), object_hook=self._json_object_hook) if obj is not None else None
+
+            chunk, channels = aud.shape[0], aud.shape[1]
+            if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:
+                raise ValueError("Incorrect audio shape for listener")
+            return aud, self.rate
+        else:
+            return None, self.rate
+
+
+    def close(self):
+        super().close()
+        if self._dummy_port:
+            self._dummy_port.close()
+
+
+@Listeners.register("Properties", "zeromq")
+class ZeroMQPropertiesListener(ZeroMQListener):
+    def __init__(self, name, in_port, **kwargs):
+        super().__init__(name, in_port, **kwargs)
+        raise NotImplementedError

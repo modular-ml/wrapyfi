@@ -132,7 +132,7 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] **MXNet Tensor**
 * [ ] **Paddlepaddle Tensor**
 * [ ] ~~Keras (TF 2)~~
-* [ ] **Pandas Dataframe|Series**
+* [x] **Pandas Dataframe|Series**
 
 ## Serializers
 * [x] **JSON**

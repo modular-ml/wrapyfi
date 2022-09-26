@@ -96,7 +96,8 @@ class ROSImagePublisher(ROSPublisher):
                 return
             else:
                 time.sleep(0.2)
-        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
+                not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
         msg = sensor_msgs.msg.Image()
