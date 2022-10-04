@@ -3,25 +3,39 @@ import logging
 import queue
 
 import numpy as np
-import rospy
+import rclpy
+from rclpy.node import Node
 import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapify.connect.listeners import Listener, ListenerWatchDog, Listeners
-from wrapify.middlewares.ros import ROSMiddleware
+from wrapify.middlewares.ros2 import ROS2Middleware
 from wrapify.encoders import JsonDecodeHook
 
+WAIT = {True: None, False: 0}
 
-class ROSListener(Listener):
+
+class ROS2Listener(Listener, Node):
 
     def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
-        ROSMiddleware.activate()
+        ROS2Middleware.activate()
+        Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        Node.__init__(self, name)
         self.queue_size = queue_size
 
+    def close(self):
+        """
+        Close the node
+        :return: None
+        """
+        if hasattr(self, "_subscriber"):
+            self.destroy_node()
 
-@Listeners.register("NativeObject", "ros")
-class ROSNativeObjectListener(ROSListener):
+    def __del__(self):
+        self.close()
+
+@Listeners.register("NativeObject", "ros2")
+class ROS2NativeObjectListener(ROS2Listener):
 
     def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
@@ -31,13 +45,15 @@ class ROSNativeObjectListener(ROSListener):
 
     def establish(self):
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_port, std_msgs.msg.String, callback=self._message_callback)
+        # self._subscriber = rospy.Subscriber(self.in_port, std_msgs.msg.String, callback=self._message_callback)
+        self._subscriber = self.create_subscription(std_msgs.msg.String, self.in_port, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
         if not self.established:
             self.establish()
         try:
+            rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
             obj_str = self._queue.get(block=self.should_wait)
             return json.loads(obj_str, object_hook=self._json_object_hook)
         except queue.Empty:
@@ -50,8 +66,8 @@ class ROSNativeObjectListener(ROSListener):
             logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
-@Listeners.register("Image", "ros")
-class ROSImageListener(ROSListener):
+@Listeners.register("Image", "ros2")
+class ROS2ImageListener(ROS2Listener):
 
     def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, width=-1, height=-1, rgb=True, fp=False, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
@@ -71,7 +87,8 @@ class ROSImageListener(ROSListener):
 
     def establish(self):
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
+        # self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
+        self._subscriber = self.create_subscription(sensor_msgs.msg.Image, self.in_port, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
@@ -97,8 +114,8 @@ class ROSImageListener(ROSListener):
             logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
-@Listeners.register("AudioChunk", "ros")
-class ROSAudioChunkListener(ROSListener):
+@Listeners.register("AudioChunk", "ros2")
+class ROS2AudioChunkListener(ROS2Listener):
 
     def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, channels=1, rate=44100, chunk=-1, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
@@ -110,7 +127,7 @@ class ROSAudioChunkListener(ROSListener):
 
     def establish(self):
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
+        self._subscriber = self.create_subscription(sensor_msgs.msg.Image, self.in_port, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
@@ -134,8 +151,8 @@ class ROSAudioChunkListener(ROSListener):
             logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
-@Listeners.register("Properties", "ros")
-class ROSPropertiesListener(ROSListener):
+@Listeners.register("Properties", "ros2")
+class ROS2PropertiesListener(ROS2Listener):
 
     def __init__(self, name, in_port, **kwargs):
         super().__init__(name, in_port, **kwargs)
