@@ -34,6 +34,7 @@ class ROS2Listener(Listener, Node):
     def __del__(self):
         self.close()
 
+
 @Listeners.register("NativeObject", "ros2")
 class ROS2NativeObjectListener(ROS2Listener):
 
@@ -95,6 +96,7 @@ class ROS2ImageListener(ROS2Listener):
         if not self.established:
             self.establish()
         try:
+            rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
             height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
             if encoding != self._encoding:
                 raise ValueError("Incorrect encoding for listener")
@@ -134,6 +136,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         if not self.established:
             self.establish()
         try:
+            rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
             chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
             if encoding != '32FC1':
                 raise ValueError("Incorrect encoding for listener")

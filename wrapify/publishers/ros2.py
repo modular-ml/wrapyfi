@@ -34,7 +34,7 @@ class ROS2Publisher(Publisher, Node):
                 repeats = 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                connected = publisher.get_subscription_count() < 1
+                connected = publisher.get_subscription_count() > 0
                 if connected:
                     break
                 time.sleep(0.02)
@@ -117,7 +117,7 @@ class ROS2ImagePublisher(ROS2Publisher):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
         msg = sensor_msgs.msg.Image()
-        msg.header.stamp = self.get_clock.now()
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.height = img.shape[0]
         msg.width = img.shape[1]
         msg.encoding = self._encoding
@@ -161,7 +161,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
         msg = sensor_msgs.msg.Image()
-        msg.header.stamp = self.get_clock().now()
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.height = aud.shape[0]
         msg.width = aud.shape[1]
         msg.encoding = '32FC1'
