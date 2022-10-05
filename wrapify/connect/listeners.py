@@ -29,11 +29,13 @@ class ListenerWatchDog(metaclass=SingletonOptimized):
 
 class Listeners(object):
     registry = {}
+    mwares = set()
 
     @classmethod
     def register(cls, data_type, communicator):
         def decorator(klass):
             cls.registry[data_type + ":" + communicator] = klass
+            cls.mwares.add(communicator)
             return klass
         return decorator
 

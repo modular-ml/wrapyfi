@@ -1,21 +1,22 @@
 import argparse
-import mxnet
+import numpy as np
+import pandas as pd
 
 from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
-A message publisher and listener for MXNet tensors
+A message publisher and listener for native python objects and numpy arrays
 
-Here we demonstrate
+Here we demonstrate 
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim MXNet tensors
+2. Transmit a nested dummy python object with native objects and multidim numpy arrays
 3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 mxnet_tensor.py --mode publish
+    python3 numpy_pandas_arrays.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 mxnet_tensor.py --mode listen
+    python3 numpy_pandas_arrays.py --mode listen
 
 """
 
@@ -34,12 +35,20 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="tcp", should_wait=True, load_mxnet_device=mxnet.gpu(0))
+                                         carrier="tcp", should_wait=True)
         def exchange_object(self):
             msg = input("Type your message: ")
-            ret = {"message": msg,
-                   "mx_ones": mxnet.nd.ones((2, 4)),
-                   "mxnet_zeros_cuda": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(0))}
+            ret = [{"message": msg,
+                    "numpy_array": np.ones((2, 4)),
+                    "pandas_series": pd.Series([1, 3, 5, np.nan, 6, 8]),
+                    "pandas_dataframe": pd.DataFrame(np.random.randn(6, 4), index=pd.date_range("20130101", periods=6),
+                                                     columns=list("ABCD")),
+                    "set": {'a', 1, None},
+                    "list": [[[3, [4], 5.677890, 1.2]]]},
+                   "string",
+                   "string2",
+                   0.4344,
+                   {"other": (1, 2, 3, 4.32, )}]
             return ret,
 
     notify = Notify()

@@ -5,3 +5,5 @@ torch>=1.12.1
 torchaudio>=0.12.1
 torchvision>=0.13.1
 mxnet-cu117
+jax[cuda11_cudnn805 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+jaxlib==0.3.14 -f https://storage.googleapis.com/jax-releases/jax_releases.html

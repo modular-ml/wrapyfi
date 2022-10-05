@@ -6,7 +6,7 @@ import wrapify.connect.listeners as lsn
 from wrapify.utils import get_default_args, match_args
 from wrapify.config.manager import ConfigManager
 
-DEFAULT_COMMUNICATOR = "yarp"
+DEFAULT_COMMUNICATOR = "zeromq"
 
 
 class MiddlewareCommunicator(object):
@@ -167,3 +167,7 @@ class MiddlewareCommunicator(object):
                         self.__registry[f"{func.__qualname__}.{instance_id}"] = copy.deepcopy(entry)
             instance_qualname = f"{func.__qualname__}.{instance_id}" if instance_id > 1 else func.__qualname__
             self.__registry[instance_qualname]["mode"] = mode
+
+    @staticmethod
+    def get_communicators():
+        return pub.Publishers.mwares | lsn.Listeners.mwares

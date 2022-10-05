@@ -1,21 +1,21 @@
 import argparse
-import mxnet
+import jax.numpy as jnp
 
 from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
-A message publisher and listener for MXNet tensors
+A message publisher and listener for Google JAX tensors
 
 Here we demonstrate
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim MXNet tensors
+2. Transmit a nested dummy python object with native objects and multidim torch tensors
 3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 mxnet_tensor.py --mode publish
+    python3 jax_tensor.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 mxnet_tensor.py --mode listen
+    python3 jax_tensor.py --mode listen
 
 """
 
@@ -34,12 +34,11 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="tcp", should_wait=True, load_mxnet_device=mxnet.gpu(0))
+                                         carrier="tcp", should_wait=True, load_torch_device='cpu')
         def exchange_object(self):
             msg = input("Type your message: ")
             ret = {"message": msg,
-                   "mx_ones": mxnet.nd.ones((2, 4)),
-                   "mxnet_zeros_cuda": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(0))}
+                   "jax_ones": jnp.ones((2, 4))}
             return ret,
 
     notify = Notify()
@@ -48,3 +47,4 @@ if __name__ == "__main__":
     while True:
         msg_object, = notify.exchange_object()
         print("Method result:", msg_object)
+

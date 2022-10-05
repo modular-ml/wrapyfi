@@ -1,10 +1,11 @@
 import argparse
-from wrapify.connect.wrapper import MiddlewareCommunicator
+from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--publish", dest="mode", action="store_const", const="publish", default="listen", help="Publish mode")
 parser.add_argument("--listen", dest="mode", action="store_const", const="listen", default="listen", help="Listen mode (default)")
-parser.add_argument("--mware", type=str, default="yarp", choices={"yarp", "ros", "zeromq"}, help="The middleware to use for transmission")
+parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(),
+                    help="The middleware to use for transmission")
 args = parser.parse_args()
 
 

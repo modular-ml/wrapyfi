@@ -4,20 +4,22 @@ import json
 import time
 
 import numpy as np
-import rospy
+import rclpy
+from rclpy.node import Node
 import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
-from wrapify.middlewares.ros import ROSMiddleware
+from wrapify.middlewares.ros2 import ROS2Middleware
 from wrapify.encoders import JsonEncoder
 
 
-class ROSPublisher(Publisher):
+class ROS2Publisher(Publisher, Node):
 
     def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
-        ROSMiddleware.activate()
+        ROS2Middleware.activate()
+        Publisher.__init__(self, name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        Node.__init__(self, name)
         self.queue_size = queue_size
 
     def await_connection(self, publisher, out_port=None, repeats=None):
@@ -32,16 +34,27 @@ class ROSPublisher(Publisher):
                 repeats = 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                connected = publisher.get_num_connections() < 1
+                connected = publisher.get_subscription_count() > 0
                 if connected:
                     break
                 time.sleep(0.02)
         logging.info(f"Topic subscriber connected: {out_port}")
         return connected
 
+    def close(self):
+        """
+        Close the node
+        :return: None
+        """
+        if hasattr(self, "_publisher"):
+            self.destroy_node()
 
-@Publishers.register("NativeObject", "ros")
-class ROSNativeObjectPublisher(ROSPublisher):
+    def __del__(self):
+        self.close()
+
+
+@Publishers.register("NativeObject", "ros2")
+class ROS2NativeObjectPublisher(ROS2Publisher):
 
     def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
@@ -50,7 +63,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
             PublisherWatchDog().add_publisher(self)
 
     def establish(self, repeats=None, **kwargs):
-        self._publisher = rospy.Publisher(self.out_port, std_msgs.msg.String, queue_size=self.queue_size)
+        self._publisher = self.create_publisher(std_msgs.msg.String, self.out_port, qos_profile=self.queue_size)
         established = self.await_connection(self._publisher, repeats=repeats)
         return self.check_establishment(established)
 
@@ -62,11 +75,13 @@ class ROSNativeObjectPublisher(ROSPublisher):
             else:
                 time.sleep(0.2)
         obj_str = json.dumps(obj, cls=JsonEncoder)
-        self._publisher.publish(obj_str)
+        obj_str_msg = std_msgs.msg.String()
+        obj_str_msg.data = obj_str
+        self._publisher.publish(obj_str_msg)
 
 
-@Publishers.register("Image", "ros")
-class ROSImagePublisher(ROSPublisher):
+@Publishers.register("Image", "ros2")
+class ROS2ImagePublisher(ROS2Publisher):
 
     def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
@@ -85,7 +100,8 @@ class ROSImagePublisher(ROSPublisher):
             PublisherWatchDog().add_publisher(self)
 
     def establish(self, repeats=None, **kwargs):
-        self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        # self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        self._publisher = self.create_publisher(sensor_msgs.msg.Image, self.out_port, qos_profile=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -101,7 +117,7 @@ class ROSImagePublisher(ROSPublisher):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
         msg = sensor_msgs.msg.Image()
-        msg.header.stamp = rospy.Time.now()
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.height = img.shape[0]
         msg.width = img.shape[1]
         msg.encoding = self._encoding
@@ -111,8 +127,8 @@ class ROSImagePublisher(ROSPublisher):
         self._publisher.publish(msg)
 
 
-@Publishers.register("AudioChunk", "ros")
-class ROSAudioChunkPublisher(ROSPublisher):
+@Publishers.register("AudioChunk", "ros2")
+class ROS2AudioChunkPublisher(ROS2Publisher):
 
     def __init__(self, name, out_port, carrier="", out_port_connect=None, channels=1, rate=44100, chunk=-1, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
@@ -124,7 +140,8 @@ class ROSAudioChunkPublisher(ROSPublisher):
             PublisherWatchDog().add_publisher(self)
 
     def establish(self, repeats=None, **kwargs):
-        self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        # self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        self._publisher = self.create_publisher(sensor_msgs.msg.Image, self.out_port, qos_profile=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -144,7 +161,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
         msg = sensor_msgs.msg.Image()
-        msg.header.stamp = rospy.Time.now()
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.height = aud.shape[0]
         msg.width = aud.shape[1]
         msg.encoding = '32FC1'
@@ -154,8 +171,8 @@ class ROSAudioChunkPublisher(ROSPublisher):
         self._publisher.publish(msg)
 
 
-@Publishers.register("Properties", "ros")
-class ROSPropertiesPublisher(ROSPublisher):
+@Publishers.register("Properties", "ros2")
+class ROS2PropertiesPublisher(ROS2Publisher):
     def __init__(self, name, out_port, **kwargs):
         super().__init__(name, out_port, **kwargs)
         raise NotImplementedError
