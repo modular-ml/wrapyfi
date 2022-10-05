@@ -22,7 +22,7 @@ We recommend installing ROS on conda using the [RoboStack](https://github.com/Ro
 For installing ROS 2, follow the [ROS 2 installation guide](docs/ros_install.md#installing-ros). 
 We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
 
-ZeroMQ can be installed using pip: `pip install zmq`. 
+ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
 A standalone broker can be found [here](wrapify/standalone/zmq_proxy_broker.py)

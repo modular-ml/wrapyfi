@@ -4,7 +4,6 @@ import time
 
 import numpy as np
 import zmq
-import imagezmq
 
 from wrapify.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapify.middlewares.zeromq import ZeroMQMiddleware
