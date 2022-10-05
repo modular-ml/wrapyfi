@@ -16,10 +16,13 @@ Before using Wrapify, Yarp, ROS, or ZeroMQ must be installed.
 Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
 Note that the iCub package is not needed for Wrapify to work and does not have to be installed if you do not intend on using the iCub robot.
 
-For the installation of ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
+For installing ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
 We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
 
-ZeroMQ can be installed using pip. ImageZMQ is required by Wrapify when using ZeroMQ as the middleware: `pip install imagezmq`. 
+For installing ROS 2, follow the [ROS 2 installation guide](docs/ros_install.md#installing-ros). 
+We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
+
+ZeroMQ can be installed using pip: `pip install zmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
 A standalone broker can be found [here](wrapify/standalone/zmq_proxy_broker.py)
@@ -27,10 +30,13 @@ A standalone broker can be found [here](wrapify/standalone/zmq_proxy_broker.py)
 #### compatibility
 * Python >= 3.6
 * OpenCV >= 4.2
+* Numpy >= 1.19
+
+
 * Yarp >= v3.3.2 
 * ROS Noetic Ninjemys
+* ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
-* imageZMQ 1.1.1
 
 To install Warpify:
 
@@ -120,9 +126,10 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 # Supported Formats
 
 ## Middleware
+* [x] **YARP**
 * [x] **ROS**
-* [ ] **ROS 2**
-* [x] **ZeroMQ** (TODO: image and audio chunk support; proper should_wait trigger instead of dummy)
+* [x] **ROS 2**
+* [x] **ZeroMQ** (TODO: proper should_wait trigger instead of dummy)
 
 ## Data Structures
 * [x] **Numpy Array**

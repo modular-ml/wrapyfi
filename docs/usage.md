@@ -114,14 +114,18 @@ The publishers and listeners of the same message type should have identical cons
 * **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `rospy std_msgs.msg.String`
 * **Properties**: Transmits properties [*coming soon*]
 
-(ROS 2): [*coming soon*]
+(ROS 2): 
 
-(ZeroMQ):
-* **Image**: Transmits and receives a `cv2` or `numpy` image using [imagezmq](https://github.com/jeffbass/imagezmq)[*coming soon*]
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using [imagezmq](https://github.com/jeffbass/imagezmq)[*coming soon*]
-* **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `zmq context.socket(zmq.PUB).send_multipart`
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `rospy sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `rospy sensor_messages.msg.Image`
+* **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `rospy std_msgs.msg.String`
 * **Properties**: Transmits properties [*coming soon*]
 
+(ZeroMQ):
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct.
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct.
+* **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `zmq context.socket(zmq.PUB).send_multipart`
+* **Properties**: Transmits properties [*coming soon*]
 
 
 ## Data Formats
@@ -129,6 +133,7 @@ The publishers and listeners of the same message type should have identical cons
 Other than native python objects, the following objects are supported:
 
 * `numpy.ndarray`
+* `pandas.DataFrame` and `pandas.Series`
 * `torch.Tensor`
 * `tensorflow.Tensor` and `tensorflow.EagerTensor`
 * `mxnet.nd.NDArray`
