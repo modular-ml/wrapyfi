@@ -6,7 +6,7 @@ import cv2
 import sounddevice as sd
 import numpy as np
 
-from wrapify.connect.wrapper import MiddlewareCommunicator
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 """
 Video/Image and Audio listener + publisher. This is an extension of cam_mic.py to stream videos and images from 

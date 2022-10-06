@@ -63,11 +63,11 @@ Install from the source by following the [official installation documentation](h
     ```yarpmotorgui```
 
 # Running YARP on multiple machines
-1. Run the yarp server on the host machine:
+1. Run the YARP server on the host machine:
     
     ```yarpserver --ip <YOUR NETWORK IP> --socket 10000```
     
-2. Detect the yarp server on the client machine(s):
+2. Detect the YARP server on the client machine(s):
     
     ```
     yarp conf <YOUR NETWORK IP> 10000

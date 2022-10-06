@@ -3,7 +3,7 @@ import cv2
 import sounddevice as sd
 import numpy as np
 
-from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
 Camera and Microphone listener + publisher

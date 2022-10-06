@@ -1,20 +1,20 @@
-# Wrapify
+# Wrapyfi
 
-Wrapify is a middleware communication wrapper for transmitting data across nodes, without the need to
-alter the operation pipeline of your python scripts. Wrapify introduces
+Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without the need to
+alter the operation pipeline of your python scripts. Wrapyfi introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
-Wrapify supports [Yarp](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), and [ZeroMQ](http://zeromq.org/).
+Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), and [ZeroMQ](http://zeromq.org/).
 
-To Wrapify a class, simply add the decorators describing the publisher and listener parameters. Wrapify imposes an object-oriented
-requirement on your coding style: All wrapify compatible functions need to be defined within a class. 
+To Wrapyfi a class, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
+requirement on your coding style: All wrapyfi compatible functions need to be defined within a class. 
 
 ## Installation
 
-Before using Wrapify, Yarp, ROS, or ZeroMQ must be installed. 
+Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed. 
 
-Follow the [Yarp installation guide](docs/yarp_install.md#installing-yarp).
-Note that the iCub package is not needed for Wrapify to work and does not have to be installed if you do not intend on using the iCub robot.
+Follow the [YARP installation guide](docs/yarp_install.md#installing-yarp).
+Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
 For installing ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
 We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
@@ -25,7 +25,7 @@ We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/
 ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
-A standalone broker can be found [here](wrapify/standalone/zmq_proxy_broker.py)
+A standalone broker can be found [here](wrapyfi/standalone/zmq_proxy_broker.py)
 
 #### compatibility
 * Python >= 3.6
@@ -33,7 +33,7 @@ A standalone broker can be found [here](wrapify/standalone/zmq_proxy_broker.py)
 * Numpy >= 1.19
 
 
-* Yarp >= v3.3.2 
+* YARP >= v3.3.2 
 * ROS Noetic Ninjemys
 * ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
@@ -48,8 +48,8 @@ python3 setup.py install
 
 <table>
 <tr>
-<th> Without Wrapify </th>
-<th> With Wrapify </th>
+<th> Without Wrapyfi </th>
+<th> With Wrapyfi </th>
 </tr>
 <tr>
 <td>
@@ -87,7 +87,7 @@ while True:
 <sub>
 
 ```python
-from wrapify.connect.wrapper import MiddlewareCommunicator
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 
 class HelloWorld(MiddlewareCommunicator):
@@ -117,11 +117,11 @@ while True:
 </tr>
 </table>
 
-Run `yarpserver` from the command line. Now execute the python script above (with wrapify) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listiner's
+Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listiner's
 
 <img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>
 
-For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapify in action. 
+For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapyfi in action. 
 
 # Supported Formats
 

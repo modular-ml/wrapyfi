@@ -1,5 +1,5 @@
 import argparse
-from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--publish", dest="mode", action="store_const", const="publish", default="listen", help="Publish mode")
