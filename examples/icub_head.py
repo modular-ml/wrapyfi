@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import yarp
 
-from wrapify.connect.wrapper import MiddlewareCommunicator
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 """
 ICub head controller and camera viewer
@@ -11,7 +11,7 @@ ICub head controller and camera viewer
 Here we demonstrate 
 1. Using the Image messages
 2. Run publishers and listeners in concurrence with the yarp.RFModule
-3. Utilizing Wrapify for creating a port listener only
+3. Utilizing Wrapyfi for creating a port listener only
 
 
 Run:
@@ -20,11 +20,11 @@ Run:
     # For the list of keyboard controls, go to the comment [# the keyboard commands for controlling the robot]
     
     # Alternative 1 (simulation)
-    # Listener shows images and coordinates are published without Wrapify's utilities
+    # Listener shows images and coordinates are published without Wrapyfi's utilities
     python3 icub_head.py --simulation
     
     # Alternative 2 (physical robot)
-    # Listener shows images and coordinates are published without Wrapify's utilities
+    # Listener shows images and coordinates are published without Wrapyfi's utilities
     python3 icub_head.py
     
 """

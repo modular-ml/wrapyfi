@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
 A message publisher and listener for native python objects and numpy arrays

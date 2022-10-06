@@ -1,7 +1,7 @@
 import argparse
 import mxnet
 
-from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
 A message publisher and listener for MXNet tensors

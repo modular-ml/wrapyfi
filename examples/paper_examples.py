@@ -1,5 +1,5 @@
 import argparse
-from wrapify.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 import torch
 import tensorflow
 import mxnet

@@ -4,8 +4,8 @@ from PIL import Image
 import numpy as np
 import cv2
 
-from wrapify.connect.wrapper import MiddlewareCommunicator
-from wrapify.config.manager import ConfigManager
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
+from wrapyfi.config.manager import ConfigManager
 
 """
 Warhol effect on captures from camera

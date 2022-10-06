@@ -1,9 +1,9 @@
 # Usage
 
-To Wrapify your code:
+To Wrapyfi your code:
 
 ```
-from wrapify.connect.wrapper import MiddlewareCommunicator
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 class TheClass(MiddlewareCommunicator)
         ...
@@ -36,7 +36,7 @@ types are listed in the [publishers and listeners](#publishers-and-listeners) se
 
 The `<Communicator>` defines the communication medium e.g.: `yarp` or `ros`.
 
-The `<Class name>` serves no purpose in the current Wrapify version, but has been left for future support of module-level decoration, 
+The `<Class name>` serves no purpose in the current Wrapyfi version, but has been left for future support of module-level decoration, 
 where the functions don't belong to a class, and must therefore have a unique identifier for declaration in the 
 [configuration files](#configuration).
 
@@ -77,9 +77,9 @@ These properties can be set by calling:
 `activate_communication(<Function name>, mode=<Mode>)` 
 
 for each docorated function within the class. This however requires modifying your scripts for each machine or process running
-on Wrapify. To overcome this limitation, use the `ConfigManager` e.g.:
+on Wrapyfi. To overcome this limitation, use the `ConfigManager` e.g.:
 ```
-from wrapify.config.manager import ConfigManager
+from wrapyfi.config.manager import ConfigManager
 ConfigManager(<Configuration file path *.yml>)
 ``` 
 
@@ -97,7 +97,7 @@ This is useful when running the same script on multiple machines, where one is s
 
 ## Publishers and Listeners
 
-The publishers and listeners of the same message type should have identical constructor signatures. The current Wrapify version supports
+The publishers and listeners of the same message type should have identical constructor signatures. The current Wrapyfi version supports
 4 types of messages 
 
 (Yarp):
