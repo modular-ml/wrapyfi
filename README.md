@@ -21,10 +21,10 @@ Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
 Follow the [YARP installation guide](docs/yarp_install.md#installing-yarp).
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
-For installing ROS, follow the [ROS installation guide](docs/ros_install.md#installing-ros). 
+For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
 We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
 
-For installing ROS 2, follow the [ROS 2 installation guide](docs/ros_install.md#installing-ros). 
+For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
 We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
 
 ZeroMQ can be installed using pip: `pip install pyzmq`. 
@@ -33,6 +33,7 @@ To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the
 A standalone broker can be found [here](wrapyfi/standalone/zmq_proxy_broker.py)
 
 #### compatibility
+* Ubuntu >= 18.04 (Not tested with earlier versions of Ubuntu or other OS)
 * Python >= 3.6
 * OpenCV >= 4.2
 * Numpy >= 1.19
