@@ -1,4 +1,9 @@
-# Wrapyfi
+
+<p align="center">
+  <img width="460" height="300" src="https://user-images.githubusercontent.com/4982924/194550032-2462a9c4-ee15-434a-9f7e-eb2c6d1e1351.png">
+</p>
+
+# 
 
 Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without the need to
 alter the operation pipeline of your python scripts. Wrapyfi introduces
