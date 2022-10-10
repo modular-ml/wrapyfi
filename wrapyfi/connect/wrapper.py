@@ -82,16 +82,24 @@ class MiddlewareCommunicator(object):
                         for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
+                                return_func_pub_kwargs = copy.deepcopy(communicator["return_func_kwargs"])
+                                return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
+                                return_func_pub_kwargs.pop("listener_kwargs", None)
+                                return_func_pub_kwargs.pop("publisher_kwargs", None)
                                 new_args, new_kwargs = match_args(
-                                    communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
+                                    communicator["return_func_args"], return_func_pub_kwargs, wds[1:], kwd)
 
                                 communicator["wrapped_executor"] = pub.Publishers.registry[communicator["return_func_type"]](*new_args, **new_kwargs)
                             # list for single return
                             elif isinstance(communicator["return_func_type"], list):
                                 communicator["wrapped_executor"] = []
                                 for comm_idx in range(len(communicator["return_func_type"])):
+                                    return_func_pub_kwargs = copy.deepcopy(communicator["return_func_kwargs"][comm_idx])
+                                    return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
+                                    return_func_pub_kwargs.pop("listener_kwargs", None)
+                                    return_func_pub_kwargs.pop("publisher_kwargs", None)
                                     new_args, new_kwargs = match_args(
-                                        communicator["return_func_args"][comm_idx], communicator["return_func_kwargs"][comm_idx], wds[1:], kwd)
+                                        communicator["return_func_args"][comm_idx], return_func_pub_kwargs, wds[1:], kwd)
                                     communicator["wrapped_executor"].append(pub.Publishers.registry[communicator["return_func_type"][comm_idx]](*new_args, **new_kwargs))
 
                     returns = func(*wds, **kwds)
@@ -114,13 +122,21 @@ class MiddlewareCommunicator(object):
                         for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
-                                new_args, new_kwargs = match_args(communicator["return_func_args"], communicator["return_func_kwargs"], wds[1:], kwd)
+                                return_func_lsn_kwargs = copy.deepcopy(communicator["return_func_kwargs"])
+                                return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                                return_func_lsn_kwargs.pop("listener_kwargs", None)
+                                return_func_lsn_kwargs.pop("publisher_kwargs", None)
+                                new_args, new_kwargs = match_args(communicator["return_func_args"], return_func_lsn_kwargs, wds[1:], kwd)
                                 communicator["wrapped_executor"] = lsn.Listeners.registry[communicator["return_func_type"]](*new_args, **new_kwargs)
                             # list for single return
                             elif isinstance(communicator["return_func_type"], list):
                                 communicator["wrapped_executor"] = []
                                 for comm_idx in range(len(communicator["return_func_type"])):
-                                    new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx], communicator["return_func_kwargs"][comm_idx], wds[1:], kwd)
+                                    return_func_lsn_kwargs = copy.deepcopy(communicator["return_func_kwargs"][comm_idx])
+                                    return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                                    return_func_lsn_kwargs.pop("listener_kwargs", None)
+                                    return_func_lsn_kwargs.pop("publisher_kwargs", None)
+                                    new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx], return_func_lsn_kwargs, wds[1:], kwd)
                                     communicator["wrapped_executor"].append(lsn.Listeners.registry[communicator["return_func_type"][comm_idx]](*new_args, **new_kwargs))
                     cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"] = []
                     for ret_idx in range(len(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"])):

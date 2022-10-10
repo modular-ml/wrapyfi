@@ -8,12 +8,11 @@ from wrapyfi.utils import *
 
 
 class JsonEncoder(json.JSONEncoder):
-
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(**kwargs.get('serializer_kwargs', {}))
         self.plugins = dict()
         for plugin_key, plugin_val in PluginRegistrar.registry.items():
-            self.plugins[plugin_key] = plugin_val()
+            self.plugins[plugin_key] = plugin_val(**kwargs)
 
     def default(self, obj):
 
@@ -36,7 +35,6 @@ class JsonEncoder(json.JSONEncoder):
 
 
 class JsonDecodeHook(object):
-
     def __init__(self, **kwargs):
         self.plugins = dict()
         for plugin_key, plugin_val in PluginRegistrar.registry.items():

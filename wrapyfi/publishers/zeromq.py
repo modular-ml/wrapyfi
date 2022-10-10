@@ -13,7 +13,7 @@ from wrapyfi.encoders import JsonEncoder
 class ZeroMQPublisher(Publisher):
     def __init__(self, name, out_port, carrier="tcp", out_port_connect=None,
                  socket_ip="127.0.0.1", socket_port=5555, socket_sub_port=5556,
-                 start_proxy_broker=True, proxy_broker_spawn="process", proxy_broker_verbose=False, **kwargs):
+                 start_proxy_broker=True, proxy_broker_spawn="process", proxy_broker_verbose=False, zeromq_kwargs=None, **kwargs):
         carrier = carrier if carrier else "tcp"
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         # out_port is equivalent to topic in zeromq
@@ -22,9 +22,10 @@ class ZeroMQPublisher(Publisher):
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
         if start_proxy_broker:
             ZeroMQMiddleware.activate(socket_address=self.socket_address, socket_sub_address=self.socket_sub_address,
-                                      proxy_broker_spawn=proxy_broker_spawn, proxy_broker_verbose=proxy_broker_verbose)
+                                      proxy_broker_spawn=proxy_broker_spawn, proxy_broker_verbose=proxy_broker_verbose,
+                                      **zeromq_kwargs or {})
         else:
-            ZeroMQMiddleware.activate()
+            ZeroMQMiddleware.activate(**zeromq_kwargs or {})
 
     def await_connection(self, port, out_port=None, repeats=None):
         connected = False
@@ -54,7 +55,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         The NativeObjectPublisher using the ZMQ message construct assuming a combination of python native objects
         and numpy arrays as input
         """
-    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, **kwargs):
+    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, serializer_kwargs=None, **kwargs):
         """
         Initializing the NativeObjectPublisher
         :param name: Name of the publisher
@@ -64,6 +65,11 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         self._port = self._netconnect = None
+
+        self._plugin_encoder = JsonEncoder
+        self._plugin_kwargs = kwargs
+        self._serializer_kwargs = serializer_kwargs or {}
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
@@ -81,8 +87,9 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
                 return
             else:
                 time.sleep(0.2)
-        obj = json.dumps(obj, cls=JsonEncoder)
-        self._port.send_multipart([self._topic, obj.encode()])
+        obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
+                             serializer_kwrags=self._serializer_kwargs)
+        self._port.send_multipart([self._topic, obj_str.encode()])
 
 
 @Publishers.register("Image", "zeromq")
@@ -119,8 +126,9 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags['C_CONTIGUOUS']:
             img = np.ascontiguousarray(img)
-        img = json.dumps(img, cls=JsonEncoder)
-        self._port.send_multipart([self._topic, img.encode()])
+        img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
+                             serializer_kwrags=self._serializer_kwargs)
+        self._port.send_multipart([self._topic, img_str.encode()])
 
 
 @Publishers.register("AudioChunk", "zeromq")
@@ -157,8 +165,9 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
             raise ValueError("Incorrect audio shape for publisher")
         if not aud.flags['C_CONTIGUOUS']:
             aud = np.ascontiguousarray(aud)
-        aud = json.dumps(aud, cls=JsonEncoder)
-        self._port.send_multipart([self._topic, aud.encode()])
+        aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
+                             serializer_kwrags=self._serializer_kwargs)
+        self._port.send_multipart([self._topic, aud_str.encode()])
 
 
 @Publishers.register("Properties", "zeromq")

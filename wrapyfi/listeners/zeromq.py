@@ -13,10 +13,10 @@ from wrapyfi.encoders import JsonDecodeHook
 class ZeroMQListener(Listener):
 
     def __init__(self, name, in_port, carrier="tcp",
-                 socket_ip="127.0.0.1", socket_port=5555, **kwargs):
+                 socket_ip="127.0.0.1", socket_port=5555, zeromq_kwargs=None, **kwargs):
         carrier = carrier if carrier else "tcp"
         super().__init__(name, in_port, carrier=carrier, **kwargs)
-        ZeroMQMiddleware.activate()
+        ZeroMQMiddleware.activate(**zeromq_kwargs or {})
         self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
 
     def await_connection(self, port=None, repeats=None):
@@ -52,10 +52,13 @@ class ZeroMQListener(Listener):
 @Listeners.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectListener(ZeroMQListener):
 
-    def __init__(self, name, in_port, carrier="tcp", **kwargs):
+    def __init__(self, name, in_port, carrier="tcp", deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, **kwargs)
-        self._json_object_hook = JsonDecodeHook(**kwargs).object_hook
         self._port = self._netconnect = None
+
+        self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
+        self.deserializer_kwargs = deserializer_kwargs or {}
+
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
 
@@ -76,7 +79,10 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
             obj = self._port.recv_multipart()
-            return json.loads(obj[1].decode(), object_hook=self._json_object_hook) if obj is not None else None
+            if obj is not None:
+                return json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
+            else:
+                return None
         else:
             return None
 
@@ -100,7 +106,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
             obj = self._port.recv_multipart()
-            img = json.loads(obj[1].decode(), object_hook=self._json_object_hook) if obj is not None else None
+            img = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs) if obj is not None else None
             if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                     not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
                 raise ValueError("Incorrect image shape for listener")
@@ -124,7 +130,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
             obj = self._port.recv_multipart()
-            aud = json.loads(obj[1].decode(), object_hook=self._json_object_hook) if obj is not None else None
+            aud = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs) if obj is not None else None
 
             chunk, channels = aud.shape[0], aud.shape[1]
             if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:

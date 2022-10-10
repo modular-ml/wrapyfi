@@ -9,7 +9,7 @@ A message publisher and listener for MXNet tensors
 Here we demonstrate
 1. Using the NativeObject message
 2. Transmit a nested dummy python object with native objects and multidim MXNet tensors
-3. Demonstrating the responsive transmission
+3. Demonstrating the flipping of devices by mapping CPU to GPU and vice versa
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
@@ -34,7 +34,9 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="tcp", should_wait=True, load_mxnet_device=mxnet.gpu(0))
+                                         carrier="tcp", should_wait=True,
+                                         # load_mxnet_device='cuda:0', map_mxnet_devices={'cpu': 'gpu:0', 'gpu:0': 'cpu'})
+                                         listener_kwargs=dict(load_mxnet_device=mxnet.gpu(0), map_mxnet_devices={'cpu': 'cuda:0', 'gpu:0': 'cpu'}))
         def exchange_object(self):
             msg = input("Type your message: ")
             ret = {"message": msg,

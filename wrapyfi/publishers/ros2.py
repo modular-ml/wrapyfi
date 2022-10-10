@@ -16,8 +16,8 @@ from wrapyfi.encoders import JsonEncoder
 
 class ROS2Publisher(Publisher, Node):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, **kwargs):
-        ROS2Middleware.activate()
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, ros2_kwargs=None, **kwargs):
+        ROS2Middleware.activate(**ros2_kwargs or {})
         Publisher.__init__(self, name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         Node.__init__(self, name)
         self.queue_size = queue_size
@@ -56,9 +56,14 @@ class ROS2Publisher(Publisher, Node):
 @Publishers.register("NativeObject", "ros2")
 class ROS2NativeObjectPublisher(ROS2Publisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, serializer_kwargs=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
         self._publisher = None
+
+        self._plugin_encoder = JsonEncoder
+        self._plugin_kwargs = kwargs
+        self._serializer_kwargs = serializer_kwargs or {}
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
@@ -74,7 +79,8 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
                 return
             else:
                 time.sleep(0.2)
-        obj_str = json.dumps(obj, cls=JsonEncoder)
+        obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
+                             serializer_kwrags=self._serializer_kwargs)
         obj_str_msg = std_msgs.msg.String()
         obj_str_msg.data = obj_str
         self._publisher.publish(obj_str_msg)

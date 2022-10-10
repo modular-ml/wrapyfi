@@ -14,19 +14,22 @@ from wrapyfi.encoders import JsonDecodeHook
 
 class ROSListener(Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, ros_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
-        ROSMiddleware.activate()
+        ROSMiddleware.activate(**ros_kwargs or {})
         self.queue_size = queue_size
 
 
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
-        self._json_object_hook = JsonDecodeHook(**kwargs).object_hook
         self._subscriber = self._queue = None
+
+        self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
+        self.deserializer_kwargs = deserializer_kwargs or {}
+
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
@@ -39,7 +42,7 @@ class ROSNativeObjectListener(ROSListener):
             self.establish()
         try:
             obj_str = self._queue.get(block=self.should_wait)
-            return json.loads(obj_str, object_hook=self._json_object_hook)
+            return json.loads(obj_str, object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
         except queue.Empty:
             return None
 

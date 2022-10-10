@@ -1,10 +1,10 @@
 import argparse
-import torch
+import paddle
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
-A message publisher and listener for torch tensors
+A message publisher and listener for Paddlepaddle tensors
 
 Here we demonstrate
 1. Using the NativeObject message
@@ -13,9 +13,9 @@ Here we demonstrate
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 torch_tensor.py --mode publish
+    python3 paddle_tensor.py --mode publish
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 torch_tensor.py --mode listen
+    python3 paddle_tensor.py --mode listen
 
 """
 
@@ -36,14 +36,14 @@ if __name__ == "__main__":
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
                                          carrier="", should_wait=True,
                                          # load_torch_device='cuda:0', map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
-                                         listener_kwargs=dict(load_torch_device='cuda:0',
-                                                              map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'}))
+                                         listener_kwargs=dict(load_paddle_device='gpu:0',
+                                                              map_paddle_devices={'cpu': 'cuda:0', 'gpu:0': 'cpu'}))
 
         def exchange_object(self):
             msg = input("Type your message: ")
             ret = {"message": msg,
-                   "torch_ones": torch.ones((2, 4), device='cpu'),
-                   "torch_zeros_cuda": torch.zeros((2, 3), device='cuda:0')}
+                   "paddle_ones": paddle.Tensor(paddle.ones((2, 4)), place=paddle.CPUPlace()),
+                   "paddle_zeros_cuda": paddle.Tensor(paddle.zeros((2, 3)), place=paddle.CUDAPlace(0))}
             return ret,
 
     notify = Notify()
