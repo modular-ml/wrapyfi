@@ -34,7 +34,7 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="tcp", should_wait=True, load_torch_device='cpu')
+                                         carrier="tcp", should_wait=True)
         def exchange_object(self):
             msg = input("Type your message: ")
             ret = {"message": msg,
