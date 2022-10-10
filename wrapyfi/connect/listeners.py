@@ -48,6 +48,7 @@ class Listeners(object):
 
 class Listener(object):
     def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
+
         self.__name__ = name
         self.in_port = in_port
         self.carrier = carrier

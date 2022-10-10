@@ -12,9 +12,9 @@ from wrapyfi.encoders import JsonDecodeHook
 
 class YarpListener(Listener):
 
-    def __init__(self, name, in_port, carrier="", **kwargs):
+    def __init__(self, name, in_port, carrier="", yarp_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, **kwargs)
-        YarpMiddleware.activate()
+        YarpMiddleware.activate(**yarp_kwargs or {})
 
     def await_connection(self, port=None, repeats=None):
         connected = False
@@ -48,10 +48,13 @@ class YarpListener(Listener):
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(YarpListener):
 
-    def __init__(self, name, in_port, carrier="", **kwargs):
+    def __init__(self, name, in_port, carrier="", deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, **kwargs)
-        self._json_object_hook = JsonDecodeHook(**kwargs).object_hook
         self._port = self._netconnect = None
+
+        self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
+        self.deserializer_kwargs = deserializer_kwargs or {}
+
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
 
@@ -70,7 +73,10 @@ class YarpNativeObjectListener(YarpListener):
             if not established:
                 return None
         obj = self.read_port(self._port)
-        return json.loads(obj.get(0).asString(), object_hook=self._json_object_hook) if obj is not None else None
+        if obj is not None:
+            return json.loads(obj.get(0).asString(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
+        else:
+            return None
 
 
 @Listeners.register("Image", "yarp")

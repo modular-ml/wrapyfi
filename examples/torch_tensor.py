@@ -34,12 +34,13 @@ if __name__ == "__main__":
     class Notify(MiddlewareCommunicator):
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="", should_wait=True, load_torch_device='cpu')
+                                         carrier="", should_wait=True,
+                                         load_torch_device='cuda:0', map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
         def exchange_object(self):
             msg = input("Type your message: ")
             ret = {"message": msg,
                    "torch_ones": torch.ones((2, 4), device='cpu'),
-                   "torch_zeros_cuda": torch.zeros((2, 3), device='cuda')}
+                   "torch_zeros_cuda": torch.zeros((2, 3), device='cuda:0')}
             return ret,
 
     notify = Notify()

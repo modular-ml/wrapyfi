@@ -17,8 +17,8 @@ WAIT = {True: None, False: 0}
 
 class ROS2Listener(Listener, Node):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
-        ROS2Middleware.activate()
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, ros2_kwargs=None, **kwargs):
+        ROS2Middleware.activate(**ros2_kwargs or {})
         Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name)
         self.queue_size = queue_size
@@ -38,10 +38,13 @@ class ROS2Listener(Listener, Node):
 @Listeners.register("NativeObject", "ros2")
 class ROS2NativeObjectListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
-        self._json_object_hook = JsonDecodeHook(**kwargs).object_hook
         self._subscriber = self._queue = None
+
+        self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
+        self.deserializer_kwargs = deserializer_kwargs or {}
+
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
@@ -56,7 +59,7 @@ class ROS2NativeObjectListener(ROS2Listener):
         try:
             rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
             obj_str = self._queue.get(block=self.should_wait)
-            return json.loads(obj_str, object_hook=self._json_object_hook)
+            return json.loads(obj_str, object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
         except queue.Empty:
             return None
 

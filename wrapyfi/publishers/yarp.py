@@ -12,9 +12,9 @@ from wrapyfi.encoders import JsonEncoder
 
 class YarpPublisher(Publisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, yarp_kwargs=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
-        YarpMiddleware.activate()
+        YarpMiddleware.activate(**yarp_kwargs or {})
 
     def await_connection(self, port, out_port=None, repeats=None):
         connected = False
@@ -42,7 +42,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
     The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
     and numpy arrays as input
     """
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, serializer_kwargs=None, **kwargs):
         """
         Initializing the NativeObjectPublisher
         :param name: Name of the publisher
@@ -52,6 +52,11 @@ class YarpNativeObjectPublisher(YarpPublisher):
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         self._port = self._netconnect = None
+
+        self._plugin_encoder = JsonEncoder
+        self._plugin_kwargs = kwargs
+        self._serializer_kwargs = serializer_kwargs or {}
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
@@ -69,10 +74,11 @@ class YarpNativeObjectPublisher(YarpPublisher):
                 return
             else:
                 time.sleep(0.2)
-        obj = json.dumps(obj, cls=JsonEncoder)
+        obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
+                             serializer_kwrags=self._serializer_kwargs)
         oobj = self._port.prepare()
         oobj.clear()
-        oobj.addString(obj)
+        oobj.addString(obj_str)
         self._port.write()
 
 

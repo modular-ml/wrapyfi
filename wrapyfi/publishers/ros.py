@@ -15,9 +15,9 @@ from wrapyfi.encoders import JsonEncoder
 
 class ROSPublisher(Publisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, ros_kwargs=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
-        ROSMiddleware.activate()
+        ROSMiddleware.activate(**ros_kwargs or {})
         self.queue_size = queue_size
 
     def await_connection(self, publisher, out_port=None, repeats=None):
@@ -43,9 +43,14 @@ class ROSPublisher(Publisher):
 @Publishers.register("NativeObject", "ros")
 class ROSNativeObjectPublisher(ROSPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, serializer_kwargs=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
         self._publisher = None
+
+        self._plugin_encoder = JsonEncoder
+        self._plugin_kwargs = kwargs
+        self._serializer_kwargs = serializer_kwargs or {}
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
@@ -61,7 +66,8 @@ class ROSNativeObjectPublisher(ROSPublisher):
                 return
             else:
                 time.sleep(0.2)
-        obj_str = json.dumps(obj, cls=JsonEncoder)
+        obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
+                             serializer_kwrags=self._serializer_kwargs)
         self._publisher.publish(obj_str)
 
 
