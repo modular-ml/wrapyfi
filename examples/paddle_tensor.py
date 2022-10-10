@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
         @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
                                          carrier="", should_wait=True,
-                                         # load_torch_device='cuda:0', map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
+                                         # load_paddle_device='cuda:0', map_paddle_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
                                          listener_kwargs=dict(load_paddle_device='gpu:0',
                                                               map_paddle_devices={'cpu': 'cuda:0', 'gpu:0': 'cpu'}))
 
