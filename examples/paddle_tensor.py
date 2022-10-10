@@ -37,13 +37,13 @@ if __name__ == "__main__":
                                          carrier="", should_wait=True,
                                          # load_torch_device='cuda:0', map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
                                          listener_kwargs=dict(load_paddle_device='gpu:0',
-                                                              map_paddle_devices={'cpu': 'gpu:0', 'gpu:0': 'cpu'}))
+                                                              map_paddle_devices={'cpu': 'cuda:0', 'gpu:0': 'cpu'}))
 
         def exchange_object(self):
             msg = input("Type your message: ")
             ret = {"message": msg,
-                   "paddle_ones": paddle.ones((2, 4)).place('cpu'),
-                   "paddle_zeros_cuda": paddle.zeros((2, 3)).place('gpu:0')}
+                   "paddle_ones": paddle.Tensor(paddle.ones((2, 4)), place=paddle.CPUPlace()),
+                   "paddle_zeros_cuda": paddle.Tensor(paddle.zeros((2, 3)), place=paddle.CUDAPlace(0))}
             return ret,
 
     notify = Notify()

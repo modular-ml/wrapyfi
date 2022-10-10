@@ -69,8 +69,11 @@ class MXNetTensor(Plugin):
         if HAVE_MXNET and obj_type == 'mxnet.Tensor':
             with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
                 obj_device = self.map_mxnet_devices.get(obj_full[2], self.map_mxnet_devices.get('default', None))
-                obj_device = mxnet_str_to_device(obj_device)
-                return True, mxnet.nd.array(np.load(memfile), ctx=obj_device)
+                if obj_device is not None:
+                    obj_device = mxnet_str_to_device(obj_device)
+                    return True, mxnet.nd.array(np.load(memfile), ctx=obj_device)
+                else:
+                    return True, mxnet.nd.array(np.load(memfile))
         else:
             return False, None
 

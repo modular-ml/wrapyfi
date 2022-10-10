@@ -32,7 +32,10 @@ class PytorchTensor(Plugin):
         if HAVE_TORCH and obj_type == 'torch.Tensor':
             with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
                 obj_device = self.map_torch_devices.get(obj_full[2], self.map_torch_devices.get('default', None))
-                return True, torch.load(memfile, map_location=obj_device)
+                if obj_device is not None:
+                    return True, torch.load(memfile, map_location=obj_device)
+                else:
+                    return True, torch.load(memfile)
         else:
             return False, None
 
