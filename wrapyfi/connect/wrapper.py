@@ -1,3 +1,4 @@
+import os
 import copy
 from functools import wraps
 
@@ -6,7 +7,7 @@ import wrapyfi.connect.listeners as lsn
 from wrapyfi.utils import get_default_args, match_args
 from wrapyfi.config.manager import ConfigManager
 
-DEFAULT_COMMUNICATOR = "zeromq"
+DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_COMMUNICATOR", "zeromq")
 
 
 class MiddlewareCommunicator(object):
