@@ -1,6 +1,11 @@
 import os
 from glob import glob
 import threading
+import importlib.util
+import sys
+
+
+WRAPYFI_PLUGIN_PATHS = "WRAPYFI_PLUGIN_PATHS"
 
 
 lock = threading.Lock()
@@ -86,4 +91,17 @@ class PluginRegistrar(object):
         modules = glob(os.path.join(os.path.dirname(__file__), "plugins", "*.py"), recursive=True)
         modules = ["wrapyfi.plugins." + module.replace(os.path.dirname(__file__) + "/plugins/", "") for module in modules]
         dynamic_module_import(modules, globals())
+
+        extern_modules_paths = os.environ.get(WRAPYFI_PLUGIN_PATHS, "").split(":")
+        for mod_group_idx, extern_module_path in enumerate(extern_modules_paths):
+            extern_modules = glob(os.path.join(extern_module_path, "plugins", "*.py"), recursive=True)
+            for mod_idx, extern_module in enumerate(extern_modules):
+                spec = importlib.util.spec_from_file_location(f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}", extern_module)
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[spec.name] = module
+                spec.loader.exec_module(module)
+                extern_modules = [f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}." + extern_module.replace(
+                    extern_module_path + "/plugins/", "")]
+                dynamic_module_import(extern_modules, globals())
+
 
