@@ -18,7 +18,7 @@ class JsonEncoder(json.JSONEncoder):
 
         if isinstance(obj, set):
             return dict(__wrapyfi__=('set', list(obj)))
-        elif isinstance(obj, np.ndarray) or isinstance(obj, np.integer) or isinstance(obj, np.floating) or isinstance(obj, np.bool_):
+        elif isinstance(obj, (np.ndarray, np.generic)):
             with io.BytesIO() as memfile:
                 np.save(memfile, obj)
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
