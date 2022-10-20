@@ -18,13 +18,12 @@ class JsonEncoder(json.JSONEncoder):
 
         if isinstance(obj, set):
             return dict(__wrapyfi__=('set', list(obj)))
-
-        elif isinstance(obj, np.ndarray):
+        elif isinstance(obj, np.ndarray) or isinstance(obj, np.integer) or isinstance(obj, np.floating) or isinstance(obj, np.bool_):
             with io.BytesIO() as memfile:
                 np.save(memfile, obj)
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
             return dict(__wrapyfi__=('numpy.ndarray', obj_data))
-
+        
         for plugin in self.plugins.values():
             detected, plugin_return = plugin.encode(obj)
             if detected:
