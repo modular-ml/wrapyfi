@@ -8,9 +8,8 @@ from wrapyfi.utils import get_default_args, match_args
 from wrapyfi.config.manager import ConfigManager
 
 
-WRAPYFI_DEFAULT_COMMUNICATOR = "WRAPYFI_DEFAULT_COMMUNICATOR"
-DEFAULT_COMMUNICATOR = os.environ.get(WRAPYFI_DEFAULT_COMMUNICATOR, "zeromq")
-
+DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_COMMUNICATOR", "zeromq")
+DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_MWARE", DEFAULT_COMMUNICATOR)
 
 class MiddlewareCommunicator(object):
     __registry = {}
