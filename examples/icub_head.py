@@ -1,5 +1,8 @@
+import os
 import time
 import argparse
+import logging
+
 import cv2
 import numpy as np
 import yarp
@@ -49,13 +52,30 @@ EMOTION_LOOKUP = {
     "Contempt": "evi"
 }
 
+
+def cartesian_to_spherical(xyz):
+    import numpy as np
+    ptr = np.zeros((3,))
+    xy = xyz[0] ** 2 + xyz[1] ** 2
+    ptr[0] = np.arctan2(xyz[1], xyz[0])
+    ptr[1] = np.arctan2(xyz[2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
+    # ptr[1] = np.arctan2(np.sqrt(xy), xyz[2])  # for elevation angle defined from Z-axis down
+    ptr[2] = np.sqrt(xy + xyz[2] ** 2)
+    return ptr
+
+
 class ICub(MiddlewareCommunicator, yarp.RFModule):
     def __init__(self, simulation=False, get_cam_feed=True, 
-                 control_head=True, control_expressions=False, 
-                 facial_expression_port="/emotion_interace/facial_expression", 
-                 head_coordinates_port="/control_interface/head_coordinates"):
+                 control_head=True, control_expressions=False,
+                 ikingaze=False,
+                 facial_expressions_port="/emotion_interace/facial_expression",
+                 gaze_screen_coordinates_port="/control_interface/screen_coordinates",
+                 head_eye_coordinates_port="/control_interface/head_eye_coordinates"):
         self.__name__ = "iCubController"
         super(MiddlewareCommunicator, self).__init__()
+        self.ikingaze = ikingaze
+        self.facial_expressions_port = facial_expressions_port
+        self.head_coordinates_port = head_eye_coordinates_port
 
         # prepare a property object   
         props = yarp.Property()
@@ -76,10 +96,10 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                               "port_cam_right": "/icub/cam/right"}
             if control_expressions:
                 if HAVE_PEXPECT:
-                     # control emotional expressions using RPC
+                    # control emotional expressions using RPC
                     self.client = pexpect.spawn(f'yarp rpc /icub/face/emotions/in')
                 else:
-                    print("pexpect must be installed to control the emotion interface")
+                    logging.error("pexpect must be installed to control the emotion interface")
                     self.activate_communication(ICub.update_facial_expression, "disable")
             else:
                 self.activate_communication(ICub.update_facial_expression, "disable")
@@ -88,86 +108,150 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         self._curr_head = [0, 0, 0]
         
         if control_head:
-            # create remote driver
-            self._head_driver = yarp.PolyDriver(props)
+            if ikingaze:
+                self._gaze_encs = yarp.Vector(3, 0.0)
+                props_gaze = yarp.Property()
+                props_gaze.clear()
+                props_gaze.put("device", "gazecontrollerclient")
+                props_gaze.put("remote", "/iKinGazeCtrl")
+                props_gaze.put("local", "/client/gaze")
+                #
+                self._gaze_driver = yarp.PolyDriver(props_gaze)
 
-            # query motor control interfaces
-            self._ipos = self._head_driver.viewIPositionControl()
-            self._ienc = self._head_driver.viewIEncoders()
+                self._igaze = self._gaze_driver.viewIGazeControl()
+                self._igaze.setStabilizationMode(True)
 
-            # retrieve number of joints
-            self._num_jnts = self._ipos.getAxes()
+                # set movement speed
+                # self._igaze.setNeckTrajTime(0.8)
+                # self._igaze.setEyesTrajTime(0.5)
+            else:
+                # create remote driver
+                self._head_driver = yarp.PolyDriver(props)
 
-            print('Controlling', self._num_jnts, 'joints')
+                # query motor control interfaces
+                self._ipos = self._head_driver.viewIPositionControl()
+                self._ienc = self._head_driver.viewIEncoders()
 
-            # read encoders
-            self._encs = yarp.Vector(self._num_jnts)
-            self._ienc.getEncoders(self._encs.data())
+                # retrieve number of joints
+                self._num_jnts = self._ipos.getAxes()
+
+                logging.info(f"controlling {self._num_jnts} joints")
+
+                # read encoders
+                self._encs = yarp.Vector(self._num_jnts)
+                self._ienc.getEncoders(self._encs.data())
+
+                # set movement speed
+                # self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0)),
+                #                        eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0)))
+
         else:
-            self.activate_communication(ICub.reset_gaze, "disable")
-            self.activate_communication(ICub.set_speed_gaze, "disable")
-            self.activate_communication(ICub.control_gaze, "disable")
+            self.activate_communication(self.reset_gaze, "disable")
+            self.activate_communication(self.set_speed_gaze, "disable")
+            self.activate_communication(self.control_gaze, "disable")
+            self.activate_communication(self.wait_for_gaze, "disable")
+            self.activate_communication(self.control_gaze_at_screen, "disable")
             
         if get_cam_feed:
             # control the listening properties from within the app
-            self.activate_communication(ICub.receive_images, "listen")
+            self.activate_communication(self.receive_images, "listen")
         if facial_expressions_port:
-            self.activate_communication(ICub.receive_facial_expression, "listen")
-        if head_coordinates_port:
-            self.activate_communication(ICub.receive_head_coordinates, "listen")
-        # set movement speed
-        #self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0)),
-        #                        eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0)))
+            self.activate_communication(self.receive_facial_expression, "listen")
+        if head_eye_coordinates_port:
+            self.activate_communication(self.receive_head_eye_coordinates, "listen")
+        if gaze_screen_coordinates_port:
+            self.activate_communication(self.gaze_screen_coordinates_port, "listen")
 
-    
-    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR, "ICub", "/control_interface/head_coordinates", should_wait=False)
-    def receive_head_coordinates(self):
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "$head_eye_coordinates_port",
+                                     should_wait=False)
+    def receive_head_eye_coordinates(self, head_eye_coordinates_port="/control_interface/head_eyes_coordinates"):
         return None,
-    
-    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR, "ICub", "/icub_controller/logs/reset_gaze", should_wait=False)
+
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "gaze_screen_coordinates_port",
+                                     should_wait=False)
+    def receive_gaze_screen_coordinates(self, gaze_screen_coordinates_port="/control_interface/screen_coordinates"):
+        return None,
+
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "/icub_controller/logs/waitfor_gaze",
+                                     should_wait=False)
+    def wait_for_gaze(self, reset=True):
+        if self.ikingaze:
+            # self._igaze.clearNeckPitch()
+            # self._igaze.clearNeckRoll()
+            # self._igaze.clearNeckYaw()
+            # self._igaze.clearEyes()
+            if reset:
+                self._igaze.lookAtAbsAngles(self._gaze_encs)
+            self._igaze.waitMotionDone(timeout=2.0)
+        else:
+            if reset:
+                self._ipos.positionMove(self._encs.data())
+            if not self.real:
+                while not self._ipos.checkMotionDone():
+                    pass
+        return {"topic": "logging_wait_for_gaze",
+                "timestamp": time.time(),
+                "command": f"waiting for gaze completed with reset={reset}"},
+
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "/icub_controller/logs/reset_gaze",
+                                     should_wait=False)
     def reset_gaze(self):
         """
         Reset the eyes to their original position
         :return: None
         """
-        self._ipos.positionMove(self._encs.data())
-
-        while not self._ipos.checkMotionDone():
-            pass
-         return {"topic": "logging_reset_gaze",
-                "timestamp": time.time(), 
-                "command": f"reset gaze" },
+        self.wait_for_gaze(reset=True)
+        return {"topic": "logging_reset_gaze",
+            "timestamp": time.time(),
+            "command": f"reset gaze"},
         
-    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR, "ICub", "/icub_controller/logs/update_head_eye_velocity", should_wait=False)
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "/icub_controller/logs/update_head_eye_velocity",
+                                     should_wait=False)
     def set_speed_gaze(self, head_vel=(10.0, 10.0, 20.0), eyes_vel=(20.0, 20.0, 20.0)):
         """
         Control the iCub head and eye speeds
-        :param head_vel: Head speed (tilt, swing, pan)
-        :param eyes_vel: Eye speed (tilt, pan, divergence)
+        :param head_vel: Head speed (tilt, swing, pan) in deg/sec or int for neck speed (norm) when using iKinGaze
+        :param eyes_vel: Eye speed (tilt, pan, divergence) in deg/sec or int for eyes speed (norm) when using iKinGaze
         :return: None
         """
-        self._ipos.setRefSpeed(0, head_vel[0])
-        self._ipos.setRefSpeed(1, head_vel[1])
-        self._ipos.setRefSpeed(2, head_vel[2])
-        self._ipos.setRefSpeed(3, eyes_vel[0])
-        self._ipos.setRefSpeed(4, eyes_vel[1])
-        self._ipos.setRefSpeed(5, eyes_vel[2])
+        if self.ikingaze:
+            if isinstance(head_vel, tuple):
+                head_vel = head_vel[0]
+                logging.warning("iKinGaze only supports one speed for the neck, using the first value")
+            if isinstance(eyes_vel, tuple):
+                eyes_vel = eyes_vel[0]
+                logging.warning("iKinGaze only supports one speed for the eyes, using the first value")
+            self._igaze.setNeckTrajTime(head_vel)
+            self._igaze.setEyesTrajTime(eyes_vel)
+        else:
+            self._ipos.setRefSpeed(0, head_vel[0])
+            self._ipos.setRefSpeed(1, head_vel[1])
+            self._ipos.setRefSpeed(2, head_vel[2])
+            self._ipos.setRefSpeed(3, eyes_vel[0])
+            self._ipos.setRefSpeed(4, eyes_vel[1])
+            self._ipos.setRefSpeed(5, eyes_vel[2])
         
         return {"topic": "logging_head_eye_velocity",
                 "timestamp": time.time(), 
-                "command": f"head set to {head_vel} and eyes set to {eyes_vel}" },
+                "command": f"head set to {head_vel} and eyes set to {eyes_vel}"},
     
-    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR, "ICub", "/icub_controller/logs/update_head_eye_orientation", should_wait=False)
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "/icub_controller/logs/update_head_eye_orientation",
+                                     should_wait=False)
     def control_gaze(self, head=(0, 0, 0), eyes=(0, 0, 0)):
         """
-        Control the iCub head and eyes
-        :param head: Head coordinates (tilt, swing, pan)
-        :param eyes: Eye coordinates (tilt, pan, divergence)
+        Control the iCub head or eyes
+        :param head: Head coordinates (tilt, swing, pan) in degrees
+        :param eyes: Eye coordinates (tilt, pan, divergence) in degrees
         :return: None
         """
         # wait for the action to complete
-        # while not self._ipos.checkMotionDone():
-        #     pass
+        # self.wait_for_gaze(reset=False)
 
         # initialize a new tmp vector identical to encs
         self.init_pos = yarp.Vector(self._num_jnts, self._encs.data())
@@ -187,13 +271,58 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
         return {"topic": "logging_head_eye_orientation",
                 "timestamp": time.time(), 
-                "command": f"head set to {head} and eyes set to {eyes}" },
-    
-    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR, "ICub", "/emotion_interace/facial_expression", should_wait=False)
-    def receive_facial_expression(self):
+                "command": f"head set to {head} and eyes set to {eyes}"},
+
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "/icub_controller/logs/update_head_eye_screen",
+                                     should_wait=False)
+    def control_gaze_at_screen(self, xy=(0, 0,), limiting_consts_xy=(0.3, 0.3), control_eyes=True, control_head=True):
+        """
+        Gaze at specific point in a normalized plane in front of the robot
+
+        :param xy: tuple representing the x and y position limited to the range of -1 (bottom left) and 1 (top right)
+        :param limiting_consts_xy: tuple representing the x and y position limiting constants
+        :param control_eyes: bool indicating whether to control the eyes
+        :param control_head: bool indicating whether to control the head
+        :return: None
+        """
+        # wait for the action to complete
+        # self.wait_for_gaze(reset=False)
+
+        xy = np.array(xy) * np.array(limiting_consts_xy)  # limit viewing region
+        ptr = cartesian_to_spherical((1, xy[0], -xy[1]))
+        # initialize a new tmp vector identical to encs
+        ptr_degrees = (np.rad2deg(ptr[0]), np.rad2deg(ptr[1]))
+
+        # TODO (fabawi): control object not defined
+        if control_eyes and control_head:
+            if not self.ikingaze:
+                logging.error("Set ikingaze=True in order to move eyes and head simultaneously")
+                return
+            self.init_pos_ikin = yarp.Vector(3, self._gaze_encs.data())
+            self.init_pos_ikin.set(0, ptr_degrees[0])
+            self.init_pos_ikin.set(1, ptr_degrees[1])
+            self.init_pos_ikin.set(2, 0.0)
+            self._igaze.lookAtAbsAngles(self.init_pos_ikin)
+
+        elif control_head:
+            self.control_gaze(head=(ptr_degrees[1], 0, ptr_degrees[0]))
+        elif control_eyes:
+            self.set_eyes_angle_degrees(eyes=(ptr_degrees[1], ptr_degrees[0], 0))
+
+        return {"topic": "logging_head_eye_orientation",
+                "timestamp": time.time(),
+                "command": f"moving gaze toward {ptr_degrees} with head={control_head} and eyes{control_eyes}"},
+
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "$facial_expressions_port",
+                                     should_wait=False)
+    def receive_facial_expression(self, facial_expressions_port="/control_interface/head_coordinates"):
         return None,
     
-    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR, "ICub", "/icub_controller/logs/update_facial_expression", should_wait=False)
+    @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
+                                     "ICub", "/icub_controller/logs/update_facial_expression",
+                                     should_wait=False)
     def update_facial_expression(self, expression, part="LIGHTS", smoothing=None):
         """
         Control facial expressions of the iCub
@@ -228,22 +357,33 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
     def getPeriod(self):
         return 0.01
 
-
     def updateModule(self):
         # print(self.getPeriod())
         
-        switch_emotion, = self.receive_facial_expression()
+        switch_emotion, = self.receive_facial_expression(facial_expressions_port=self.facial_expressions_port)
         if switch_emotion is not None and isinstance(switch_emotion, dict):
             self.update_facial_expression(switch_emotion.get("emotion", "hap"))
             return True
 
-        move_robot, = self.receive_head_coordinates()
+        move_robot, = self.receive_head_eye_coordinates(head_eye_coordinates_port=self.head_eye_coordinates_port)
         if move_robot is not None and isinstance(move_robot, dict):
             self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0)),
                                 eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0)))
             if move_robot.get("reset_gaze", False):
                 self.reset_gaze()
             self.control_gaze(head=move_robot.get("head", (0, 0, 0)), eyes=move_robot.get("eyes", (0, 0, 0)))
+            return True
+
+        move_robot, = self.receive_gaze_screen_coordinates(gaze=self.gaze_screen_coordinates_port)
+        if move_robot is not None and isinstance(move_robot, dict):
+            self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0) if not self.ikingaze else 0.8),
+                                eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0) if not self.ikingaze else 0.5))
+            if move_robot.get("reset_gaze", False):
+                self.reset_gaze()
+            self.control_gaze_at_screen(xy=move_robot.get("xy", (0, 0)),
+                                        limiting_consts_xy=move_robot.get("limiting_consts_xy", (0.3, 0.3)),
+                                        control_head=move_robot.get("control_head", False if not self.ikingaze else True),
+                                        control_eyes=move_robot.get("control_eyes", True)),
             return True
 
         external_cam, left_cam, right_cam = self.receive_images(**self.cam_props)
@@ -265,40 +405,41 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         # the keyboard commands for controlling the robot
         elif k == 82: # Up key
             self._curr_head[0] += 1
-            print("head pitch up")
+            logging.info("head pitch up")
         elif k == 84: # Down key
             self._curr_head[0] -= 1
-            print("head pitch down")
+            logging.info("head pitch down")
         elif k == 83: # Right key
             self._curr_head[2] -= 1
-            print("head yaw left")
+            logging.info("head yaw left")
         elif k == 81: # Left key
             self._curr_head[2] += 1
-            print("head yaw right")
+            logging.info("head yaw right")
         elif k == 97: # A key
             self._curr_head[1] -= 1
-            print("head roll right")
+            logging.info("head roll right")
         elif k == 100: # D key
             self._curr_head[1] += 1
-            print("head roll left")
+            logging.info("head roll left")
         elif k == 119: # W key
             self._curr_eyes[0] += 1
-            print("eye pitch up")
+            logging.info("eye pitch up")
         elif k == 115: # S key
             self._curr_eyes[0] -= 1
-            print("eye pitch down")
+            logging.info("eye pitch down")
         elif k == 122:  # Z key
             self._curr_eyes[1] -= 1
-            print("eye yaw left")
+            logging.info("eye yaw left")
         elif k == 99:  # C key
             self._curr_eyes[1] += 1
-            print("eye yaw right")
+            logging.info("eye yaw right")
         elif k == 114: # R key: reset the orientation
             self._curr_eyes = [0,0,0]
             self._curr_head = [0,0,0]
             self.reset_gaze()
         elif k == "110":  # 1 key: sad emotion
             self.update_facial_expression("sad")
+        # TODO (fabawi): add more keyboard commands for controlling the robot
         elif k == "UNK":  # 2 key: angry emotion
             self.update_facial_expression("ang")
         elif k == 110:  # 3 key: happy emotion
@@ -314,7 +455,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         elif k == "UNK":  # 8 key: cunning emotion
             self.update_facial_expression("cun")
         else:
-            print(k)  # else print its value
+            logging.info(k)  # else print its value
 
         self.control_gaze(head=self._curr_head, eyes=self._curr_eyes)
         return True
@@ -323,18 +464,21 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--simulation", action="store_true", help="Run in simulation")
+    parser.add_argument("--ikingaze", action="store_true", help="Enable iKinGazeCtrl")
     parser.add_argument("--get_cam_feed", action="store_true", help="Get the camera feeds from the robot")
     parser.add_argument("--control_head", action="store_true", help="Control the head and eyes")
     parser.add_argument("--control_expressions", action="store_true", help="Control the facial expressions")
-    parser.add_argument("--facial_expression_port", type=str, default=ICUB_DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(), 
+    parser.add_argument("--facial_expression_port", type=str, default="",
                         help="The port (topic) name used for receiving facial expressions")
-    parser.add_argument("--head_coordinates_port", type=str, default=ICUB_DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(), 
+    parser.add_argument("--head_eye_coordinates_port", type=str, default="",
                         help="The port (topic) name used for receiving head and eye orientation")
+    parser.add_argument("--gaze_screen_coordinates_port", type=str, default="",
+                        help="The port (topic) name used for receiving screen coordinates in 2D for robot to look at")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    # TODO (fabawi): Integrate facial_expression_port and head_coordinates_port
+    # TODO (fabawi): add RPC support for controlling the robot and not just facial expressions. Make it optional
     controller = ICub(**vars(args))
     controller.runModule()
