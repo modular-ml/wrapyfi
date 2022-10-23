@@ -18,6 +18,8 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator
 ICUB_DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_COMMUNICATOR", "yarp")
 ICUB_DEFAULT_COMMUNICATOR = os.environ.get("ICUB_DEFAULT_MWARE", ICUB_DEFAULT_COMMUNICATOR)
 
+CAMERA_RESOLUTION = (320, 240)  # width, height
+
 """
 ICub head controller and camera viewer
 
@@ -69,7 +71,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                  control_head=True, control_expressions=False,
                  ikingaze=False,
                  facial_expressions_port="/emotion_interace/facial_expression",
-                 gaze_screen_coordinates_port="/control_interface/screen_coordinates",
+                 gaze_plane_coordinates_port="/control_interface/plane_coordinates",
                  head_eye_coordinates_port="/control_interface/head_eye_coordinates"):
         self.__name__ = "iCubController"
         super(MiddlewareCommunicator, self).__init__()
@@ -150,7 +152,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.activate_communication(self.set_speed_gaze, "disable")
             self.activate_communication(self.control_gaze, "disable")
             self.activate_communication(self.wait_for_gaze, "disable")
-            self.activate_communication(self.control_gaze_at_screen, "disable")
+            self.activate_communication(self.control_gaze_at_plane, "disable")
             
         if get_cam_feed:
             # control the listening properties from within the app
@@ -159,8 +161,8 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.activate_communication(self.receive_facial_expression, "listen")
         if head_eye_coordinates_port:
             self.activate_communication(self.receive_head_eye_coordinates, "listen")
-        if gaze_screen_coordinates_port:
-            self.activate_communication(self.gaze_screen_coordinates_port, "listen")
+        if gaze_plane_coordinates_port:
+            self.activate_communication(self.gaze_plane_coordinates_port, "listen")
 
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
                                      "ICub", "$head_eye_coordinates_port",
@@ -169,13 +171,13 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         return None,
 
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
-                                     "ICub", "gaze_screen_coordinates_port",
+                                     "ICub", "gaze_plane_coordinates_port",
                                      should_wait=False)
-    def receive_gaze_screen_coordinates(self, gaze_screen_coordinates_port="/control_interface/screen_coordinates"):
+    def receive_gaze_plane_coordinates(self, gaze_plane_coordinates_port="/control_interface/plane_coordinates"):
         return None,
 
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
-                                     "ICub", "/icub_controller/logs/waitfor_gaze",
+                                     "ICub", "/icub_controller/logs/wait_for_gaze",
                                      should_wait=False)
     def wait_for_gaze(self, reset=True):
         if self.ikingaze:
@@ -274,9 +276,9 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                 "command": f"head set to {head} and eyes set to {eyes}"},
 
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
-                                     "ICub", "/icub_controller/logs/update_head_eye_screen",
+                                     "ICub", "/icub_controller/logs/update_head_eye_plane",
                                      should_wait=False)
-    def control_gaze_at_screen(self, xy=(0, 0,), limiting_consts_xy=(0.3, 0.3), control_eyes=True, control_head=True):
+    def control_gaze_at_plane(self, xy=(0, 0,), limiting_consts_xy=(0.3, 0.3), control_eyes=True, control_head=True):
         """
         Gaze at specific point in a normalized plane in front of the robot
 
@@ -312,7 +314,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
         return {"topic": "logging_head_eye_orientation",
                 "timestamp": time.time(),
-                "command": f"moving gaze toward {ptr_degrees} with head={control_head} and eyes{control_eyes}"},
+                "command": f"moving gaze toward {ptr_degrees} with head={control_head} and eyes={control_eyes}"},
 
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
                                      "ICub", "$facial_expressions_port",
@@ -347,10 +349,14 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                 "timestamp": time.time(), 
                 "command": f"emotion set to {part} {expression} with smoothing={smoothing}"},
 
-    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam", carrier="", width=320, height=240, rgb=True)
-    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_left", carrier="", width=320, height=240, rgb=True)
-    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_right", carrier="", width=320, height=240, rgb=True)
-    def receive_images(self, port_cam, port_cam_left, port_cam_right):
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam",
+                                     width="$width", height="$height", rgb="$rgb")
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_left",
+                                     width="$width", height="$height", rgb="$rgb")
+    @MiddlewareCommunicator.register("Image", "yarp", "ICub", "$port_cam_right",
+                                     width="$width", height="$height", rgb="$rgb")
+    def receive_images(self, port_cam, port_cam_left, port_cam_right,
+                       width=CAMERA_RESOLUTION[0], height=CAMERA_RESOLUTION[1], rgb=True):
         external_cam, left_cam, right_cam = None, None, None
         return external_cam, left_cam, right_cam
 
@@ -374,13 +380,13 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.control_gaze(head=move_robot.get("head", (0, 0, 0)), eyes=move_robot.get("eyes", (0, 0, 0)))
             return True
 
-        move_robot, = self.receive_gaze_screen_coordinates(gaze=self.gaze_screen_coordinates_port)
+        move_robot, = self.receive_gaze_plane_coordinates(gaze=self.gaze_plane_coordinates_port)
         if move_robot is not None and isinstance(move_robot, dict):
             self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0) if not self.ikingaze else 0.8),
                                 eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0) if not self.ikingaze else 0.5))
             if move_robot.get("reset_gaze", False):
                 self.reset_gaze()
-            self.control_gaze_at_screen(xy=move_robot.get("xy", (0, 0)),
+            self.control_gaze_at_plane(xy=move_robot.get("xy", (0, 0)),
                                         limiting_consts_xy=move_robot.get("limiting_consts_xy", (0.3, 0.3)),
                                         control_head=move_robot.get("control_head", False if not self.ikingaze else True),
                                         control_eyes=move_robot.get("control_eyes", True)),
@@ -388,9 +394,9 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
         external_cam, left_cam, right_cam = self.receive_images(**self.cam_props)
         if external_cam is None:
-            external_cam = np.zeros((240, 320, 1), dtype = "uint8")
-            left_cam = np.zeros((240, 320, 1), dtype = "uint8")
-            right_cam = np.zeros((240, 320, 1), dtype = "uint8")
+            external_cam = np.zeros((CAMERA_RESOLUTION[1], CAMERA_RESOLUTION[0], 1), dtype = "uint8")
+            left_cam = np.zeros((CAMERA_RESOLUTION[1], CAMERA_RESOLUTION[0], 1), dtype = "uint8")
+            right_cam = np.zeros((CAMERA_RESOLUTION[1], CAMERA_RESOLUTION[0], 1), dtype = "uint8")
         else:    
             external_cam = cv2.cvtColor(external_cam, cv2.COLOR_BGR2RGB)
             left_cam = cv2.cvtColor(left_cam, cv2.COLOR_BGR2RGB)
@@ -472,8 +478,8 @@ def parse_args():
                         help="The port (topic) name used for receiving facial expressions")
     parser.add_argument("--head_eye_coordinates_port", type=str, default="",
                         help="The port (topic) name used for receiving head and eye orientation")
-    parser.add_argument("--gaze_screen_coordinates_port", type=str, default="",
-                        help="The port (topic) name used for receiving screen coordinates in 2D for robot to look at")
+    parser.add_argument("--gaze_plane_coordinates_port", type=str, default="",
+                        help="The port (topic) name used for receiving plane coordinates in 2D for robot to look at")
     return parser.parse_args()
 
 
