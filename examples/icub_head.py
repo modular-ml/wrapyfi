@@ -75,9 +75,11 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                  head_eye_coordinates_port="/control_interface/head_eye_coordinates"):
         self.__name__ = "iCubController"
         super(MiddlewareCommunicator, self).__init__()
+
         self.ikingaze = ikingaze
         self.facial_expressions_port = facial_expressions_port
-        self.head_coordinates_port = head_eye_coordinates_port
+        self.gaze_plane_coordinates_port = gaze_plane_coordinates_port
+        self.head_eye_coordinates_port = head_eye_coordinates_port
 
         # prepare a property object   
         props = yarp.Property()
@@ -380,7 +382,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.control_gaze(head=move_robot.get("head", (0, 0, 0)), eyes=move_robot.get("eyes", (0, 0, 0)))
             return True
 
-        move_robot, = self.receive_gaze_plane_coordinates(gaze=self.gaze_plane_coordinates_port)
+        move_robot, = self.receive_gaze_plane_coordinates(gaze_plane_coordinates_port=self.gaze_plane_coordinates_port)
         if move_robot is not None and isinstance(move_robot, dict):
             self.set_speed_gaze(head_vel=move_robot.get("head_vel", (10.0, 10.0, 20.0) if not self.ikingaze else 0.8),
                                 eyes_vel=move_robot.get("eyes_vel", (10.0, 10.0, 20.0) if not self.ikingaze else 0.5))
@@ -474,7 +476,7 @@ def parse_args():
     parser.add_argument("--get_cam_feed", action="store_true", help="Get the camera feeds from the robot")
     parser.add_argument("--control_head", action="store_true", help="Control the head and eyes")
     parser.add_argument("--control_expressions", action="store_true", help="Control the facial expressions")
-    parser.add_argument("--facial_expression_port", type=str, default="",
+    parser.add_argument("--facial_expressions_port", type=str, default="",
                         help="The port (topic) name used for receiving facial expressions")
     parser.add_argument("--head_eye_coordinates_port", type=str, default="",
                         help="The port (topic) name used for receiving head and eye orientation")
