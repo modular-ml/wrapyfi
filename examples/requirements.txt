@@ -1,5 +1,4 @@
 sounddevice
-pexpect
 Pillow
 pandas
 tensorflow>=2.9.1

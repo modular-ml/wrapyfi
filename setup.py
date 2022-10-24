@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name             = 'wrapyfi',
-    version          = '0.4.3',
+    version          = '0.4.4',
     description      = 'Wrapyfi is a wrapper for simplifying Middleware communication',
     url              = 'https://github.com/fabawi/wrapyfi/',
     author           = 'Fares Abawi',

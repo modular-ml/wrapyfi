@@ -535,6 +535,7 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    logging.warning("DEPRECATION: The iCub example is transferred to the wrapyfi-interfaces repository and will be removed in version 0.5.0")
     args = parse_args()
     assert not (args.headless and (args.set_facial_expressions or args.set_head_eye_coordinates)), \
         "setters require a CV2 window for capturing keystrokes. Disable --set-... for running in headless mode"
