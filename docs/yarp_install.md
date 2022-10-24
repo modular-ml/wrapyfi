@@ -46,6 +46,7 @@ should be set to the following (assuming you are in the build directory):
 Install from the source by following the [official installation documentation](http://wiki.icub.org/wiki/Linux:Installation_from_sources).
 
 # Running the Simulator
+
 1. Start the YARP server from the console 
     
     ```yarpserver```
@@ -56,12 +57,33 @@ Install from the source by following the [official installation documentation](h
     
 3. To issue instructions for controlling the iCub's head from this Python-based interface, simply start the following script from this repository's root directory: 
 
-    ```python3 examples/icub_head.py```
+    ```python3 icub_head.py --simulation --get_cam_feed --control_head --set_head_eye_coordinates --head_eye_coordinates_port "/control_interface/head_eye_coordinates" --control_expressions --set_facial_expressions --facial_expressions_port "/emotion_interface/facial_expression"```
     
     You can also manually control the joints by using the YARP's built-in motor controller GUI 
 
     ```yarpmotorgui```
 
+## Facial Expressions in Simulation
+
+The facial expressions do not run out-of-the-box. For compatibility with the `icub_head.py`, the following scripts need to 
+be executed after starting the `iCub_SIM`:
+
+1. Start the simulator face expression interface:
+
+   `simFaceExpressions`
+
+2. Start the emotion interface:
+
+   `emotionInterface --name /icubSim/face/emotions --context faceExpressions --from emotions.ini`
+
+3. Connect the emotion interface ports:
+
+   ```
+   yarp connect /face/eyelids /icubSim/face/eyelids
+   yarp connect /face/image/out /icubSim/texture/face
+   yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
+   ```
+   
 # Running YARP on multiple machines
 1. Run the YARP server on the host machine:
     

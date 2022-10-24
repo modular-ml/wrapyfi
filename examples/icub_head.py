@@ -93,7 +93,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.cam_props = {"port_cam": "/icubSim/cam",
                               "port_cam_left": "/icubSim/cam/left",
                               "port_cam_right": "/icubSim/cam/right"}
-            emotion_cmd = f'yarp rpc /emotion/in'
+            emotion_cmd = f'yarp rpc /icubSim/face/emotions/in'
         else:
             props.put("remote", "/icub/head")
             self.cam_props = {"port_cam": "/icub/cam/left",
@@ -389,22 +389,22 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                 exit(0)
             elif cv2_key == -1:  # normally -1 returned,so don't print it
                 pass
-            elif cv2_key == "110":  # 1 key: sad emotion
+            elif cv2_key == 49:  # 1 key: sad emotion
                 emotion = "sad"
             # TODO (fabawi): add more keyboard commands for controlling the robot
-            elif cv2_key == "UNK":  # 2 key: angry emotion
+            elif cv2_key == 50:  # 2 key: angry emotion
                 emotion = "ang"
-            elif cv2_key == 110:  # 3 key: happy emotion
+            elif cv2_key == 51:  # 3 key: happy emotion
                 emotion = "hap"
-            elif cv2_key == "UNK":  # 4 key: neutral emotion
+            elif cv2_key == 52:  # 4 key: neutral emotion
                 emotion = "neu"
-            elif cv2_key == "UNK":  # 5 key: surprise emotion
+            elif cv2_key == 53:  # 5 key: surprise emotion
                 emotion = "sur"
-            elif cv2_key == "UNK":  # 6 key: shy emotion
+            elif cv2_key == 54:  # 6 key: shy emotion
                 emotion = "shy"
-            elif cv2_key == 98:  # 7 key: evil emotion
+            elif cv2_key == 55:  # 7 key: evil emotion
                 emotion = "evi"
-            elif cv2_key == "UNK":  # 8 key: cunning emotion
+            elif cv2_key == 56:  # 8 key: cunning emotion
                 emotion = "cun"
             else:
                 logging.info(cv2_key)  # else print its value
@@ -474,7 +474,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         switch_emotion, = self.receive_facial_expression(facial_expressions_port=self.facial_expressions_port, cv2_key=k)
         if switch_emotion is not None and isinstance(switch_emotion, dict):
             self.update_facial_expression(switch_emotion.get("emotion", "neu"), part=switch_emotion.get("part", "LIGHTS"))
-            return True
 
         move_robot, = self.receive_head_eye_coordinates(head_eye_coordinates_port=self.head_eye_coordinates_port, cv2_key=k)
         if move_robot is not None and isinstance(move_robot, dict):
@@ -483,7 +482,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             if move_robot.get("reset_gaze", False):
                 self.reset_gaze()
             self.control_gaze(head=move_robot.get("head", (0, 0, 0)), eyes=move_robot.get("eyes", (0, 0, 0)))
-            return True
 
         move_robot, = self.receive_gaze_plane_coordinates(gaze_plane_coordinates_port=self.gaze_plane_coordinates_port)
         if move_robot is not None and isinstance(move_robot, dict):
@@ -495,7 +493,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                                         limiting_consts_xy=move_robot.get("limiting_consts_xy", (0.3, 0.3)),
                                         control_head=move_robot.get("control_head", False if not self.ikingaze else True),
                                         control_eyes=move_robot.get("control_eyes", True)),
-            return True
 
         return True
 
