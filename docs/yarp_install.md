@@ -78,11 +78,11 @@ be executed after starting the `iCub_SIM`:
 
 3. Connect the emotion interface ports:
 
-   ```
+    ```
    yarp connect /face/eyelids /icubSim/face/eyelids
    yarp connect /face/image/out /icubSim/texture/face
    yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
-   ```
+    ```
    
 # Running YARP on multiple machines
 1. Run the YARP server on the host machine:

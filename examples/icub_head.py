@@ -383,6 +383,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         emotion = None
         if cv2_key is None:
             # TODO (fabawi): listen to stdin for keypress
+            logging.error("controlling expressions in headless mode not yet supported")
             return None,
         else:
             if cv2_key == 27:  # Esc key to exit
@@ -391,21 +392,29 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                 pass
             elif cv2_key == 49:  # 1 key: sad emotion
                 emotion = "sad"
+                logging.info("expressing sadness")
             # TODO (fabawi): add more keyboard commands for controlling the robot
             elif cv2_key == 50:  # 2 key: angry emotion
                 emotion = "ang"
+                logging.info("expressing anger")
             elif cv2_key == 51:  # 3 key: happy emotion
                 emotion = "hap"
+                logging.info("expressing happiness")
             elif cv2_key == 52:  # 4 key: neutral emotion
                 emotion = "neu"
+                logging.info("expressing neutrality")
             elif cv2_key == 53:  # 5 key: surprise emotion
                 emotion = "sur"
+                logging.info("expressing surprise")
             elif cv2_key == 54:  # 6 key: shy emotion
                 emotion = "shy"
+                logging.info("expressing shyness")
             elif cv2_key == 55:  # 7 key: evil emotion
                 emotion = "evi"
+                logging.info("expressing evilness")
             elif cv2_key == 56:  # 8 key: cunning emotion
                 emotion = "cun"
+                logging.info("expressing cunningness")
             else:
                 logging.info(cv2_key)  # else print its value
                 return None,
