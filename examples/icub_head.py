@@ -437,7 +437,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         if isinstance(expression, (list, tuple)):
             expression = expression[-1]
         expression = EMOTION_LOOKUP.get(expression, expression)
-        
+
         if part == "LIGHTS":
             self.client.sendline(f"set mou {expression}")
             self.client.expect(">>")
