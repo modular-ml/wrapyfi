@@ -178,7 +178,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
                                      "ICub", "$head_eye_coordinates_port",
                                      should_wait=False)
-    def receive_head_eye_coordinates(self, head_eye_coordinates_port="/control_interface/head_eyes_coordinates", cv2_key=None):
+    def receive_head_eye_coordinates(self, head_eye_coordinates_port="/control_interface/head_eye_coordinates", cv2_key=None):
         if cv2_key is None:
             # TODO (fabawi): listen to stdin for keypress
             return None,
@@ -370,7 +370,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         elif control_head:
             self.control_gaze(head=(ptr_degrees[1], 0, ptr_degrees[0]))
         elif control_eyes:
-            self.set_eyes_angle_degrees(eyes=(ptr_degrees[1], ptr_degrees[0], 0))
+            self.control_gaze(eyes=(ptr_degrees[1], ptr_degrees[0], 0))
 
         return {"topic": "logging_head_eye_orientation",
                 "timestamp": time.time(),
