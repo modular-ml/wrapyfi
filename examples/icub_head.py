@@ -357,7 +357,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         # initialize a new tmp vector identical to encs
         ptr_degrees = (np.rad2deg(ptr[0]), np.rad2deg(ptr[1]))
 
-        # TODO (fabawi): control object not defined
         if control_eyes and control_head:
             if not self.ikingaze:
                 logging.error("Set ikingaze=True in order to move eyes and head simultaneously")
@@ -394,7 +393,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             elif cv2_key == 49:  # 1 key: sad emotion
                 emotion = "sad"
                 logging.info("expressing sadness")
-            # TODO (fabawi): add more keyboard commands for controlling the robot
             elif cv2_key == 50:  # 2 key: angry emotion
                 emotion = "ang"
                 logging.info("expressing anger")
@@ -434,16 +432,18 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         :param smoothing: Name of smoothing filter to avoid abrupt changes in emotional expressions
         :return: None
         """
+        if expression is None:
+            return None,
         if isinstance(expression, (list, tuple)):
             expression = expression[-1]
         expression = EMOTION_LOOKUP.get(expression, expression)
 
         if part == "LIGHTS":
-            self.client.sendline(f"set mou {expression}")
-            self.client.expect(">>")
             self.client.sendline(f"set leb {expression}")
             self.client.expect(">>")
             self.client.sendline(f"set reb {expression}")
+            self.client.expect(">>")
+            self.client.sendline(f"set mou {expression}")
             self.client.expect(">>")
         else:
             self.client.sendline(f"set {part} {expression}")
@@ -486,7 +486,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
         switch_emotion, = self.receive_facial_expressions(facial_expressions_port=self.facial_expressions_port, cv2_key=k)
         if switch_emotion is not None and isinstance(switch_emotion, dict):
-            self.update_facial_expressions(switch_emotion.get("emotion_category", "neu"), part=switch_emotion.get("part", "LIGHTS"))
+            self.update_facial_expressions(switch_emotion.get("emotion_category", None), part=switch_emotion.get("part", "LIGHTS"))
 
         move_robot, = self.receive_head_eye_coordinates(head_eye_coordinates_port=self.head_eye_coordinates_port, cv2_key=k)
         if move_robot is not None and isinstance(move_robot, dict):
@@ -536,6 +536,8 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    assert not (args.headless and (args.set_facial_expressions or args.set_head_eye_coordinates)), \
+        "setters require a CV2 window for capturing keystrokes. Disable --set-... for running in headless mode"
     # TODO (fabawi): add RPC support for controlling the robot and not just facial expressions. Make it optional
     controller = ICub(**vars(args))
     controller.runModule()
