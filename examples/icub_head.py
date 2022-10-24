@@ -73,7 +73,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                  ikingaze=False,
                  gaze_plane_coordinates_port="/control_interface/plane_coordinates",
                  control_expressions=False,
-                 set_facial_expressions=True, facial_expressions_port="/emotion_interace/facial_expression",):
+                 set_facial_expressions=True, facial_expressions_port="/emotion_interace/facial_expressions",):
         self.__name__ = "iCubController"
         super(MiddlewareCommunicator, self).__init__()
 
@@ -107,9 +107,9 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                 self.client = pexpect.spawn(emotion_cmd)
             else:
                 logging.error("pexpect must be installed to control the emotion interface")
-                self.activate_communication(ICub.update_facial_expression, "disable")
+                self.activate_communication(ICub.update_facial_expressions, "disable")
         else:
-            self.activate_communication(ICub.update_facial_expression, "disable")
+            self.activate_communication(ICub.update_facial_expressions, "disable")
                 
         self._curr_eyes = [0, 0, 0]
         self._curr_head = [0, 0, 0]
@@ -164,9 +164,9 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.activate_communication(self.receive_images, "listen")
         if facial_expressions_port:
             if set_facial_expressions:
-                self.activate_communication(self.receive_facial_expression, "publish")
+                self.activate_communication(self.receive_facial_expressions, "publish")
             else:
-                self.activate_communication(self.receive_facial_expression, "listen")
+                self.activate_communication(self.receive_facial_expressions, "listen")
         if head_eye_coordinates_port:
             if set_head_eye_coordinates:
                 self.activate_communication(self.receive_head_eye_coordinates, "publish")
@@ -380,7 +380,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
                                      "ICub", "$facial_expressions_port",
                                      should_wait=False)
-    def receive_facial_expression(self, facial_expressions_port="/emotion_interface/facial_expression", cv2_key=None):
+    def receive_facial_expressions(self, facial_expressions_port="/emotion_interface/facial_expressions", cv2_key=None):
         emotion = None
         if cv2_key is None:
             # TODO (fabawi): listen to stdin for keypress
@@ -421,12 +421,12 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
                 return None,
             return {"topic": "facial_expressions",
                     "timestamp": time.time(),
-                    "emotion": emotion},
+                    "emotion_category": emotion},
     
     @MiddlewareCommunicator.register("NativeObject", ICUB_DEFAULT_COMMUNICATOR,
-                                     "ICub", "/icub_controller/logs/update_facial_expression",
+                                     "ICub", "/icub_controller/logs/update_facial_expressions",
                                      should_wait=False)
-    def update_facial_expression(self, expression, part="LIGHTS", smoothing=None):
+    def update_facial_expressions(self, expression, part="LIGHTS", smoothing=None):
         """
         Control facial expressions of the iCub
         :param expression: Expression abbreviation
@@ -434,7 +434,10 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         :param smoothing: Name of smoothing filter to avoid abrupt changes in emotional expressions
         :return: None
         """
+        if isinstance(expression, (list, tuple)):
+            expression = expression[-1]
         expression = EMOTION_LOOKUP.get(expression, expression)
+        
         if part == "LIGHTS":
             self.client.sendline(f"set mou {expression}")
             self.client.expect(">>")
@@ -446,7 +449,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
             self.client.sendline(f"set {part} {expression}")
             self.client.expect(">>")
             
-        return {"topic": "logging_facial_expression",
+        return {"topic": "logging_facial_expressions",
                 "timestamp": time.time(), 
                 "command": f"emotion set to {part} {expression} with smoothing={smoothing}"},
 
@@ -481,9 +484,9 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         else:
             k = None
 
-        switch_emotion, = self.receive_facial_expression(facial_expressions_port=self.facial_expressions_port, cv2_key=k)
+        switch_emotion, = self.receive_facial_expressions(facial_expressions_port=self.facial_expressions_port, cv2_key=k)
         if switch_emotion is not None and isinstance(switch_emotion, dict):
-            self.update_facial_expression(switch_emotion.get("emotion", "neu"), part=switch_emotion.get("part", "LIGHTS"))
+            self.update_facial_expressions(switch_emotion.get("emotion_category", "neu"), part=switch_emotion.get("part", "LIGHTS"))
 
         move_robot, = self.receive_head_eye_coordinates(head_eye_coordinates_port=self.head_eye_coordinates_port, cv2_key=k)
         if move_robot is not None and isinstance(move_robot, dict):
