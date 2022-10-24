@@ -181,6 +181,7 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
     def receive_head_eye_coordinates(self, head_eye_coordinates_port="/control_interface/head_eye_coordinates", cv2_key=None):
         if cv2_key is None:
             # TODO (fabawi): listen to stdin for keypress
+            logging.error("controlling orientation in headless mode not yet supported")
             return None,
         else:
             if cv2_key == 27:  # Esc key to exit
