@@ -1,9 +1,5 @@
 import setuptools
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
-
-
 setuptools.setup(
     name             = 'wrapyfi',
     version          = '0.4.5',
@@ -14,6 +10,7 @@ setuptools.setup(
     maintainer       = 'Fares Abawi',
     maintainer_email = 'fares.abawi@outlook.com',
     packages         = setuptools.find_packages(),
-    install_requires = requirements,
-    python_requires='>=3.6',
+    install_requires = ["pyyaml", "opencv-contrib-python"],
+    python_requires  ='>=3.6',
+    setup_requires   = ["cython>=0.28", "numpy>=1.14.0"]
 )
