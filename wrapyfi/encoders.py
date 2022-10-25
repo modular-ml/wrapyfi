@@ -11,21 +11,23 @@ class JsonEncoder(json.JSONEncoder):
     def __init__(self, **kwargs):
         super().__init__(**kwargs.get('serializer_kwargs', {}))
         self.plugins = dict()
-        for plugin_key, plugin_val in PluginRegistrar.registry.items():
+        for plugin_key, plugin_val in PluginRegistrar.encoder_registry.items():
             self.plugins[plugin_key] = plugin_val(**kwargs)
 
     def default(self, obj):
 
         if isinstance(obj, set):
             return dict(__wrapyfi__=('set', list(obj)))
+
         elif isinstance(obj, (np.ndarray, np.generic)):
             with io.BytesIO() as memfile:
                 np.save(memfile, obj)
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
             return dict(__wrapyfi__=('numpy.ndarray', obj_data))
-        
-        for plugin in self.plugins.values():
-            detected, plugin_return = plugin.encode(obj)
+
+        plugin_match = self.plugins.get(type(obj).__mro__[-2], None)
+        if plugin_match is not None:
+            detected, plugin_return = plugin_match.encode(obj)
             if detected:
                 return plugin_return
 
@@ -36,7 +38,7 @@ class JsonEncoder(json.JSONEncoder):
 class JsonDecodeHook(object):
     def __init__(self, **kwargs):
         self.plugins = dict()
-        for plugin_key, plugin_val in PluginRegistrar.registry.items():
+        for plugin_key, plugin_val in PluginRegistrar.decoder_registry.items():
             self.plugins[plugin_key] = plugin_val(**kwargs)
 
     def object_hook(self, obj):
@@ -53,8 +55,9 @@ class JsonDecodeHook(object):
                     with io.BytesIO(base64.b64decode(wrapyfi[1].encode('ascii'))) as memfile:
                         return np.load(memfile)
 
-                for plugin in self.plugins.values():
-                    detected, plugin_return = plugin.decode(obj_type, wrapyfi)
+                plugin_match = self.plugins.get(obj_type, None)
+                if plugin_match is not None:
+                    detected, plugin_return = plugin_match.decode(obj_type, wrapyfi)
                     if detected:
                         return plugin_return
 

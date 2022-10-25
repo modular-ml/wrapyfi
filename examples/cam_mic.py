@@ -69,7 +69,8 @@ if __name__ == "__main__":
             self.enable_audio = "audio" in stream
             self.enable_video = self.vid_cap = "video" in stream
 
-        @MiddlewareCommunicator.register("Image", args.mware, "CamMic", "/cam_mic/cam_feed", carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10)
+        @MiddlewareCommunicator.register("Image", args.mware, "CamMic", "/cam_mic/cam_feed",
+                                         carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10)
         def collect_cam(self, img_width=320, img_height=240):
             if self.vid_cap is True:
                 self.vid_cap = cv2.VideoCapture(self.img_source)
@@ -91,7 +92,8 @@ if __name__ == "__main__":
                 img = np.random.randint(256, size=(img_height, img_width, 3), dtype=np.uint8)
             return img,
 
-        @MiddlewareCommunicator.register("AudioChunk", args.mware, "CamMic", "/cam_mic/audio_feed", carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels")
+        @MiddlewareCommunicator.register("AudioChunk", args.mware, "CamMic", "/cam_mic/audio_feed",
+                                         carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels")
         def collect_mic(self, aud=None, aud_rate=44100, aud_chunk=int(44100 / 5), aud_channels=1):
             aud = aud, aud_rate
             return aud,

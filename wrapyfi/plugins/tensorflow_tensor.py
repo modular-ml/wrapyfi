@@ -13,24 +13,18 @@ except ImportError:
     HAVE_TENSORFLOW = False
 
 
-@PluginRegistrar.register
+@PluginRegistrar.register(types=None if not HAVE_TENSORFLOW else tensorflow.Tensor.__mro__[:-1])
 class TensorflowTensor(Plugin):
     def __init__(self, **kwargs):
         pass
 
     def encode(self, obj, *args, **kwargs):
-        if HAVE_TENSORFLOW and isinstance(obj, tensorflow.Tensor):
-            with io.BytesIO() as memfile:
-                np.save(memfile, obj.numpy())
-                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-            return True, dict(__wrapyfi__=('tensorflow.Tensor', obj_data))
-        else:
-            return False, None
+        with io.BytesIO() as memfile:
+            np.save(memfile, obj.numpy())
+            obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data))
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
-        if HAVE_TENSORFLOW and obj_type == 'tensorflow.Tensor':
             with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
                 return True, tensorflow.convert_to_tensor(np.load(memfile))
-        else:
-            return False, None
 
