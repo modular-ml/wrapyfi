@@ -69,6 +69,7 @@ class SingletonOptimized(type):
                     cls._instances[cls] = super(SingletonOptimized, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+
 class Plugin(object):
     def encode(self, *args, **kwargs):
         raise NotImplementedError
@@ -78,12 +79,18 @@ class Plugin(object):
 
 
 class PluginRegistrar(object):
-    registry = {}
+    encoder_registry = {}
+    decoder_registry = {}
 
     @staticmethod
-    def register(cls):
-        PluginRegistrar.registry[cls.__name__] = cls
-        return cls
+    def register(types=None):
+        def wrapper(cls):
+            if types is not None:
+                for cls_type in types:
+                    PluginRegistrar.encoder_registry[cls_type] = cls
+                PluginRegistrar.decoder_registry[str(cls.__name__)] = cls
+            return cls
+        return wrapper
 
     @staticmethod
     def scan():

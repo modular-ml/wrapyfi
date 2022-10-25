@@ -47,7 +47,7 @@ def mxnet_str_to_device(device):
         raise ValueError(f'Unknown device type {type(device)}')
 
 
-@PluginRegistrar.register
+@PluginRegistrar.register(types=None if not HAVE_MXNET else mxnet.nd.NDArray.__mro__[:-1])
 class MXNetTensor(Plugin):
     def __init__(self, load_mxnet_device=None, map_mxnet_devices=None, **kwargs):
         self.map_mxnet_devices = map_mxnet_devices or {}
@@ -56,24 +56,17 @@ class MXNetTensor(Plugin):
         self.map_mxnet_devices = mxnet_device_to_str(self.map_mxnet_devices)
 
     def encode(self, obj, *args, **kwargs):
-        if HAVE_MXNET and isinstance(obj, mxnet.nd.NDArray):
-            with io.BytesIO() as memfile:
-                np.save(memfile, obj.asnumpy())
-                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-            obj_device = mxnet_device_to_str(obj.context)
-            return True, dict(__wrapyfi__=('mxnet.Tensor', obj_data, obj_device))
-        else:
-            return False, None
+        with io.BytesIO() as memfile:
+            np.save(memfile, obj.asnumpy())
+            obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+        obj_device = mxnet_device_to_str(obj.context)
+        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device))
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
-        if HAVE_MXNET and obj_type == 'mxnet.Tensor':
-            with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
-                obj_device = self.map_mxnet_devices.get(obj_full[2], self.map_mxnet_devices.get('default', None))
-                if obj_device is not None:
-                    obj_device = mxnet_str_to_device(obj_device)
-                    return True, mxnet.nd.array(np.load(memfile), ctx=obj_device)
-                else:
-                    return True, mxnet.nd.array(np.load(memfile))
-        else:
-            return False, None
-
+        with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
+            obj_device = self.map_mxnet_devices.get(obj_full[2], self.map_mxnet_devices.get('default', None))
+            if obj_device is not None:
+                obj_device = mxnet_str_to_device(obj_device)
+                return True, mxnet.nd.array(np.load(memfile), ctx=obj_device)
+            else:
+                return True, mxnet.nd.array(np.load(memfile))
