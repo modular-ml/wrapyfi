@@ -1,15 +1,16 @@
 import os
-import copy
 from functools import wraps
+import re
 
 import wrapyfi.connect.publishers as pub
 import wrapyfi.connect.listeners as lsn
-from wrapyfi.utils import get_default_args, match_args
+from wrapyfi.utils import get_default_args, match_args, deepcopy
 from wrapyfi.config.manager import ConfigManager
 
 
 DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_COMMUNICATOR", "zeromq")
 DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_MWARE", DEFAULT_COMMUNICATOR)
+
 
 class MiddlewareCommunicator(object):
     __registry = {}
@@ -65,13 +66,13 @@ class MiddlewareCommunicator(object):
                 if hasattr(func, "__wrapped__"):
                     return func(*wds, **kwds)
 
-                # execute the function as usual
-                if cls._MiddlewareCommunicator__registry[func.__qualname__]["mode"] is None:
-                    return func(*wds, **kwds)
-
                 instance_address = hex(id(wds[0]))
                 instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPYFI_INSTANCES"].index(instance_address) + 1
                 instance_id = "." + str(instance_id) if instance_id > 1 else ""
+
+                # execute the function as usual
+                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
+                    return func(*wds, **kwds)
 
                 kwd = get_default_args(func)
                 kwd.update(kwds)
@@ -86,7 +87,7 @@ class MiddlewareCommunicator(object):
                         for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
-                                return_func_pub_kwargs = copy.deepcopy(communicator["return_func_kwargs"])
+                                return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"])
                                 return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
                                 return_func_pub_kwargs.pop("listener_kwargs", None)
                                 return_func_pub_kwargs.pop("publisher_kwargs", None)
@@ -99,7 +100,7 @@ class MiddlewareCommunicator(object):
                             elif isinstance(communicator["return_func_type"], list):
                                 communicator["wrapped_executor"] = []
                                 for comm_idx in range(len(communicator["return_func_type"])):
-                                    return_func_pub_kwargs = copy.deepcopy(communicator["return_func_kwargs"][comm_idx])
+                                    return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
                                     return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
                                     return_func_pub_kwargs.pop("listener_kwargs", None)
                                     return_func_pub_kwargs.pop("publisher_kwargs", None)
@@ -130,7 +131,7 @@ class MiddlewareCommunicator(object):
                         for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                             # single element
                             if isinstance(communicator["return_func_type"], str):
-                                return_func_lsn_kwargs = copy.deepcopy(communicator["return_func_kwargs"])
+                                return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"])
                                 return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
                                 return_func_lsn_kwargs.pop("listener_kwargs", None)
                                 return_func_lsn_kwargs.pop("publisher_kwargs", None)
@@ -142,7 +143,7 @@ class MiddlewareCommunicator(object):
                             elif isinstance(communicator["return_func_type"], list):
                                 communicator["wrapped_executor"] = []
                                 for comm_idx in range(len(communicator["return_func_type"])):
-                                    return_func_lsn_kwargs = copy.deepcopy(communicator["return_func_kwargs"][comm_idx])
+                                    return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
                                     return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
                                     return_func_lsn_kwargs.pop("listener_kwargs", None)
                                     return_func_lsn_kwargs.pop("publisher_kwargs", None)
@@ -193,10 +194,51 @@ class MiddlewareCommunicator(object):
                     wrapyfi_instances.append(instance_addr)
                     instance_id = len(wrapyfi_instances)
                     if instance_id > 1:
-                        self.__registry[f"{func.__qualname__}.{instance_id}"] = copy.deepcopy(entry)
+                        self.__registry[f"{func.__qualname__}.{instance_id}"] = deepcopy(entry, exclude_keys=["wrapped_executor"])
             instance_qualname = f"{func.__qualname__}.{instance_id}" if instance_id > 1 else func.__qualname__
             self.__registry[instance_qualname]["mode"] = mode
 
     @staticmethod
     def get_communicators():
         return pub.Publishers.mwares | lsn.Listeners.mwares
+
+    def close(self):
+        del_entry = False
+        del_entry_idx = None
+        other_entry_keys = []
+        # find self in registry and remove id from instances
+        for entry_key, entry_val in self.__registry.items():
+            if hex(id(self)) in entry_val.get("__WRAPYFI_INSTANCES", []):
+                if not del_entry:
+                    del_entry_idx = entry_val["__WRAPYFI_INSTANCES"].index(hex(id(self)))
+                    if del_entry_idx == 0:
+                        del_entry = entry_key
+                    else:
+                        del_entry = re.sub("\.\d+", "\.", entry_key) + "." + str(del_entry_idx + 1)
+                else:
+                    other_entry_keys.append(entry_key)
+                entry_val["__WRAPYFI_INSTANCES"].remove(hex(id(self)))
+
+        # delete registry entry and all its publishers/listeners
+        if del_entry:
+            if self.__registry[del_entry]["mode"] in ("publish", "listen"):
+                for communicator in self.__registry[del_entry]["communicator"]:
+                    wrapped_executor = communicator.get("wrapped_executor", False)
+                    if wrapped_executor:
+                        wrapped_executor.close()
+            del self.__registry[del_entry]
+
+            # shift all entries backwards following the deleted one
+            if del_entry_idx - 1 < len(other_entry_keys):
+                for other_entry_key in other_entry_keys[del_entry_idx:]:
+                        new_key = re.split("\.(\d+)", other_entry_key)
+                        if len(new_key) == 1:
+                            new_key = new_key[0]
+                        elif str(int(new_key[1]) - 1) == "1":
+                            new_key = new_key[0]
+                        else:
+                            new_key = new_key[0] + "." + str(int(new_key[1]) - 1)
+                        self.__registry[new_key] = self.__registry.pop(other_entry_key)
+
+    def __del__(self):
+        self.close()

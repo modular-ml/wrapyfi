@@ -44,6 +44,12 @@ class YarpListener(Listener):
             else:
                 return obj
 
+    def close(self):
+        if hasattr(self, "_port") and self._port:
+            self._port.close()
+
+    def __del__(self):
+        self.close()
 
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(YarpListener):
@@ -77,6 +83,7 @@ class YarpNativeObjectListener(YarpListener):
             return json.loads(obj.get(0).asString(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
         else:
             return None
+
 
 
 @Listeners.register("Image", "yarp")
@@ -125,13 +132,6 @@ class YarpImageListener(YarpListener):
         wrapper_img.setExternal(img, img.shape[1], img.shape[0])
         wrapper_img.copy(yarp_img)
         return img
-
-    def close(self):
-        if self._port:
-            self._port.close()
-
-    def __del__(self):
-        self.close()
 
 
 @Listeners.register("AudioChunk", "yarp")

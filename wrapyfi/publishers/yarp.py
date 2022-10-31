@@ -35,6 +35,13 @@ class YarpPublisher(Publisher):
         logging.info(f"Output connection established: {out_port}")
         return connected
 
+    def close(self):
+        if hasattr(self, "_port") and self._port:
+            self._port.close()
+
+    def __del__(self):
+        self.close()
+
 
 @Publishers.register("NativeObject", "yarp")
 class YarpNativeObjectPublisher(YarpPublisher):
@@ -137,17 +144,6 @@ class YarpImagePublisher(YarpPublisher):
         yarp_img.resize(img.shape[1], img.shape[0])
         yarp_img.setExternal(img, img.shape[1], img.shape[0])
         self._port.write()
-
-    def close(self):
-        """
-        Close the port
-        :return: None
-        """
-        if self._port:
-            self._port.close()
-
-    def __del__(self):
-        self.close()
 
 
 @Publishers.register("AudioChunk", "yarp")

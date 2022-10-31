@@ -42,10 +42,6 @@ class ROS2Publisher(Publisher, Node):
         return connected
 
     def close(self):
-        """
-        Close the node
-        :return: None
-        """
         if hasattr(self, "_publisher"):
             self.destroy_node()
 
