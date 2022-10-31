@@ -221,11 +221,10 @@ class MiddlewareCommunicator(object):
 
         # delete registry entry and all its publishers/listeners
         if del_entry:
-            if self.__registry[del_entry]["mode"] in ("publish", "listen"):
-                for communicator in self.__registry[del_entry]["communicator"]:
-                    wrapped_executor = communicator.get("wrapped_executor", False)
-                    if wrapped_executor:
-                        wrapped_executor.close()
+            for communicator in self.__registry[del_entry]["communicator"]:
+                wrapped_executor = communicator.get("wrapped_executor", False)
+                if wrapped_executor:
+                    wrapped_executor.close()
             del self.__registry[del_entry]
 
             # shift all entries backwards following the deleted one
