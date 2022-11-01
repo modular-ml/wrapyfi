@@ -19,6 +19,9 @@ class JsonEncoder(json.JSONEncoder):
         if isinstance(obj, set):
             return dict(__wrapyfi__=('set', list(obj)))
 
+        elif isinstance(obj, tuple):
+            return dict(__wrapyfi__=('tuple', obj))
+
         elif isinstance(obj, (np.ndarray, np.generic)):
             with io.BytesIO() as memfile:
                 np.save(memfile, obj)
@@ -50,6 +53,9 @@ class JsonDecodeHook(object):
 
                 if obj_type == 'set':
                     return set(wrapyfi[1])
+
+                elif obj_type == 'tuple':
+                    return tuple(wrapyfi[1])
 
                 elif obj_type == 'numpy.ndarray':
                     with io.BytesIO(base64.b64decode(wrapyfi[1].encode('ascii'))) as memfile:

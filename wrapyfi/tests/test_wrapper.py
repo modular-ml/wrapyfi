@@ -1,5 +1,9 @@
 import unittest
 import importlib
+import multiprocessing
+from multiprocessing import Queue
+import queue
+import time
 
 
 class ZeroMQTestPublisher(unittest.TestCase):
@@ -93,7 +97,36 @@ class ZeroMQTestPublisher(unittest.TestCase):
         self.assertNotIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
 
     def test_publish_listen_same_node(self):
-        pass
+        import wrapyfi
+        import wrapyfi.tests.tools.class_test as class_test
+        importlib.reload(wrapyfi)
+        importlib.reload(class_test)
+        test_func = class_test.test_func
+
+        if self.MWARE not in class_test.Test.get_communicators():
+            self.skipTest(f"{self.MWARE} not installed")
+
+        listen_queue = Queue(maxsize=10)
+        test_lsn = multiprocessing.Process(target=test_func, args=(listen_queue,),
+                                    kwargs={"mode": "listen", "mware": self.MWARE, "iterations": 10,
+                                            "should_wait": True})
+        # test_lsn.daemon = True
+
+        publish_queue = Queue(maxsize=10)
+        test_pub = multiprocessing.Process(target=test_func, args=(publish_queue,),
+                                    kwargs={"mode": "publish", "mware": self.MWARE, "iterations": 10,
+                                            "should_wait": True})
+        # test_pub.daemon = True
+
+        test_lsn.start()
+        test_pub.start()
+        test_lsn.join()
+        test_pub.join()
+        for i in range(10):
+            try:
+                self.assertDictEqual(listen_queue.get(timeout=3), publish_queue.get(timeout=3))
+            except queue.Empty:
+                self.assertEqual(i, 9)
 
 
 class ROS2TestPublisher(ZeroMQTestPublisher):
