@@ -202,6 +202,9 @@ class MiddlewareCommunicator(object):
     def get_communicators():
         return pub.Publishers.mwares | lsn.Listeners.mwares
 
+    def clear_register(self):
+        self.__registry.clear()
+
     def close(self):
         del_entry = False
         del_entry_idx = None
@@ -241,3 +244,4 @@ class MiddlewareCommunicator(object):
 
     def __del__(self):
         self.close()
+

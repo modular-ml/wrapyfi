@@ -92,6 +92,9 @@ class ZeroMQTestPublisher(unittest.TestCase):
         del test
         self.assertNotIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
 
+    def test_publish_listen_same_node(self):
+        pass
+
 
 class ROS2TestPublisher(ZeroMQTestPublisher):
     MWARE = "ros2"
