@@ -14,7 +14,7 @@ class Test(MiddlewareCommunicator):
                "list": [[[3, [4], 5.677890, 1.2]]],
                "string": "string of characters",
                "2": 2.73211,
-               "dict": {"other": (None, False, 16, 4.32,)}}
+               "dict": {"other": [None, False, 16, 4.32,]}}
         return ret,
 
 
