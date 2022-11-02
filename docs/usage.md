@@ -10,28 +10,28 @@ class TheClass(MiddlewareCommunicator)
            
         @MiddlewareCommunicator.register(...)
         @MiddlewareCommunicator.register(...)
-        def encapsulated_func(...):
+        def encapsulated_method(...):
             ...
             return encapsulated_a, encapsulated_b
         
-        def encapsulating_func(...)
+        def encapsulating_method(...)
             ...
-            encapsulated_a, encapsulated_b = self.encapsulated_func(...)
+            encapsulated_a, encapsulated_b = self.encapsulated_method(...)
             ...
             return result,
 
 
 the_class = TheClass()
-the_class.activate_communication(the_class.encapsulated_func, mode="publish")
+the_class.activate_communication(the_class.encapsulated_method, mode="publish")
 while True:
-    the_class.encapsulating_func(...)
+    the_class.encapsulating_method(...)
 ```
 
 The primary component for facilitating communication is the `MiddlewareCommunicator`. To register the 
-functions for a given class, it should inherit the `MiddlewareCommunicator`. Any function decorated with
+methods for a given class, it should inherit the `MiddlewareCommunicator`. Any method decorated with
 `@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Port name>)`. 
 
-The `<Data structure type>` is the publisher/listener type for a given function's return. The supported data
+The `<Data structure type>` is the publisher/listener type for a given method's return. The supported data
 types are listed in the [publishers and listeners](#publishers-and-listeners) section.
 
 The `<Communicator>` defines the communication medium e.g.: `yarp`, `ros2`, `ros`, or `zeromq`. The default communicator is `zeromq` but can be replaced by setting the environment variables `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided) to the middleware of choice e.g.: 
@@ -41,21 +41,21 @@ The `<Communicator>` defines the communication medium e.g.: `yarp`, `ros2`, `ros
 ```
 
 The `<Class name>` serves no purpose in the current Wrapyfi version, but has been left for future support of module-level decoration, 
-where the functions don't belong to a class, and must therefore have a unique identifier for declaration in the 
+where the methods don't belong to a class, and must therefore have a unique identifier for declaration in the 
 [configuration files](#configuration).
 
 The `<Port name>` is the name used for the connected port and is dependent on the Middleware platform. The listener and publisher receive 
 the same port name.
 
-The `@MiddlewareCommunicator.register` decorator is defined for each of the function's returns in the 
+The `@MiddlewareCommunicator.register` decorator is defined for each of the method's returns in the 
 same order. As shown in the example above, the first decorator defines the properties of `encapsulated_a`'s 
-publisher and listener, whereas the second decorator belongs to `encapsulated_b`. A decorated function must always return a tuple which can easily
+publisher and listener, whereas the second decorator belongs to `encapsulated_b`. A decorated method must always return a tuple which can easily
 be enforced by adding a `comma` after the returning in case a single variable is returned. Lists are also supported for 
 single returns e.g.:
 ```
         @MiddlewareCommunicator.register([..., {...}], [..., {...}], [...])
         @MiddlewareCommunicator.register(...)
-        def encapsulated_func(...):
+        def encapsulated_method(...):
             ...
             encapsulated_a = [[...], [...], [...]]
             ...
@@ -69,18 +69,18 @@ object before transmission. The `NativeObject` may result in a greater overhead 
 required or the objects within a list not within the [supported data structure types](#publishers-and-listeners).
 
 ## Configuration
-The `MiddlewareCommunicator`'s child class' functions modes can be independently set to:
-* **publish**: Run the function and publish the results using the middleware's transmission protocol
-* **listen**: Skip the function and wait for the publisher with the same port name to transmit a message, eventually returning the received message
-* **none**(default): Run the function as usual without triggering publish or listen
-* **disable**: Disables the function and returns None for all its returns. Caution should be taken when disabling a function since it 
+The `MiddlewareCommunicator`'s child class' methods modes can be independently set to:
+* **publish**: Run the method and publish the results using the middleware's transmission protocol
+* **listen**: Skip the method and wait for the publisher with the same port name to transmit a message, eventually returning the received message
+* **none**(default): Run the method as usual without triggering publish or listen. *hint*: Providing `None` (or `null` when providing a yaml configuration file) has the same effect
+* **disable**: Disables the method and returns None for all its returns. Caution should be taken when disabling a method since it 
 could break subsequent calls
 
 These properties can be set by calling: 
 
-`activate_communication(<Function name>, mode=<Mode>)` 
+`activate_communication(<Method name>, mode=<Mode>)` 
 
-for each docorated function within the class. This however requires modifying your scripts for each machine or process running
+for each docorated method within the class. This however requires modifying your scripts for each machine or process running
 on Wrapyfi. To overcome this limitation, use the `ConfigManager` e.g.:
 ```
 from wrapyfi.config.manager import ConfigManager
@@ -91,13 +91,30 @@ The `ConfigManager` is a singleton which must be called once before the initiali
 multiple times has no effect. This limitation was created by design to avoid loading the configuration file multiple times.
 
 The `<Configuration file path *.yml>`'s configuration file has a very simple format e.g.:
-```
-TheClass:
-  encapsulated_func: "publish"
 
 ```
-Where `TheClass` is the class name, `encapsulated_func` is the function's name and `publish` is the transmission mode.
-This is useful when running the same script on multiple machines, where one is set to publish and the other listens.
+TheClass:
+  encapsulated_method: "publish"
+
+```
+Where `TheClass` is the class name, `encapsulated_method` is the method's name and `publish` is the transmission mode.
+This is useful when running the same script on multiple machines, where one is set to publish and the other listens. 
+Multiple instances of the same class' method can have different modes, which can be set independently using the configuration file. This
+can be achieved by providing the mode as a list:
+
+```
+TheClass:
+  encapsulated_method: 
+        "publish"
+        null
+        "listen"
+        "listen"
+        "disable"
+        null
+```
+
+where the list element index corresponds the instance index. When providing a list, the number of list elements should correspond to the number 
+of instances. If the number of instances exceed the list length, the script exits and raises an error.
 
 ## Publishers and Listeners
 
@@ -139,12 +156,12 @@ To direct arguments specifically toward the publisher or subscriber without expo
 
 The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugins API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](../wrapyfi/plugins). Plugins can be added by:
 * Creating a derived class that inherits from the base class `wrapify.utils.Plugin`
-* Overriding the `encode` method for converting the object to a JSON serializable string. Deserializing the string is performed within the overridden `decode` method.
+* Overriding the `encode` method for converting the object to a JSON serializable string. Deserializing the string is performed within the overridden `decode` method
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
 * Decorating the class with `@PluginRegistrar.register` appending the plugin to the list of supported objects
 * Appending the script path where the class is defined to the `WRAPYFI_PLUGINS_PATH` environment variable
 * Ensure that the plugin resides within a directory named `plugins` residing inside the `WRAPYFI_PLUGINS_PATH` and that the directory contains an `__init__.py` file
-    
+
 #### Data Structure Types
 
 Other than native python objects, the following objects are supported:
@@ -170,7 +187,7 @@ class MXNetTensor(Plugin):
 where `map_mxnet_devices` should be `{'default': mxnet.gpu(0)` when `load_mxnet_device=mxnet.gpu(0)` and `map_mxnet_devices=None`.
 For instance, when `load_mxnet_device=mxnet.gpu(0)` or `load_mxnet_device="cuda:0"`, `map_mxnet_devices` can be set manually as a dictionary representing the source device as key and the target device as value for non-default device maps. 
 
-Suppose we have the following wrapyfied function:
+Suppose we have the following wrapyfied method:
 
 ```
 @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
@@ -197,6 +214,13 @@ The plugins supporting remapping are:
 * `mxnet.nd.NDArray`
 * `torch.Tensor`
 * `paddle.Tensor`
+
+#### Serialization
+
+Wrapyfi currently supports JSON as the only serializer. This introduces a number of limitations (beyond serializing native python objects only by default), including:
+
+* dictionary keys cannot be integers. Integers are automatically converted to strings
+* Tuples are converted to lists. Sets are not serializable. Tuples and sets are encoded as strings and restored on listening, which resolves this limitation but adds to the encoding overhead. 
 
 ## Environment Variables
 

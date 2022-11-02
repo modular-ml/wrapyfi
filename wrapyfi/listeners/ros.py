@@ -19,6 +19,12 @@ class ROSListener(Listener):
         ROSMiddleware.activate(**ros_kwargs or {})
         self.queue_size = queue_size
 
+    def close(self):
+        if hasattr(self, "_subscriber"):
+            self._subscriber.shutdown()
+
+    def __del__(self):
+        self.close()
 
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):

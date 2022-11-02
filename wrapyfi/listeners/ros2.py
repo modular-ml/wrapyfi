@@ -24,10 +24,6 @@ class ROS2Listener(Listener, Node):
         self.queue_size = queue_size
 
     def close(self):
-        """
-        Close the node
-        :return: None
-        """
         if hasattr(self, "_subscriber"):
             self.destroy_node()
 

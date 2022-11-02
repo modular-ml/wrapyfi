@@ -11,6 +11,26 @@ WRAPYFI_PLUGIN_PATHS = "WRAPYFI_PLUGIN_PATHS"
 lock = threading.Lock()
 
 
+def deepcopy(obj, exclude_keys=None, shallow_keys=None):
+    import copy
+    if exclude_keys is None:
+        return copy.deepcopy(obj)
+    else:
+        if isinstance(obj, list):
+            return [deepcopy(item, exclude_keys) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(deepcopy(item, exclude_keys) for item in obj)
+        elif isinstance(obj, set):
+            return {deepcopy(item, exclude_keys) for item in obj}
+        elif isinstance(obj, dict):
+            _shallows = shallow_keys or []
+            ret = {key: deepcopy(val, exclude_keys) for key, val in obj.items() if key not in exclude_keys + _shallows}
+            ret.update({key: val for key, val in obj.items() if key in _shallows})
+            return ret
+        else:
+            return copy.deepcopy(obj)
+
+
 def get_default_args(fnc):
     import inspect
     signature = inspect.signature(fnc)

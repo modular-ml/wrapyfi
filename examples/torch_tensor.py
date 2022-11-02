@@ -20,6 +20,19 @@ Run:
 """
 
 
+class Notify(MiddlewareCommunicator):
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Notify", "/notify/test_native_exchange",
+                                     carrier="", should_wait=True,
+                                     # load_torch_device='cuda:0', map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
+                                     listener_kwargs=dict(load_torch_device='cuda:0',
+                                                          map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'}))
+    def exchange_object(self, mware=None):
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "torch_ones": torch.ones((2, 4), device='cpu'),
+               "torch_zeros_cuda": torch.zeros((2, 3), device='cuda:0')}
+        return ret,
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
@@ -31,24 +44,10 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    class Notify(MiddlewareCommunicator):
-
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="", should_wait=True,
-                                         # load_torch_device='cuda:0', map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'})
-                                         listener_kwargs=dict(load_torch_device='cuda:0',
-                                                              map_torch_devices={'cpu': 'cuda:0', 'cuda:0': 'cpu'}))
-
-        def exchange_object(self):
-            msg = input("Type your message: ")
-            ret = {"message": msg,
-                   "torch_ones": torch.ones((2, 4), device='cpu'),
-                   "torch_zeros_cuda": torch.zeros((2, 3), device='cuda:0')}
-            return ret,
-
     notify = Notify()
 
     notify.activate_communication(Notify.exchange_object, mode=args.mode)
+
     while True:
-        msg_object, = notify.exchange_object()
+        msg_object, = notify.exchange_object(mware=args.mware)
         print("Method result:", msg_object)

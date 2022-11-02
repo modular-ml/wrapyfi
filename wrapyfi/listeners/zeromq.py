@@ -48,6 +48,13 @@ class ZeroMQListener(Listener):
             else:
                 return obj
 
+    def close(self):
+        if hasattr(self, "_port") and self._port:
+            self._port.close()
+
+    def __del__(self):
+        self.close()
+
 
 @Listeners.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectListener(ZeroMQListener):
@@ -138,12 +145,6 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
             return aud, self.rate
         else:
             return None, self.rate
-
-
-    def close(self):
-        super().close()
-        if self._dummy_port:
-            self._dummy_port.close()
 
 
 @Listeners.register("Properties", "zeromq")

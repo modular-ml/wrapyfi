@@ -16,7 +16,10 @@ class JsonEncoder(json.JSONEncoder):
 
     def default(self, obj):
 
-        if isinstance(obj, set):
+        if isinstance(obj, tuple):
+            return dict(__wrapyfi__=('tuple', obj))
+
+        elif isinstance(obj, set):
             return dict(__wrapyfi__=('set', list(obj)))
 
         elif isinstance(obj, (np.ndarray, np.generic)):
@@ -48,7 +51,10 @@ class JsonDecodeHook(object):
             if wrapyfi is not None:
                 obj_type = wrapyfi[0]
 
-                if obj_type == 'set':
+                if obj_type == 'tuple':
+                    return tuple(wrapyfi[1])
+
+                elif obj_type == 'set':
                     return set(wrapyfi[1])
 
                 elif obj_type == 'numpy.ndarray':

@@ -48,6 +48,13 @@ class ZeroMQPublisher(Publisher):
         logging.info(f"Output connection established: {out_port}")
         return connected
 
+    def close(self):
+        if hasattr(self, "_port") and self._port:
+            self._port.close()
+
+    def __del__(self):
+        self.close()
+
 
 @Publishers.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectPublisher(ZeroMQPublisher):

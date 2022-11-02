@@ -39,6 +39,12 @@ class ROSPublisher(Publisher):
         logging.info(f"Topic subscriber connected: {out_port}")
         return connected
 
+    def close(self):
+        if hasattr(self, "_publisher"):
+            self._publisher.shutdown()
+
+    def __del__(self):
+        self.close()
 
 @Publishers.register("NativeObject", "ros")
 class ROSNativeObjectPublisher(ROSPublisher):
