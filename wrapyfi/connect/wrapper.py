@@ -197,8 +197,16 @@ class MiddlewareCommunicator(object):
                         self.__registry[f"{func.__qualname__}.{instance_id}"] = deepcopy(entry, exclude_keys=["wrapped_executor"])
 
             instance_qualname = f"{func.__qualname__}.{instance_id}" if instance_id > 1 else func.__qualname__
-            self.__registry[instance_qualname]["mode"] = mode
-            self.__registry[instance_qualname]["instance_addr"] = instance_id
+
+            if isinstance(mode, list):
+                try:
+                    self.__registry[instance_qualname]["mode"] = mode[instance_id-1]
+                except IndexError:
+                    raise IndexError("When mode (publish|listen|disable|null) specified in configuration file is a "
+                                     "list, No. of elements in the list should match the number of instances")
+            else:
+                self.__registry[instance_qualname]["mode"] = mode
+            self.__registry[instance_qualname]["instance_addr"] = instance_addr
 
     def close(self):
         self.close_instance(hex(id(self)))
