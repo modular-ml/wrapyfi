@@ -22,7 +22,7 @@ def test_func(queue_buffer, mode="listen", mware=DEFAULT_COMMUNICATOR, topic="/t
               should_wait=False):
     test = Test()
     test.activate_communication(test.exchange_object, mode=mode)
-    for i in range(iterations if mode == "publish" else iterations - 1):
+    for i in range(iterations):
         my_message = test.exchange_object(msg=f"signal_idx:{i}", mware=mware, topic=topic, should_wait=should_wait)
         if my_message is not None:
             print(f"result {mode}:", my_message[0]["message"])

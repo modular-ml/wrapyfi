@@ -6,47 +6,55 @@ import queue
 import time
 
 
-class ZeroMQTestPublisher(unittest.TestCase):
+class ZeroMQTestWrapper(unittest.TestCase):
     MWARE = "zeromq"
 
-    def test_two_node_close(self):
+    def test_activate_communication(self):
         import wrapyfi.tests.tools.class_test as class_test
-        importlib.reload(class_test)
         Test = class_test.Test
+        Test.close_all_instances()
         if self.MWARE not in Test.get_communicators():
             self.skipTest(f"{self.MWARE} not installed")
 
-        # create two node nodes to test closing and auto-naming of the second node
-        test = Test()
-        test2 = Test()
+        # create three node nodes to test closing and auto-naming of the second node
+        test, test2, test3 = Test(), Test(), Test()
         test.activate_communication(test.exchange_object, mode="publish")
-        test2.activate_communication(test2.exchange_object, mode="publish")
+        test2.activate_communication(test2.exchange_object, mode=None)
+        test2.activate_communication(test2.exchange_object, mode="publish")  # override None
+        test3.activate_communication(test3.exchange_object, mode="disable")
+
         # ensure both nodes are registered
         self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
         self.assertIn("Test.exchange_object.2", Test._MiddlewareCommunicator__registry)
-
+        self.assertIn("Test.exchange_object.3", Test._MiddlewareCommunicator__registry)
         for i in range(2):
             msg_object, = test.exchange_object(mware=self.MWARE)
             msg_object2, = test2.exchange_object(mware=self.MWARE, topic="/test/test_native_exchange2")
+            msg_object3, = test3.exchange_object(mware=self.MWARE)
             self.assertDictEqual(msg_object, msg_object2)
+            self.assertIsNone(msg_object3)
         test.close()
         del test
 
         # ensure only one node is registered
         self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
-        self.assertNotIn("Test.exchange_object.2", Test._MiddlewareCommunicator__registry)
+        self.assertIn("Test.exchange_object.2", Test._MiddlewareCommunicator__registry)
+        self.assertNotIn("Test.exchange_object.3", Test._MiddlewareCommunicator__registry)
+
         for i in range(2):
             msg_object2, = test2.exchange_object(mware=self.MWARE, topic="/test/test_native_exchange2")
         test2.close()
-        del test2
+        test3.close()
+        del test2, test3
 
         # ensure no nodes are registered
-        self.assertNotIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
+        self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
 
-    def test_three_node_close(self):
+    def test_close(self):
         import wrapyfi.tests.tools.class_test as class_test
-        importlib.reload(class_test)
         Test = class_test.Test
+        Test.close_all_instances()
+
         if self.MWARE not in Test.get_communicators():
             self.skipTest(f"{self.MWARE} not installed")
 
@@ -94,50 +102,37 @@ class ZeroMQTestPublisher(unittest.TestCase):
         del test3
         test.close()
         del test
-        self.assertNotIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
 
-    def test_publish_listen_same_node(self):
-        import wrapyfi
+        self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
+        self.assertNotIn("Test.exchange_object.2", Test._MiddlewareCommunicator__registry)
+        self.assertNotIn("Test.exchange_object.3", Test._MiddlewareCommunicator__registry)
+
+        # close all instances after all have been closed
+        Test.close_all_instances()
+        self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
+        self.assertNotIn("Test.exchange_object.2", Test._MiddlewareCommunicator__registry)
+        self.assertNotIn("Test.exchange_object.3", Test._MiddlewareCommunicator__registry)
+
+    def test_get_communicators(self):
         import wrapyfi.tests.tools.class_test as class_test
-        importlib.reload(wrapyfi)
-        importlib.reload(class_test)
-        test_func = class_test.test_func
+        # importlib.reload(class_test)
+        Test = class_test.Test
 
-        if self.MWARE not in class_test.Test.get_communicators():
+        if self.MWARE not in Test.get_communicators():
             self.skipTest(f"{self.MWARE} not installed")
 
-        listen_queue = Queue(maxsize=10)
-        test_lsn = multiprocessing.Process(target=test_func, args=(listen_queue,),
-                                    kwargs={"mode": "listen", "mware": self.MWARE, "iterations": 10,
-                                            "should_wait": True})
-        # test_lsn.daemon = True
-
-        publish_queue = Queue(maxsize=10)
-        test_pub = multiprocessing.Process(target=test_func, args=(publish_queue,),
-                                    kwargs={"mode": "publish", "mware": self.MWARE, "iterations": 10,
-                                            "should_wait": True})
-        # test_pub.daemon = True
-
-        test_lsn.start()
-        test_pub.start()
-        test_lsn.join()
-        test_pub.join()
-        for i in range(10):
-            try:
-                self.assertDictEqual(listen_queue.get(timeout=3), publish_queue.get(timeout=3))
-            except queue.Empty:
-                self.assertEqual(i, 9)
+        self.assertIn(self.MWARE, Test.get_communicators())
 
 
-class ROS2TestPublisher(ZeroMQTestPublisher):
+class ROS2TestWrapper(ZeroMQTestWrapper):
     MWARE = "ros2"
 
 
-class YarpTestPublisher(ZeroMQTestPublisher):
+class YarpTestWrapper(ZeroMQTestWrapper):
     MWARE = "yarp"
 
 
-class ROSTestPublisher(ZeroMQTestPublisher):
+class ROSTestWrapper(ZeroMQTestWrapper):
     MWARE = "ros"
 
 

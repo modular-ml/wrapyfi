@@ -68,7 +68,7 @@ class MiddlewareCommunicator(object):
 
                 instance_address = hex(id(wds[0]))
                 instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPYFI_INSTANCES"].index(instance_address) + 1
-                instance_id = "." + str(instance_id) if instance_id > 1 else ""
+                instance_id = "" if instance_id <= 1 else "." + str(instance_id)
 
                 # execute the function as usual
                 if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
@@ -195,52 +195,81 @@ class MiddlewareCommunicator(object):
                     instance_id = len(wrapyfi_instances)
                     if instance_id > 1:
                         self.__registry[f"{func.__qualname__}.{instance_id}"] = deepcopy(entry, exclude_keys=["wrapped_executor"])
+
             instance_qualname = f"{func.__qualname__}.{instance_id}" if instance_id > 1 else func.__qualname__
             self.__registry[instance_qualname]["mode"] = mode
+            self.__registry[instance_qualname]["instance_addr"] = instance_id
+
+    def close(self):
+        self.close_instance(hex(id(self)))
 
     @staticmethod
     def get_communicators():
         return pub.Publishers.mwares | lsn.Listeners.mwares
 
-    def clear_register(self):
-        self.__registry.clear()
+    @classmethod
+    def close_all_instances(cls):
+        close_instance_idxs = set()
+        for val in cls._MiddlewareCommunicator__registry.values():
+            instance_addr = val.get("instance_addr", False)
+            close_instance_idxs.add(instance_addr) if instance_addr else None
+        for close_instance_idx in close_instance_idxs:
+            cls.close_instance(close_instance_idx)
 
-    def close(self):
-        del_entry = False
-        del_entry_idx = None
-        other_entry_keys = []
-        # find self in registry and remove id from instances
-        for entry_key, entry_val in self.__registry.items():
-            if hex(id(self)) in entry_val.get("__WRAPYFI_INSTANCES", []):
-                if not del_entry:
-                    del_entry_idx = entry_val["__WRAPYFI_INSTANCES"].index(hex(id(self)))
-                    if del_entry_idx == 0:
-                        del_entry = entry_key
-                    else:
-                        del_entry = re.sub("\.\d+", "\.", entry_key) + "." + str(del_entry_idx + 1)
-                else:
-                    other_entry_keys.append(entry_key)
-                entry_val["__WRAPYFI_INSTANCES"].remove(hex(id(self)))
-
-        # delete registry entry and all its publishers/listeners
-        if del_entry:
-            for communicator in self.__registry[del_entry]["communicator"]:
-                wrapped_executor = communicator.get("wrapped_executor", False)
-                if wrapped_executor:
-                    wrapped_executor.close()
-            del self.__registry[del_entry]
-
-            # shift all entries backwards following the deleted one
-            if del_entry_idx - 1 < len(other_entry_keys):
-                for other_entry_key in other_entry_keys[del_entry_idx:]:
-                        new_key = re.split("\.(\d+)", other_entry_key)
-                        if len(new_key) == 1:
-                            new_key = new_key[0]
-                        elif str(int(new_key[1]) - 1) == "1":
-                            new_key = new_key[0]
+    @classmethod
+    def close_instance(cls, instance_addr=None):
+        while True:
+            del_entry = False
+            del_entry_name = None
+            del_entry_idx = None
+            other_entry_keys = []
+            # find self in registry and remove id from instances
+            for entry_key, entry_val in cls._MiddlewareCommunicator__registry.items():
+                if instance_addr in entry_val.get("__WRAPYFI_INSTANCES", []):
+                    if not del_entry:
+                        del_entry_idx = entry_val["__WRAPYFI_INSTANCES"].index(instance_addr)
+                        if del_entry_idx == 0:
+                            del_entry = entry_key
                         else:
-                            new_key = new_key[0] + "." + str(int(new_key[1]) - 1)
-                        self.__registry[new_key] = self.__registry.pop(other_entry_key)
+                            del_entry = re.sub("\.\d+", "\.", entry_key) + "." + str(del_entry_idx + 1)
+                        del_entry_name = re.sub("\.\d+", "\.", entry_key)
+                    else:
+                        if del_entry_name in entry_key:
+                            other_entry_keys.append(entry_key)
+                    entry_val["__WRAPYFI_INSTANCES"].remove(instance_addr)
+
+            # delete registry entry and all its publishers/listeners
+            if del_entry:
+                for communicator in cls._MiddlewareCommunicator__registry[del_entry]["communicator"]:
+                    wrapped_executor = communicator.get("wrapped_executor", False)
+                    if wrapped_executor:
+                        if isinstance(wrapped_executor, list):
+                            for single_wrapped_executor in wrapped_executor:
+                                single_wrapped_executor.close()
+                        else:
+                            wrapped_executor.close()
+                        communicator.pop("wrapped_executor")
+                if other_entry_keys:
+                    del cls._MiddlewareCommunicator__registry[del_entry]
+                else:
+                    cls._MiddlewareCommunicator__registry[del_entry].pop("__WRAPYFI_INSTANCES")
+                    cls._MiddlewareCommunicator__registry[del_entry].pop("mode")
+                    cls._MiddlewareCommunicator__registry[del_entry].pop("instance_addr")
+
+                # shift all entries backwards following the deleted one
+                if del_entry_idx - 1 < len(other_entry_keys):
+                    for other_entry_key in other_entry_keys[del_entry_idx:]:
+                            new_key = re.split("\.(\d+)", other_entry_key)
+                            if len(new_key) == 1:
+                                new_key = new_key[0]
+                            elif str(int(new_key[1]) - 1) == "1":
+                                new_key = new_key[0]
+                            else:
+                                new_key = new_key[0] + "." + str(int(new_key[1]) - 1)
+                            cls._MiddlewareCommunicator__registry[new_key] = \
+                                cls._MiddlewareCommunicator__registry.pop(other_entry_key)
+            else:
+                break
 
     def __del__(self):
         self.close()

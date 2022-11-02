@@ -28,7 +28,7 @@ def deepcopy(obj, exclude_keys=None, shallow_keys=None):
             ret.update({key: val for key, val in obj.items() if key in _shallows})
             return ret
         else:
-            return obj
+            return copy.deepcopy(obj)
 
 
 def get_default_args(fnc):
