@@ -14,9 +14,12 @@ from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonEncoder
 
 
+QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
+
+
 class ROS2Publisher(Publisher, Node):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, ros2_kwargs=None, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
         Publisher.__init__(self, name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         Node.__init__(self, name)
@@ -52,7 +55,7 @@ class ROS2Publisher(Publisher, Node):
 @Publishers.register("NativeObject", "ros2")
 class ROS2NativeObjectPublisher(ROS2Publisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=5, serializer_kwargs=None, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, serializer_kwargs=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
         self._publisher = None
 
