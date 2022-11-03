@@ -1,0 +1,6 @@
+wrapyfi/tests/notebooks/** linguist-vendored
+*.ipynb linguist-vendored
+*.yml linguist-vendored
+*.md linguist-vendored
+*.rst linguist-vendored
+*.csv linguist-vendored
