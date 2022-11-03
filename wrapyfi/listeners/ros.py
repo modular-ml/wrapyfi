@@ -12,9 +12,11 @@ from wrapyfi.middlewares.ros import ROSMiddleware
 from wrapyfi.encoders import JsonDecodeHook
 
 
+QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
+
 class ROSListener(Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, ros_kwargs=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, ros_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
         self.queue_size = queue_size
@@ -29,7 +31,7 @@ class ROSListener(Listener):
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, deserializer_kwargs=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self._subscriber = self._queue = None
 
@@ -62,7 +64,7 @@ class ROSNativeObjectListener(ROSListener):
 @Listeners.register("Image", "ros")
 class ROSImageListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, width=-1, height=-1, rgb=True, fp=False, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self.width = width
         self.height = height
