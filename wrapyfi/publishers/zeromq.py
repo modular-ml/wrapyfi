@@ -21,8 +21,9 @@ PROXY_BROKER_SPAWN =  os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "proce
 
 class ZeroMQPublisher(Publisher):
     def __init__(self, name, out_port, carrier="tcp", out_port_connect=None,
-                 socket_ip="127.0.0.1", socket_port=5555, socket_sub_port=5556,
-                 start_proxy_broker=True, proxy_broker_spawn="process", proxy_broker_verbose=False, zeromq_kwargs=None, **kwargs):
+                 socket_ip=SOCKET_IP, socket_port=SOCKET_PORT, socket_sub_port=SOCKET_SUB_PORT,
+                 start_proxy_broker=START_PROXY_BROKER, proxy_broker_spawn=PROXY_BROKER_SPAWN, proxy_broker_verbose=PROXY_BROKER_VERBOSE, 
+                 zeromq_kwargs=None, **kwargs):
         carrier = carrier if carrier else "tcp"
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         # out_port is equivalent to topic in zeromq
