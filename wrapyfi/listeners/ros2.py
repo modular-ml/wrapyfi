@@ -13,11 +13,12 @@ from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonDecodeHook
 
 WAIT = {True: None, False: 0}
+QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
 
 
 class ROS2Listener(Listener, Node):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, ros2_kwargs=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
         Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name)
@@ -34,7 +35,7 @@ class ROS2Listener(Listener, Node):
 @Listeners.register("NativeObject", "ros2")
 class ROS2NativeObjectListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, deserializer_kwargs=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self._subscriber = self._queue = None
 
@@ -69,7 +70,7 @@ class ROS2NativeObjectListener(ROS2Listener):
 @Listeners.register("Image", "ros2")
 class ROS2ImageListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, width=-1, height=-1, rgb=True, fp=False, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self.width = width
         self.height = height
@@ -118,7 +119,7 @@ class ROS2ImageListener(ROS2Listener):
 @Listeners.register("AudioChunk", "ros2")
 class ROS2AudioChunkListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, channels=1, rate=44100, chunk=-1, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, channels=1, rate=44100, chunk=-1, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self.channels = channels
         self.rate = rate
