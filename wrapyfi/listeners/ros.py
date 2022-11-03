@@ -111,7 +111,7 @@ class ROSImageListener(ROSListener):
 @Listeners.register("AudioChunk", "ros")
 class ROSAudioChunkListener(ROSListener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=5, channels=1, rate=44100, chunk=-1, **kwargs):
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, channels=1, rate=44100, chunk=-1, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self.channels = channels
         self.rate = rate
