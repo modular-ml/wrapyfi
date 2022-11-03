@@ -2,6 +2,7 @@ import logging
 import sys
 import json
 import time
+import os
 
 import numpy as np
 import rospy
