@@ -7,4 +7,3 @@ dist
 .idea
 *.egg-info
 .venv
-.idea
