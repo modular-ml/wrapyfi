@@ -9,11 +9,14 @@ from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
 from wrapyfi.middlewares.zeromq import ZeroMQMiddleware
 from wrapyfi.encoders import JsonDecodeHook
 
+SOCKET_IP =  os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
+SOCKET_PORT =  int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
+
 
 class ZeroMQListener(Listener):
 
     def __init__(self, name, in_port, carrier="tcp",
-                 socket_ip="127.0.0.1", socket_port=5555, zeromq_kwargs=None, **kwargs):
+                 socket_ip=SOCKET_IP, socket_port=SOCKET_PORT, zeromq_kwargs=None, **kwargs):
         carrier = carrier if carrier else "tcp"
         super().__init__(name, in_port, carrier=carrier, **kwargs)
         ZeroMQMiddleware.activate(**zeromq_kwargs or {})
