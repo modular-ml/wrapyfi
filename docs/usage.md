@@ -238,3 +238,7 @@ ZeroMQ requires socket configurations which can be passed as arguments to the re
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_VERBOSE`: Printout messages from within the broker. Defaults to "False"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
         
+ROS and ROS2 queue sizes can be set by:
+
+* `WRAPYFI_ROS_QUEUE_SIZE`: Size of the queue buffer. Defaults to 5
+* `WRAPYFI_ROS2_QUEUE_SIZE`: Size of the queue buffer. Defaults to 5
