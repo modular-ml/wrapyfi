@@ -153,7 +153,6 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 ## Image
 * [x] **CV 2**
 * [ ] **Scikit Image**
-* [ ] **ImageIO**
 * [ ] **Pillow**
 
 # TODOS
