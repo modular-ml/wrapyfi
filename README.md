@@ -144,7 +144,6 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] **JAX Tensor**
 * [x] **MXNet Tensor**
 * [x] **Paddlepaddle Tensor**
-* [ ] ~~Keras (TF 2)~~
 * [x] **Pandas Dataframe|Series**
 
 ## Serializers
@@ -153,8 +152,6 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 
 ## Image
 * [x] **CV 2**
-* [ ] **Tensorflow**
-* [ ] **Pytorch**
 * [ ] **Scikit Image**
 * [ ] **ImageIO**
 * [ ] **Pillow**
