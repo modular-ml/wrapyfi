@@ -152,7 +152,7 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 
 ## Image
 * [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
-* [ ] **Pillow Image**
+* [x] **Pillow Image**
 
 # TODOS
 * [x] **Support encapsulating wrapped calls to publishers and listeners**
