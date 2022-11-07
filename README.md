@@ -138,7 +138,7 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] **ZeroMQ** (TODO: proper should_wait trigger instead of dummy)
 
 ## Data Structures
-* [x] **Numpy Array**
+* [x] **Numpy Array|Generic**
 * [x] **Pytorch Tensor**
 * [x] **Tensorflow 2 Tensor**
 * [x] **JAX Tensor**
@@ -151,9 +151,8 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [ ] **msgpack**
 
 ## Image
-* [x] **CV 2**
-* [ ] **Scikit Image**
-* [ ] **Pillow**
+* [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
+* [ ] **Pillow Image**
 
 # TODOS
 * [x] **Support encapsulating wrapped calls to publishers and listeners**
