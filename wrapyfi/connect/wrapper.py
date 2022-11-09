@@ -67,8 +67,11 @@ class MiddlewareCommunicator(object):
                     return func(*wds, **kwds)
 
                 instance_address = hex(id(wds[0]))
-                instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPYFI_INSTANCES"].index(instance_address) + 1
-                instance_id = "" if instance_id <= 1 else "." + str(instance_id)
+                try:
+                    instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPYFI_INSTANCES"].index(instance_address) + 1
+                    instance_id = "" if instance_id <= 1 else "." + str(instance_id)
+                except KeyError:
+                    instance_id = ""
 
                 # execute the function as usual
                 if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
