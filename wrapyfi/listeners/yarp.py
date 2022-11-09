@@ -129,7 +129,7 @@ class YarpImageListener(YarpListener):
             img = np.zeros((yarp_img.height(), yarp_img.width()), dtype=self._type, order='C')
             wrapper_img = yarp.ImageFloat() if self.fp else yarp.ImageMono()
         wrapper_img.resize(img.shape[1], img.shape[0])
-        wrapper_img.setExternal(img, img.shape[1], img.shape[0])
+        wrapper_img.setExternal(img.data, img.shape[1], img.shape[0])
         wrapper_img.copy(yarp_img)
         return img
 
