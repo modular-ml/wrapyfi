@@ -6,6 +6,7 @@ import multiprocessing
 import zmq
 
 from wrapyfi.utils import SingletonOptimized
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 
 class ZeroMQMiddleware(metaclass=SingletonOptimized):
@@ -17,7 +18,9 @@ class ZeroMQMiddleware(metaclass=SingletonOptimized):
     def __init__(self, zmq_proxy_kwargs=None, *args, **kwargs):
         logging.info("Initialising ZeroMQ middleware")
         ctx = zmq.Context.instance()
+        atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
+
         if zmq_proxy_kwargs is not None and zmq_proxy_kwargs:
             if zmq_proxy_kwargs["proxy_broker_spawn"] == "process":
                 proxy = multiprocessing.Process(name='zeromq_broker', target=self.__init_proxy, kwargs=zmq_proxy_kwargs)
