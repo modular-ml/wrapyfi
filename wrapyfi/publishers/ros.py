@@ -16,6 +16,7 @@ from wrapyfi.encoders import JsonEncoder
 
 
 QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
+WATCHDOG_POLL_REPEATS = None
 
 
 class ROSPublisher(Publisher):
@@ -51,6 +52,7 @@ class ROSPublisher(Publisher):
     def __del__(self):
         self.close()
 
+
 @Publishers.register("NativeObject", "ros")
 class ROSNativeObjectPublisher(ROSPublisher):
 
@@ -72,7 +74,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
 
     def publish(self, obj):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -108,7 +110,7 @@ class ROSImagePublisher(ROSPublisher):
 
     def publish(self, img):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -147,7 +149,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
 
     def publish(self, aud):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -171,10 +173,44 @@ class ROSAudioChunkPublisher(ROSPublisher):
         self._publisher.publish(msg)
 
 
+@Publishers.register("Properties", "ros")
+class ROSPropertiesPublisher(ROSPublisher):
+    """
+    Sets rospy properties. Behaves differently from other data types by directly setting ROS parameters.
+    Note that the listener is not guaranteed to receive the updated signal, since the listener can trigger before
+    property is set. The property decorated method returns accept native python objects, but care should be taken when
+    using dictionaries, since they are analogous with node namespaces:
+    http://wiki.ros.org/rospy/Overview/Parameter%20Server
+    """
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, persistent=True, **kwargs):
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        self.persistent = persistent
+
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
+
+        self.previous_property = False
+
+    def establish(self, repeats=-1, **kwargs):
+        self.previous_property = rospy.get_param(self.out_port, False)
+
+    def publish(self, obj):
+        rospy.set_param(self.out_port, obj)
+
+    def close(self):
+        if hasattr(self, "out_port") and not self.persistent:
+            rospy.delete_param(self.out_port)
+            if self.previous_property:
+                rospy.set_param(self.out_port, self.previous_property)
+
+    def __del__(self):
+        self.close()
+
+
 @Publishers.register("ROSMessage", "ros")
 class ROSMessagePublisher(ROSPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, serializer_kwargs=None, **kwargs):
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
         self._publisher = None
 
@@ -199,10 +235,3 @@ class ROSMessagePublisher(ROSPublisher):
             else:
                 time.sleep(0.2)
         self._publisher.publish(obj)
-
-
-@Publishers.register("Properties", "ros")
-class ROSPropertiesPublisher(ROSPublisher):
-    def __init__(self, name, out_port, **kwargs):
-        super().__init__(name, out_port, **kwargs)
-        raise NotImplementedError

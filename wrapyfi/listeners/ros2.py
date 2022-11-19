@@ -13,8 +13,10 @@ from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
 from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonDecodeHook
 
+
 WAIT = {True: None, False: 0}
-QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
+WATCHDOG_POLL_REPEATS = None
+QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
 
 
 class ROS2Listener(Listener, Node):

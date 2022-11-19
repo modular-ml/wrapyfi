@@ -10,8 +10,10 @@ from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
 from wrapyfi.middlewares.zeromq import ZeroMQMiddleware
 from wrapyfi.encoders import JsonDecodeHook
 
+
 SOCKET_IP =  os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
 SOCKET_PORT =  int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
+WATCHDOG_POLL_REPEATS = None
 
 
 class ZeroMQListener(Listener):
@@ -85,7 +87,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 
     def listen(self):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
@@ -112,7 +114,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
 
     def listen(self):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
@@ -136,7 +138,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
 
     def listen(self):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
