@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 import rospy
+import rostopic
 import std_msgs.msg
 import sensor_msgs.msg
 
@@ -28,6 +29,7 @@ class ROSListener(Listener):
 
     def __del__(self):
         self.close()
+
 
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
@@ -142,6 +144,41 @@ class ROSAudioChunkListener(ROSListener):
     def _message_callback(self, data):
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+        except queue.Full:
+            logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
+
+
+
+@Listeners.register("ROSMessage", "ros")
+class ROSMessageListener(ROSListener):
+
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        self._subscriber = self._queue = None
+        self._topic_type = None
+        ListenerWatchDog().add_listener(self)
+
+    def establish(self):
+        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
+        self._topic_type, topic_str, _ = rostopic.get_topic_class(self.in_port, blocking=self.should_wait)
+        if self._topic_type is None:
+            return
+        self._subscriber = rospy.Subscriber(self.in_port, self._topic_type, callback=self._message_callback)
+        self.established = True
+
+    def listen(self):
+        if not self.established:
+            self.establish()
+        try:
+            obj_str = self._queue.get(block=self.should_wait)
+
+            return obj_str  # self._topic_type.deserialize_numpy(obj_str)
+        except queue.Empty:
+            return None
+
+    def _message_callback(self, msg):
+        try:
+            self._queue.put(msg, block=False)
         except queue.Full:
             logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 

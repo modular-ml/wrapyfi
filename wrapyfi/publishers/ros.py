@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import os
+import importlib.util
 
 import numpy as np
 import rospy
@@ -14,7 +15,7 @@ from wrapyfi.middlewares.ros import ROSMiddleware
 from wrapyfi.encoders import JsonEncoder
 
 
-QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
+QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
 
 
 class ROSPublisher(Publisher):
@@ -168,6 +169,36 @@ class ROSAudioChunkPublisher(ROSPublisher):
         msg.step = aud.strides[0]
         msg.data = aud.tobytes()
         self._publisher.publish(msg)
+
+
+@Publishers.register("ROSMessage", "ros")
+class ROSMessagePublisher(ROSPublisher):
+
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, serializer_kwargs=None, **kwargs):
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
+        self._publisher = None
+
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
+
+    def establish(self, repeats=None, obj=None, **kwargs):
+        if obj is None:
+            return
+        obj_type = obj._type.split("/")
+        import_msg = importlib.import_module(f"{obj_type[0]}.msg")
+        msg_type = getattr(import_msg, obj_type[1])
+        self._publisher = rospy.Publisher(self.out_port, msg_type, queue_size=self.queue_size)
+        established = self.await_connection(self._publisher, repeats=repeats)
+        return self.check_establishment(established)
+
+    def publish(self, obj):
+        if not self.established:
+            established = self.establish(obj=obj)
+            if not established:
+                return
+            else:
+                time.sleep(0.2)
+        self._publisher.publish(obj)
 
 
 @Publishers.register("Properties", "ros")
