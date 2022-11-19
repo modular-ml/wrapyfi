@@ -2,9 +2,11 @@ import json
 import logging
 import queue
 import os
+import time
 
 import numpy as np
 import rclpy
+from rclpy import Parameter
 from rclpy.node import Node
 import std_msgs.msg
 import sensor_msgs.msg
@@ -15,7 +17,7 @@ from wrapyfi.encoders import JsonDecodeHook
 
 
 WAIT = {True: None, False: 0}
-WATCHDOG_POLL_REPEATS = None
+WATCHDOG_POLL_REPEAT = None
 QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
 
 
@@ -24,7 +26,7 @@ class ROS2Listener(Listener, Node):
     def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
         Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
-        Node.__init__(self, name)
+        Node.__init__(self, name, allow_undeclared_parameters=True)
         self.queue_size = queue_size
 
     def close(self):
@@ -160,6 +162,51 @@ class ROS2AudioChunkListener(ROS2Listener):
 @Listeners.register("Properties", "ros2")
 class ROS2PropertiesListener(ROS2Listener):
 
-    def __init__(self, name, in_port, **kwargs):
-        super().__init__(name, in_port, **kwargs)
-        raise NotImplementedError
+    def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        self._subscriber = self._queue = None
+
+        if not self.should_wait:
+            ListenerWatchDog().add_listener(self)
+
+        self.previous_property = False
+
+    def await_connection(self, port=None, repeats=None):
+        connected = False
+        if port is None:
+            port = self.in_port
+        logging.info(f"Waiting for property: {port}")
+        if repeats is None:
+            if self.should_wait:
+                repeats = -1
+            else:
+                repeats = 1
+
+            while repeats > 0 or repeats <= -1:
+                repeats -= 1
+                self.previous_property = self.get_parameter_or(self.in_port,
+                                                               alternative_value=Parameter("default", Parameter.Type.BOOL, False))
+                connected = True if bool(self.previous_property) else False
+                if connected:
+                    logging.info(f"Found property: {port}")
+                    break
+                time.sleep(0.2)
+        return connected
+
+    def establish(self, repeats=None, **kwargs):
+        established = self.await_connection(repeats=repeats)
+        return self.check_establishment(established)
+
+    def listen(self):
+        if not self.established:
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
+            if not established:
+                obj = None
+            else:
+                obj = self.previous_property
+            return obj
+        else:
+            obj = self.get_parameter_or(self.in_port, alternative_value=Parameter("default", Parameter.Type.BOOL, False))
+            return obj
+
+

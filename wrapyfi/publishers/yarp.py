@@ -10,7 +10,7 @@ from wrapyfi.middlewares.yarp import YarpMiddleware
 from wrapyfi.encoders import JsonEncoder
 
 
-WATCHDOG_POLL_REPEATS = None
+WATCHDOG_POLL_REPEAT = None
 
 
 class YarpPublisher(Publisher):
@@ -79,7 +79,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
 
     def publish(self, obj):
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -134,7 +134,7 @@ class YarpImagePublisher(YarpPublisher):
         :return: None
         """
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -195,7 +195,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :return: None
         """
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:

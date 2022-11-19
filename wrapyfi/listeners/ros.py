@@ -157,7 +157,7 @@ class ROSPropertiesListener(ROSListener):
     def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         self._subscriber = self._queue = None
-        self._topic_type = None
+
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
 

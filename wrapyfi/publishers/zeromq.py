@@ -17,7 +17,7 @@ SOCKET_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_SUB_PORT", 5556))
 START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
 PROXY_BROKER_VERBOSE = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_VERBOSE", False) == "True"
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
-WATCHDOG_POLL_REPEATS = None
+WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQPublisher(Publisher):
@@ -100,7 +100,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
 
     def publish(self, obj):
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -134,7 +134,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
     def publish(self, img):
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -173,7 +173,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
 
     def publish(self, aud):
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
