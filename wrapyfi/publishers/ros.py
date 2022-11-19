@@ -178,7 +178,7 @@ class ROSPropertiesPublisher(ROSPublisher):
     """
     Sets rospy properties. Behaves differently from other data types by directly setting ROS parameters.
     Note that the listener is not guaranteed to receive the updated signal, since the listener can trigger before
-    property is set. The property decorated method returns accept native python objects, but care should be taken when
+    property is set. The property decorated method returns accept native python objects (excluding None), but care should be taken when
     using dictionaries, since they are analogous with node namespaces:
     http://wiki.ros.org/rospy/Overview/Parameter%20Server
     """
