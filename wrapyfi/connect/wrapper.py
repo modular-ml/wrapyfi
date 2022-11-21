@@ -4,6 +4,9 @@ import re
 
 import wrapyfi.connect.publishers as pub
 import wrapyfi.connect.listeners as lsn
+import wrapyfi.connect.servers as srv
+import wrapyfi.connect.clients as clt
+
 from wrapyfi.utils import get_default_args, match_args, deepcopy
 from wrapyfi.config.manager import ConfigManager
 
@@ -62,7 +65,7 @@ class MiddlewareCommunicator(object):
             cls.__registry[func_qualname]["mode"] = None
 
             @wraps(func)
-            def wrapper(*wds, **kwds):  # Triggers on calling the function
+            def wrapper(*wds, **kwds):  # triggers on calling the method
                 if hasattr(func, "__wrapped__"):
                     return func(*wds, **kwds)
 
@@ -170,7 +173,68 @@ class MiddlewareCommunicator(object):
 
                     return cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"]
 
-                # WARNING: use with caution. This produces "None" for all the function's returns
+                # TODO (fabawi): check this server actually works
+                # server awaits request from client and replies with method returns
+                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "reply":
+                    if "wrapped_executor" not in \
+                            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][
+                                0]:
+                        # instantiate the publishers
+                        cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                            "communicator"].reverse()
+                        for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                            "communicator"]:
+                            # single element
+                            if isinstance(communicator["return_func_type"], str):
+                                return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"])
+                                return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
+                                return_func_pub_kwargs.pop("listener_kwargs", None)
+                                return_func_pub_kwargs.pop("publisher_kwargs", None)
+                                new_args, new_kwargs = match_args(
+                                    communicator["return_func_args"], return_func_pub_kwargs, wds[1:], kwd)
+                                return_func_type = communicator["return_func_type"]
+                                return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                                communicator["wrapped_executor"] = srv.Servers.registry[
+                                    return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                            # list for single return
+                            elif isinstance(communicator["return_func_type"], list):
+                                communicator["wrapped_executor"] = []
+                                for comm_idx in range(len(communicator["return_func_type"])):
+                                    return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
+                                    return_func_pub_kwargs.update(
+                                        return_func_pub_kwargs.get("publisher_kwargs", {}))
+                                    return_func_pub_kwargs.pop("listener_kwargs", None)
+                                    return_func_pub_kwargs.pop("publisher_kwargs", None)
+                                    new_args, new_kwargs = match_args(
+                                        communicator["return_func_args"][comm_idx], return_func_pub_kwargs, wds[1:],
+                                        kwd)
+                                    return_func_type = communicator["return_func_type"][comm_idx]
+                                    return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                                    communicator["wrapped_executor"].append(
+                                        srv.Servers.registry[return_func_type + return_func_middleware](
+                                            *new_args, **new_kwargs))
+
+                        returns = []
+                        for ret_idx, functor in enumerate(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
+                            wrp_exec = functor["wrapped_executor"]
+                            # single element
+                            if isinstance(wrp_exec, srv.Server):
+                                new_wds, new_kwds = wrp_exec.await_request(*wds, **kwds)
+                                ret = func(*new_wds, **new_kwds)
+                                wrp_exec.reply(ret)
+                                returns.append(ret)
+                            # list for single return
+                            elif isinstance(wrp_exec, list):
+                                subreturns = []
+                                for wrp_idx, wrp in enumerate(wrp_exec):
+                                    new_wds, new_kwds = wrp.await_request(*wds, **kwds)
+                                    ret = func(*new_wds, **new_kwds)
+                                    wrp.reply(ret[wrp_idx])
+                                    subreturns.append(ret[wrp_idx])
+                                returns.append(subreturns)
+                        return (*returns,)
+
+                # WARNING: use with caution. This produces "None" for all the method's returns
                 elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "disable":
                     cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"] = []
                     for ret_idx in range(len(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"])):

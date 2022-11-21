@@ -4,27 +4,6 @@ from glob import glob
 from wrapyfi.utils import SingletonOptimized, dynamic_module_import
 
 
-class Publishers(object):
-    registry = {}
-    mwares = set()
-
-    @classmethod
-    def register(cls, data_type, communicator):
-        def decorator(klass):
-            cls.registry[data_type + ":" + communicator] = klass
-            cls.mwares.add(communicator)
-            return klass
-        return decorator
-
-    @staticmethod
-    def scan():
-        modules = glob(os.path.join(os.path.dirname(__file__), "..", "publishers", "*.py"), recursive=True)
-        modules = ["wrapyfi.publishers." + module.replace(os.path.dirname(__file__) + "/../publishers/", "") for module in
-                   modules]
-        dynamic_module_import(modules, globals())
-
-
-# TODO (fabawi): The watch dog is not running yet. Relying on lazy publishing for now
 class PublisherWatchDog(metaclass=SingletonOptimized):
     def __init__(self, repeats=10, inner_repeats=10):
         self.repeats = repeats
@@ -45,6 +24,26 @@ class PublisherWatchDog(metaclass=SingletonOptimized):
                 found_publisher= publisher.establish(repeats=self.inner_repeats)
                 if found_publisher:
                     self.publisher_ring.remove(publisher)
+
+
+class Publishers(object):
+    registry = {}
+    mwares = set()
+
+    @classmethod
+    def register(cls, data_type, communicator):
+        def decorator(cls_):
+            cls.registry[data_type + ":" + communicator] = cls_
+            cls.mwares.add(communicator)
+            return cls_
+        return decorator
+
+    @staticmethod
+    def scan():
+        modules = glob(os.path.join(os.path.dirname(__file__), "..", "publishers", "*.py"), recursive=True)
+        modules = ["wrapyfi.publishers." + module.replace(os.path.dirname(__file__) + "/../publishers/", "") for module in
+                   modules]
+        dynamic_module_import(modules, globals())
 
 
 # TODO (fabawi): Support multiple instance publishing of the same class,
