@@ -4,6 +4,7 @@ import atexit
 import rospy
 
 from wrapyfi.utils import SingletonOptimized
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 
 class ROSMiddleware(metaclass=SingletonOptimized):
@@ -12,9 +13,10 @@ class ROSMiddleware(metaclass=SingletonOptimized):
     def activate(**kwargs):
         ROSMiddleware(**kwargs)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, node_name="wrapyfi", anonymous=True, disable_signals=True, *args, **kwargs):
         logging.info("Initialising ROS middleware")
-        rospy.init_node('wrapyfi', anonymous=True, disable_signals=True)
+        rospy.init_node(node_name, anonymous=anonymous, disable_signals=disable_signals)
+        atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 
     @staticmethod

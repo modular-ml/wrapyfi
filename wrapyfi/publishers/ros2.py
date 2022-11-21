@@ -15,7 +15,8 @@ from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonEncoder
 
 
-QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
+QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
+WATCHDOG_POLL_REPEATS = None
 
 
 class ROS2Publisher(Publisher, Node):
@@ -74,7 +75,7 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
 
     def publish(self, obj):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -113,7 +114,7 @@ class ROS2ImagePublisher(ROS2Publisher):
 
     def publish(self, img):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -153,7 +154,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
 
     def publish(self, aud):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:

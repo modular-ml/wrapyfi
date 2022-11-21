@@ -10,6 +10,9 @@ from wrapyfi.middlewares.yarp import YarpMiddleware
 from wrapyfi.encoders import JsonDecodeHook
 
 
+WATCHDOG_POLL_REPEAT = None
+
+
 class YarpListener(Listener):
 
     def __init__(self, name, in_port, carrier="", yarp_kwargs=None, **kwargs):
@@ -51,6 +54,7 @@ class YarpListener(Listener):
     def __del__(self):
         self.close()
 
+
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(YarpListener):
 
@@ -75,7 +79,7 @@ class YarpNativeObjectListener(YarpListener):
 
     def listen(self):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
         obj = self.read_port(self._port)
@@ -83,7 +87,6 @@ class YarpNativeObjectListener(YarpListener):
             return json.loads(obj.get(0).asString(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
         else:
             return None
-
 
 
 @Listeners.register("Image", "yarp")
@@ -114,7 +117,7 @@ class YarpImageListener(YarpListener):
 
     def listen(self):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
         yarp_img = self.read_port(self._port)

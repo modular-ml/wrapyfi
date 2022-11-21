@@ -11,12 +11,13 @@ from wrapyfi.middlewares.zeromq import ZeroMQMiddleware
 from wrapyfi.encoders import JsonEncoder
 
 
-SOCKET_IP =  os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
-SOCKET_PORT =  int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
-SOCKET_SUB_PORT =  int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_SUB_PORT", 5556))
-START_PROXY_BROKER =  os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
-PROXY_BROKER_VERBOSE =  os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_VERBOSE", False) == "True"
-PROXY_BROKER_SPAWN =  os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
+SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
+SOCKET_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
+SOCKET_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_SUB_PORT", 5556))
+START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
+PROXY_BROKER_VERBOSE = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_VERBOSE", False) == "True"
+PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
+WATCHDOG_POLL_REPEATS = None
 
 
 class ZeroMQPublisher(Publisher):
@@ -99,7 +100,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
 
     def publish(self, obj):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -133,7 +134,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
     def publish(self, img):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:
@@ -172,7 +173,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
 
     def publish(self, aud):
         if not self.established:
-            established = self.establish()
+            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
             if not established:
                 return
             else:

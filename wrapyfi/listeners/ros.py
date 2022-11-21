@@ -1,10 +1,12 @@
 import json
 import logging
 import queue
+import time
 import os
 
 import numpy as np
 import rospy
+import rostopic
 import std_msgs.msg
 import sensor_msgs.msg
 
@@ -13,7 +15,9 @@ from wrapyfi.middlewares.ros import ROSMiddleware
 from wrapyfi.encoders import JsonDecodeHook
 
 
-QUEUE_SIZE =  int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
+QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
+WATCHDOG_POLL_REPEAT = None
+
 
 class ROSListener(Listener):
 
@@ -28,6 +32,7 @@ class ROSListener(Listener):
 
     def __del__(self):
         self.close()
+
 
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
@@ -149,6 +154,83 @@ class ROSAudioChunkListener(ROSListener):
 @Listeners.register("Properties", "ros")
 class ROSPropertiesListener(ROSListener):
 
-    def __init__(self, name, in_port, **kwargs):
-        super().__init__(name, in_port, **kwargs)
-        raise NotImplementedError
+    def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        self._subscriber = self._queue = None
+        self._topic_type = None
+        if not self.should_wait:
+            ListenerWatchDog().add_listener(self)
+
+        self.previous_property = False
+
+    def await_connection(self, port=None, repeats=None):
+        connected = False
+        if port is None:
+            port = self.in_port
+        logging.info(f"Waiting for property: {port}")
+        if repeats is None:
+            if self.should_wait:
+                repeats = -1
+            else:
+                repeats = 1
+
+            while repeats > 0 or repeats <= -1:
+                repeats -= 1
+                self.previous_property = rospy.get_param(self.in_port, False)
+                connected = True if self.previous_property else False
+                if connected:
+                    logging.info(f"Found property: {port}")
+                    break
+                time.sleep(0.2)
+        return connected
+
+    def establish(self, repeats=None, **kwargs):
+        established = self.await_connection(repeats=repeats)
+        return self.check_establishment(established)
+
+    def listen(self):
+        if not self.established:
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
+            if not established:
+                obj = None
+            else:
+                obj = self.previous_property
+            return obj
+        else:
+            obj = rospy.get_param(self.in_port, False)
+            return obj
+
+
+@Listeners.register("ROSMessage", "ros")
+class ROSMessageListener(ROSListener):
+
+    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, **kwargs):
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        self._subscriber = self._queue = None
+        self._topic_type = None
+        ListenerWatchDog().add_listener(self)
+
+    def establish(self):
+        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
+        self._topic_type, topic_str, _ = rostopic.get_topic_class(self.in_port, blocking=self.should_wait)
+        if self._topic_type is None:
+            return
+        self._subscriber = rospy.Subscriber(self.in_port, self._topic_type, callback=self._message_callback)
+        self.established = True
+
+    def listen(self):
+        if not self.established:
+            self.establish()
+        try:
+            obj = self._queue.get(block=self.should_wait)
+
+            return obj  # self._topic_type.deserialize_numpy(obj_str)
+        except queue.Empty:
+            return None
+
+    def _message_callback(self, msg):
+        try:
+            self._queue.put(msg, block=False)
+        except queue.Full:
+            logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
+
