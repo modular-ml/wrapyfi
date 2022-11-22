@@ -32,18 +32,6 @@ class Server(object):
         self.out_port = out_port
         self.carrier = carrier
         self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
-        self.established = False
 
-    def check_establishment(self, established):
-        if established:
-            self.established = True
-        return established
-
-    def establish(self, repeats=-1, **kwargs):
-        raise NotImplementedError
-
-    def reply(self, obj):
-        raise NotImplementedError
-
-    def await_request(self, *args, **kwargs):
+    def await_request(self, func, *args, **kwargs):
         raise NotImplementedError

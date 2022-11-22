@@ -170,17 +170,13 @@ class MiddlewareCommunicator(object):
             wrp_exec = functor["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, srv.Server):
-                new_wds, new_kwds = wrp_exec.await_request(*wds, **kwds)
-                ret = func(*new_wds, **new_kwds)
-                wrp_exec.reply(ret)
+                ret = wrp_exec.await_request(func, *wds, **kwds)
                 returns.append(ret)
             # list for single return
             elif isinstance(wrp_exec, list):
                 subreturns = []
                 for wrp_idx, wrp in enumerate(wrp_exec):
-                    new_wds, new_kwds = wrp.await_request(*wds, **kwds)
-                    ret = func(*new_wds, **new_kwds)
-                    wrp.reply(ret[wrp_idx])
+                    ret = wrp.await_request(func, *wds, **kwds)
                     subreturns.append(ret[wrp_idx])
                 returns.append(subreturns)
         return returns
@@ -237,7 +233,7 @@ class MiddlewareCommunicator(object):
                 except KeyError:
                     instance_id = ""
 
-                # execute the function as usual
+                # execute the method as usual
                 if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
                     return func(*wds, **kwds)
 
@@ -246,7 +242,7 @@ class MiddlewareCommunicator(object):
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["args"] = wds
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["kwargs"] = kwd
 
-                # publishes the functions returns
+                # publishes the method returns
                 if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
                     return cls.__trigger_publish(func, instance_id, kwd, *wds, **kwds)
 
@@ -257,6 +253,10 @@ class MiddlewareCommunicator(object):
                 # server awaits request from client and replies with method returns
                 elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "reply":
                     return cls.__trigger_reply(func, instance_id, kwd, *wds, **kwds)
+
+                # client requests with args from server and awaits reply
+                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "request":
+                    return cls.__trigger_request(func, instance_id, kwd, *wds, **kwds)
 
                 # WARNING: use with caution. This produces "None" for all the method's returns
                 elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "disable":

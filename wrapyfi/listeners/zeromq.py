@@ -70,7 +70,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         self._port = self._netconnect = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
-        self.deserializer_kwargs = deserializer_kwargs or {}
+        self._deserializer_kwargs = deserializer_kwargs or {}
 
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
@@ -93,7 +93,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         if self._port.poll(timeout=None if self.should_wait else 0):
             obj = self._port.recv_multipart()
             if obj is not None:
-                return json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
+                return json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             else:
                 return None
         else:
@@ -119,7 +119,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
             obj = self._port.recv_multipart()
-            img = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs) if obj is not None else None
+            img = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
             if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                     not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
                 raise ValueError("Incorrect image shape for listener")
@@ -143,7 +143,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
                 return None
         if self._port.poll(timeout=None if self.should_wait else 0):
             obj = self._port.recv_multipart()
-            aud = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs) if obj is not None else None
+            aud = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
 
             chunk, channels = aud.shape[0], aud.shape[1]
             if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:

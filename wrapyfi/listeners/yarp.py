@@ -63,7 +63,7 @@ class YarpNativeObjectListener(YarpListener):
         self._port = self._netconnect = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
-        self.deserializer_kwargs = deserializer_kwargs or {}
+        self._deserializer_kwargs = deserializer_kwargs or {}
 
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
@@ -84,7 +84,7 @@ class YarpNativeObjectListener(YarpListener):
                 return None
         obj = self.read_port(self._port)
         if obj is not None:
-            return json.loads(obj.get(0).asString(), object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
+            return json.loads(obj.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
         else:
             return None
 

@@ -45,7 +45,7 @@ class ROS2NativeObjectListener(ROS2Listener):
         self._subscriber = self._queue = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
-        self.deserializer_kwargs = deserializer_kwargs or {}
+        self._deserializer_kwargs = deserializer_kwargs or {}
 
         ListenerWatchDog().add_listener(self)
 
@@ -61,7 +61,7 @@ class ROS2NativeObjectListener(ROS2Listener):
         try:
             rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
             obj_str = self._queue.get(block=self.should_wait)
-            return json.loads(obj_str, object_hook=self._plugin_decoder_hook, **self.deserializer_kwargs)
+            return json.loads(obj_str, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
         except queue.Empty:
             return None
 
