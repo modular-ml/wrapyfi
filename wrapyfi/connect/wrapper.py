@@ -107,6 +107,7 @@ class MiddlewareCommunicator(object):
                         return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
                         communicator["wrapped_executor"].append(
                             lsn.Listeners.registry[return_func_type + return_func_middleware](*new_args, **new_kwargs))
+
         returns = []
         for ret_idx in range(
                 len(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"])):
@@ -127,13 +128,10 @@ class MiddlewareCommunicator(object):
     @classmethod
     def __trigger_reply(cls, func, instance_id, kwd, *wds, **kwds):
         if "wrapped_executor" not in \
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][
-                    0]:
+                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
             # instantiate the publishers
-            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
-                "communicator"].reverse()
-            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
-                "communicator"]:
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
+            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
                 # single element
                 if isinstance(communicator["return_func_type"], str):
                     return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"])
@@ -165,18 +163,75 @@ class MiddlewareCommunicator(object):
                                 *new_args, **new_kwargs))
 
         returns = []
+        # func(*wds, **kwds)
         for ret_idx, functor in enumerate(
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
             wrp_exec = functor["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, srv.Server):
-                ret = wrp_exec.await_request(func, *wds, **kwds)
+                new_args, new_kwargs = wrp_exec.await_request(*wds[1:], **kwds)
+                ret = func(wds[0], *new_args, **new_kwargs)
+                wrp_exec.reply(ret)
                 returns.append(ret)
             # list for single return
             elif isinstance(wrp_exec, list):
                 subreturns = []
                 for wrp_idx, wrp in enumerate(wrp_exec):
-                    ret = wrp.await_request(func, *wds, **kwds)
+                    new_args, new_kwargs = wrp.await_request(*wds[1:], **kwds)
+                    ret = func(wds[0], *new_args, **new_args)
+                    wrp.reply(ret[wrp_idx])
+                    subreturns.append(ret[wrp_idx])
+                returns.append(subreturns)
+        return returns
+
+    # TODO (fabawi): check this client actually works
+    @classmethod
+    def __trigger_request(cls, func, instance_id, kwd, *wds, **kwds):
+        if "wrapped_executor" not in \
+                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
+            # instantiate the listeners
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
+            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
+                # single element
+                if isinstance(communicator["return_func_type"], str):
+                    return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"])
+                    return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                    return_func_lsn_kwargs.pop("listener_kwargs", None)
+                    return_func_lsn_kwargs.pop("publisher_kwargs", None)
+                    new_args, new_kwargs = match_args(communicator["return_func_args"], return_func_lsn_kwargs, wds[1:],
+                                                      kwd)
+                    return_func_type = communicator["return_func_type"]
+                    return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                    communicator["wrapped_executor"] = clt.Clients.registry[
+                        return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                # list for single return
+                elif isinstance(communicator["return_func_type"], list):
+                    communicator["wrapped_executor"] = []
+                    for comm_idx in range(len(communicator["return_func_type"])):
+                        return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
+                        return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                        return_func_lsn_kwargs.pop("listener_kwargs", None)
+                        return_func_lsn_kwargs.pop("publisher_kwargs", None)
+                        new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx],
+                                                          return_func_lsn_kwargs, wds[1:], kwd)
+                        return_func_type = communicator["return_func_type"][comm_idx]
+                        return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                        communicator["wrapped_executor"].append(
+                            clt.Clients.registry[return_func_type + return_func_middleware](*new_args, **new_kwargs))
+
+        returns = []
+        for ret_idx, functor in enumerate(
+                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
+            wrp_exec = functor["wrapped_executor"]
+            # single element
+            if isinstance(wrp_exec, clt.Client):
+                ret = wrp_exec.request(*wds[1:], **kwds)
+                returns.append(ret)
+            # list for single return
+            elif isinstance(wrp_exec, list):
+                subreturns = []
+                for wrp_idx, wrp in enumerate(wrp_exec):
+                    ret = wrp.request(*wds[1:], **kwds)
                     subreturns.append(ret[wrp_idx])
                 returns.append(subreturns)
         return returns

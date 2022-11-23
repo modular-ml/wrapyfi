@@ -1,7 +1,7 @@
 import os
 from glob import glob
 
-from wrapyfi.utils import SingletonOptimized, dynamic_module_import
+from wrapyfi.utils import dynamic_module_import
 
 
 class Clients(object):
@@ -25,23 +25,16 @@ class Clients(object):
 
 
 class Client(object):
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
+    def __init__(self, name, in_port, carrier="", **kwargs):
         self.__name__ = name
-        self.out_port = out_port
+        self.in_port = in_port
         self.carrier = carrier
-        self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
-        self.established = False
 
-    def check_establishment(self, established):
-        if established:
-            self.established = True
-        return established
-
-    def establish(self, repeats=-1, **kwargs):
+    def request(self, *args, **kwargs):
         raise NotImplementedError
 
-    def request(self, **kwargs):
+    def _request(self, *args, **kwargs):
         raise NotImplementedError
 
-    def await_reply(self, obj):
+    def _await_reply(self):
         raise NotImplementedError

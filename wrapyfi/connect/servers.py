@@ -33,5 +33,13 @@ class Server(object):
         self.carrier = carrier
         self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
 
-    def await_request(self, func, *args, **kwargs):
+    @staticmethod
+    def await_request(msg):
+        raise NotImplementedError
+
+    @staticmethod
+    def _await_request(msg):
+        raise NotImplementedError
+
+    def reply(self, obj):
         raise NotImplementedError
