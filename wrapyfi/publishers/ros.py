@@ -138,6 +138,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
+
         self._publisher = None
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)

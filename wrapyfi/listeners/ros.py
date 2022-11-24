@@ -39,6 +39,7 @@ class ROSNativeObjectListener(ROSListener):
 
     def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+
         self._subscriber = self._queue = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
@@ -83,6 +84,7 @@ class ROSImageListener(ROSListener):
             self._encoding = 'bgr8' if self.rgb else 'mono8'
             self._type = np.uint8
         self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
+
         self._subscriber = self._queue = None
         ListenerWatchDog().add_listener(self)
 
@@ -122,6 +124,7 @@ class ROSAudioChunkListener(ROSListener):
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
+
         self._subscriber = self._queue = None
         ListenerWatchDog().add_listener(self)
 
