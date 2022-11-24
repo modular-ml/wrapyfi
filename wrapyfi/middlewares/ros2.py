@@ -36,7 +36,7 @@ class Metaclass_ROS2NativeObjectService(type):
     def __import_type_support__(cls):
         try:
             from rosidl_generator_py import import_type_support
-            module = import_type_support('wrapyfi.middleware.ros2')
+            module = import_type_support('std_msgs')
         except ImportError:
             import logging
             import traceback
@@ -46,7 +46,8 @@ class Metaclass_ROS2NativeObjectService(type):
                 'Failed to import needed modules for type support:\n' +
                 traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_msg__wrapyfi__middleware__ros2__ros2nativeobjectservice
+            import builtin_interfaces.srv
+            cls._TYPE_SUPPORT = module.type_support_msg__msg__string
 
             if Metaclass_String._TYPE_SUPPORT is None:
                 Metaclass_String.__import_type_support__()
