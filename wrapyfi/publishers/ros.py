@@ -213,8 +213,8 @@ class ROSMessagePublisher(ROSPublisher):
 
     def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
-        self._publisher = None
 
+        self._publisher = None
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
