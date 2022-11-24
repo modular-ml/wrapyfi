@@ -34,6 +34,7 @@ class ROSServer(Server):
 class ROSNativeObjectServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
+
     def __init__(self, name, out_port, carrier="", out_port_connect=None, serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
         self._server = None
@@ -44,20 +45,23 @@ class ROSNativeObjectServer(ROSServer):
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
 
+    def establish(self):
+        self._server = rospy.Service(self.out_port, ROSNativeObjectService, self._service_callback)
+        self.established = True
+
     def await_request(self, *args, **kwargs):
-        if self._server is None:
-            self._server = rospy.Service(self.out_port, ROSNativeObjectService, self._await_request)
+        if not self.established:
+            self.establish()
         try:
             request = ROSNativeObjectServer.RECEIVE_QUEUE.get(block=True)
             [args, kwargs] = json.loads(request.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
-        except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+        except rospy.ServiceException as e:
+            logging.error("Service call failed: %s" % e)
             return [], {}
 
     @staticmethod
-    def _await_request(msg):
+    def _service_callback(msg):
        ROSNativeObjectServer.RECEIVE_QUEUE.put(msg)
        return ROSNativeObjectServer.SEND_QUEUE.get(block=True)
 

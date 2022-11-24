@@ -24,21 +24,18 @@ class Servers(object):
         dynamic_module_import(modules, globals())
 
 
-# TODO (fabawi): Support multiple instance publishing of the same class,
-#  currently only an issue with the output port naming convention
 class Server(object):
     def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
         self.__name__ = name
         self.out_port = out_port
         self.carrier = carrier
         self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
+        self.established = False
 
-    @staticmethod
-    def await_request(msg):
+    def establish(self):
         raise NotImplementedError
 
-    @staticmethod
-    def _await_request(msg):
+    def await_request(self, msg):
         raise NotImplementedError
 
     def reply(self, obj):

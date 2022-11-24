@@ -29,6 +29,10 @@ class Client(object):
         self.__name__ = name
         self.in_port = in_port
         self.carrier = carrier
+        self.established = False
+
+    def establish(self):
+        raise NotImplementedError
 
     def request(self, *args, **kwargs):
         raise NotImplementedError
