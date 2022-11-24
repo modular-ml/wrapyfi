@@ -162,26 +162,25 @@ class MiddlewareCommunicator(object):
                             srv.Servers.registry[return_func_type + return_func_middleware](
                                 *new_args, **new_kwargs))
 
-        returns = []
-        # func(*wds, **kwds)
+        returns = None
         for ret_idx, functor in enumerate(
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
             wrp_exec = functor["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, srv.Server):
                 new_args, new_kwargs = wrp_exec.await_request(*wds[1:], **kwds)
-                ret = func(wds[0], *new_args, **new_kwargs)
+                if returns is None:
+                    returns = func(wds[0], *new_args, **new_kwargs)
+                ret = returns[ret_idx]
                 wrp_exec.reply(ret)
-                returns.append(ret)
             # list for single return
             elif isinstance(wrp_exec, list):
-                subreturns = []
                 for wrp_idx, wrp in enumerate(wrp_exec):
                     new_args, new_kwargs = wrp.await_request(*wds[1:], **kwds)
-                    ret = func(wds[0], *new_args, **new_args)
-                    wrp.reply(ret[wrp_idx])
-                    subreturns.append(ret[wrp_idx])
-                returns.append(subreturns)
+                    if returns is None:
+                        returns = func(wds[0], *new_args, **new_kwargs)
+                    ret = returns[ret_idx][wrp_idx]
+                    wrp.reply(ret)
         return returns
 
     # TODO (fabawi): check this client actually works
