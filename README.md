@@ -52,6 +52,11 @@ python3 setup.py install
 
 # Usage
 
+Wrapyfi supports two patterns of communication: 
+* **Publisher-Subscriber** (pub-sub): A publisher sends data to a subscriber accepting arguments and executing methods on the publisher's end.
+e.g., with YARP
+
+
 <table>
 <tr>
 <th> Without Wrapyfi </th>
@@ -123,9 +128,94 @@ while True:
 </tr>
 </table>
 
-Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listiner's
+Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
 
-<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>
+
+* **Request-Response** (req-res): A requester sends a request to a responder, which responds to the request in a synchronous manner.
+e.g., with ROS
+
+<table>
+<tr>
+<th> Without Wrapyfi </th>
+<th> With Wrapyfi </th>
+</tr>
+<tr>
+<td>
+<sub>
+
+```python
+# Just your usual python class
+
+
+class HelloWorld(object):
+    
+    
+    
+    
+    def send_message(self, a=0, b=0):
+        msg = input("Type your message: ")
+        obj = {"message": msg, 
+               "a": a, "b": b, "sum": a + b}
+        return obj,
+
+
+hello_world = HelloWorld()
+
+
+
+    
+
+while True:
+    my_message, = hello_world.send_message(a=1, 
+                                           b=2)
+    print(my_message)
+```
+    
+</sub>
+</td>
+<td>
+<sub>
+
+```python
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
+
+
+class HelloWorld(MiddlewareCommunicator):
+    @MiddlewareCommunicator.register("NativeObject", "ros",
+                                     "HelloWorld", 
+                                     "/hello/my_message", 
+                                     carrier="", should_wait=True)
+    def send_message(self, a=0, b=0):
+        msg = input("Type your message: ")
+        obj = {"message": msg, 
+               "a": a, "b": b, "sum": a + b}
+        return obj,
+
+
+hello_world = HelloWorld()
+
+LISTEN = True
+mode = "request" if LISTEN else "reply"
+hello_world.activate_communication(hello_world.send_message, mode=mode)
+
+while True:
+    my_message, = hello_world.send_message(a=1 if LISTEN else None, 
+                                           b=2 if LISTEN else None)
+    print(my_message["message"])
+```
+    
+</sub>
+</td>
+</tr>
+</table>
+
+
+
+
+Run `roscore` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
+Note that the server's command line will not show the message until the client's command line has been used to send a request. The arguments are passed from the client to the server and the server's response is passed back to the client.
+
+<!--<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>-->
 
 For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapyfi in action. 
 

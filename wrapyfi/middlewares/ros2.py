@@ -9,6 +9,7 @@ from wrapyfi.utils import SingletonOptimized
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 
+# TODO (fabawi): Not functional yet. Custom messages must be compiled first
 class ROS2Middleware(metaclass=SingletonOptimized):
 
     @staticmethod
@@ -46,9 +47,8 @@ class Metaclass_ROS2NativeObjectService(type):
                 'Failed to import needed modules for type support:\n' +
                 traceback.format_exc())
         else:
-            import builtin_interfaces.srv
             cls._TYPE_SUPPORT = module.type_support_msg__msg__string
-
+            # cls._TYPE_SUPPORT = module.type_support_srv__srv__trigger
             if Metaclass_String._TYPE_SUPPORT is None:
                 Metaclass_String.__import_type_support__()
             # if Metaclass_Image._TYPE_SUPPORT is None:
