@@ -49,7 +49,8 @@ class YarpListener(Listener):
 
     def close(self):
         if hasattr(self, "_port") and self._port:
-            self._port.close()
+            if self._port is not None:
+                self._port.close()
 
     def __del__(self):
         self.close()

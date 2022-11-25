@@ -89,7 +89,7 @@ hello_world = HelloWorld()
 
 while True:
     my_message, = hello_world.send_message()
-    print(my_message["message"])
+    print(my_message)
 ```
     
 </sub>
@@ -120,7 +120,7 @@ hello_world.activate_communication(hello_world.send_message, mode=mode)
 
 while True:
     my_message, = hello_world.send_message()
-    print(my_message["message"])
+    print(my_message)
 ```
     
 </sub>
@@ -201,7 +201,7 @@ hello_world.activate_communication(hello_world.send_message, mode=mode)
 while True:
     my_message, = hello_world.send_message(a=1 if LISTEN else None, 
                                            b=2 if LISTEN else None)
-    print(my_message["message"])
+    print(my_message)
 ```
     
 </sub>

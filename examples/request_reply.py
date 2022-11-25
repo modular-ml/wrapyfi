@@ -12,7 +12,7 @@ args = parser.parse_args()
 class ReqRep(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", args.mware, "ReqRep", "/req_rep/my_message",
-                                     carrier="tcp")
+                                     carrier="tcp", persistent=True)
     def send_message(self, *args, **kwargs):
         msg = input("Type your message: ")
         obj = {"message": msg,
