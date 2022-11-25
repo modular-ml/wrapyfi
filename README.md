@@ -152,7 +152,7 @@ class HelloWorld(object):
     
     
     
-    def send_message(self, a=0, b=0):
+    def send_message(self, a, b):
         msg = input("Type your message: ")
         obj = {"message": msg, 
                "a": a, "b": b, "sum": a + b}
@@ -185,7 +185,7 @@ class HelloWorld(MiddlewareCommunicator):
                                      "HelloWorld", 
                                      "/hello/my_message", 
                                      carrier="", should_wait=True)
-    def send_message(self, a=0, b=0):
+    def send_message(self, a, b):
         msg = input("Type your message: ")
         obj = {"message": msg, 
                "a": a, "b": b, "sum": a + b}
