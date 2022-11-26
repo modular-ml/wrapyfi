@@ -1,4 +1,6 @@
 import argparse
+import cv2
+
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 parser = argparse.ArgumentParser()
@@ -13,12 +15,17 @@ class ReqRep(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", args.mware, "ReqRep", "/req_rep/my_message",
                                      carrier="tcp", persistent=True)
-    def send_message(self, *args, **kwargs):
+    @MiddlewareCommunicator.register("Image", args.mware, "ReqRep", "/req_rep/my_image_message",
+                                     carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10)
+    def send_message(self, img_width=320, img_height=240, *args, **kwargs):
         msg = input("Type your message: ")
         obj = {"message": msg,
                "args": args,
                "kwargs": kwargs}
-        return obj,
+
+        img = cv2.imread("wrapyfi.png")
+        img = cv2.resize(img, (img_width, img_height), interpolation = cv2.INTER_AREA)
+        return obj, img
 
 
 req_rep = ReqRep()
@@ -27,12 +34,16 @@ req_rep.activate_communication(ReqRep.send_message, mode=args.mode)
 counter = 0
 while True:
     if args.mode == "request":
-        my_message, = req_rep.send_message(counter=counter)
+        my_message, my_image = req_rep.send_message(counter=counter)
         counter += 1
         if my_message is not None:
             print("Request: counter:", counter)
             print("Request: received reply:", my_message)
+            cv2.imshow("Received image", my_image)
+            cv2.waitKey(0)
     if args.mode == "reply":
-        my_message, = req_rep.send_message()
+        my_message, my_image = req_rep.send_message()
         if my_message is not None:
             print("Reply: received reply:", my_message)
+            cv2.imshow("Image", my_image)
+            cv2.waitKey(0)

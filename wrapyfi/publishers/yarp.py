@@ -112,7 +112,9 @@ class YarpImagePublisher(YarpPublisher):
         self.height = height
         self.rgb = rgb
         self.fp = fp
+
         self._port = self._type = self._netconnect = None
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
@@ -143,9 +145,9 @@ class YarpImagePublisher(YarpPublisher):
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
-        yarp_img = self._port.prepare()
-        yarp_img.resize(img.shape[1], img.shape[0])
-        yarp_img.setExternal(img, img.shape[1], img.shape[0])
+        img_msg = self._port.prepare()
+        img_msg.resize(img.shape[1], img.shape[0])
+        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
         self._port.write()
 
 

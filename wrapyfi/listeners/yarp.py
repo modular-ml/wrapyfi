@@ -83,9 +83,9 @@ class YarpNativeObjectListener(YarpListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        obj = self.read_port(self._port)
-        if obj is not None:
-            return json.loads(obj.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        obj_msg = self.read_port(self._port)
+        if obj_msg is not None:
+            return json.loads(obj_msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
         else:
             return None
 
@@ -121,20 +121,20 @@ class YarpImageListener(YarpListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        yarp_img = self.read_port(self._port)
-        if yarp_img is None:
+        ret_img_msg = self.read_port(self._port)
+        if ret_img_msg is None:
             return None
-        elif 0 < self.width != yarp_img.width() or 0 < self.height != yarp_img.height():
+        elif 0 < self.width != ret_img_msg.width() or 0 < self.height != ret_img_msg.height():
             raise ValueError("Incorrect image shape for listener")
-        if self.rgb:
-            img = np.zeros((yarp_img.height(), yarp_img.width(), 3), dtype=self._type, order='C')
-            wrapper_img = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
+        elif self.rgb:
+            img = np.zeros((ret_img_msg.height(), ret_img_msg.width(), 3), dtype=self._type, order='C')
+            img_msg = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
         else:
-            img = np.zeros((yarp_img.height(), yarp_img.width()), dtype=self._type, order='C')
-            wrapper_img = yarp.ImageFloat() if self.fp else yarp.ImageMono()
-        wrapper_img.resize(img.shape[1], img.shape[0])
-        wrapper_img.setExternal(img.data, img.shape[1], img.shape[0])
-        wrapper_img.copy(yarp_img)
+            img = np.zeros((ret_img_msg.height(), ret_img_msg.width()), dtype=self._type, order='C')
+            img_msg = yarp.ImageFloat() if self.fp else yarp.ImageMono()
+        img_msg.resize(img.shape[1], img.shape[0])
+        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
+        img_msg.copy(ret_img_msg)
         return img
 
 
