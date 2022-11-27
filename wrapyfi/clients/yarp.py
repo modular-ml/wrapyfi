@@ -91,43 +91,14 @@ class YarpNativeObjectClient(YarpClient):
 
 
 @Clients.register("Image", "yarp")
-class YarpImageClient(YarpClient):
+class YarpImageClient(YarpNativeObjectClient):
 
-    def __init__(self, name, in_port, carrier="",  width=-1, height=-1, rgb=True, fp=False, serializer_kwargs=None, persistent=False, **kwargs):
+    def __init__(self, name, in_port, carrier="",  width=-1, height=-1, rgb=True, fp=False, **kwargs):
         super().__init__(name, in_port, carrier=carrier, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
-
-        self._port = None
-        self._queue = queue.Queue(maxsize=1)
-
-        self._plugin_encoder = JsonEncoder
-        self._plugin_kwargs = kwargs
-        self._serializer_kwargs = serializer_kwargs or {}
-
-        self.persistent = persistent
-
-    def establish(self):
-        while not yarp.Network.exists(self.in_port):
-            logging.info(f"Waiting for input port: {self.in_port}")
-            time.sleep(0.2)
-        self._port = yarp.RpcClient()
-        rnd_id = str(np.random.randint(100000, size=1)[0])
-        self._port.open(self.in_port + ":in" + rnd_id)
-        self._port.addOutput(self.in_port, self.carrier)
-        if self.persistent:
-            self.established = True
-
-    def request(self, *args, **kwargs):
-        if not self.established:
-            self.establish()
-        try:
-            self._request(*args, **kwargs)
-        except Exception as e:
-            logging.error("Service call failed: %s" % e)
-        return self._await_reply()
 
     def _request(self, *args, **kwargs):
         # transmit args to server
@@ -137,29 +108,12 @@ class YarpImageClient(YarpClient):
         args_msg.clear()
         args_msg.addString(args_str)
         # receive message from server
-        if self.rgb:
-            img_msg = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
-        else:
-            img_msg = yarp.ImageFloat() if self.fp else yarp.ImageMono()
-        self._port.write(args_msg, img_msg)
-        if img_msg is None:
-            img = None
-        elif 0 < self.width != img_msg.width() or 0 < self.height != img_msg.height():
+        # receive message from server
+        msg = yarp.Bottle()
+        msg.clear()
+        self._port.write(args_msg, msg)
+        img = json.loads(msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0]:
             raise ValueError("Incorrect image shape for listener")
-        elif self.rgb:
-            img = np.zeros((img_msg.height(), img_msg.width(), 3), dtype=self._type, order='C')
         else:
-            img = np.zeros((img_msg.height(), img_msg.width()), dtype=self._type, order='C')
-        img_msg.resize(img.shape[1], img.shape[0])
-        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
-        # img_msg.copy(img)
-        self._queue.put(img, block=False)
-
-    def _await_reply(self):
-        try:
-            reply = self._queue.get(block=True)
-            return reply
-        except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
-            return None
+            self._queue.put(img, block=False)

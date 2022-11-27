@@ -40,10 +40,24 @@ while True:
             print("Request: counter:", counter)
             print("Request: received reply:", my_message)
             cv2.imshow("Received image", my_image)
-            cv2.waitKey(0)
+            while True:
+                k = cv2.waitKey(1) & 0xFF
+                if not (cv2.getWindowProperty("Received image", cv2.WND_PROP_VISIBLE)):
+                    break
+
+                if cv2.waitKey(1) == 27:
+                    break  # esc to quit
+            cv2.destroyAllWindows()
     if args.mode == "reply":
         my_message, my_image = req_rep.send_message()
         if my_message is not None:
             print("Reply: received reply:", my_message)
             cv2.imshow("Image", my_image)
-            cv2.waitKey(0)
+            while True:
+                k = cv2.waitKey(1) & 0xFF
+                if not (cv2.getWindowProperty("Image", cv2.WND_PROP_VISIBLE)):
+                    break
+
+                if cv2.waitKey(1) == 27:
+                    break  # esc to quit
+            cv2.destroyAllWindows()
