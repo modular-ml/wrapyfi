@@ -7,7 +7,7 @@ import numpy as np
 import zmq
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
-from wrapyfi.middlewares.zeromq import ZeroMQMiddleware
+from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSub
 from wrapyfi.encoders import JsonEncoder
 
 
@@ -32,13 +32,13 @@ class ZeroMQPublisher(Publisher):
         self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
         if start_proxy_broker:
-            ZeroMQMiddleware.activate(socket_address=self.socket_address, socket_sub_address=self.socket_sub_address,
-                                      proxy_broker_spawn=proxy_broker_spawn, proxy_broker_verbose=proxy_broker_verbose,
-                                      **zeromq_kwargs or {})
+            ZeroMQMiddlewarePubSub.activate(socket_address=self.socket_address, socket_sub_address=self.socket_sub_address,
+                                            proxy_broker_spawn=proxy_broker_spawn, proxy_broker_verbose=proxy_broker_verbose,
+                                            **zeromq_kwargs or {})
         else:
-            ZeroMQMiddleware.activate(**zeromq_kwargs or {})
+            ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
 
-    def await_connection(self, port, out_port=None, repeats=None):
+    def await_connection(self, socket, out_port=None, repeats=None):
         connected = False
         if out_port is None:
             out_port = self.out_port
@@ -60,8 +60,8 @@ class ZeroMQPublisher(Publisher):
         return connected
 
     def close(self):
-        if hasattr(self, "_port") and self._port:
-            self._port.close()
+        if hasattr(self, "_socket") and self._socket:
+            self._socket.close()
 
     def __del__(self):
         self.close()
@@ -82,7 +82,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
-        self._port = self._netconnect = None
+        self._socket = self._netconnect = None
 
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
@@ -92,10 +92,15 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
             PublisherWatchDog().add_publisher(self)
 
     def establish(self, repeats=None, **kwargs):
-        self._port = zmq.Context.instance().socket(zmq.PUB)
-        self._port.connect(self.socket_sub_address)
+        self._socket = zmq.Context.instance().socket(zmq.PUB)
+        for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+            if isinstance(socket_property[1], str):
+                self._socket.setsockopt(*socket_property)
+            else:
+                self._socket.setsockopt(*socket_property)
+        self._socket.connect(self.socket_sub_address)
         self._topic = self.out_port.encode()
-        established = self.await_connection(self._port, repeats=repeats)
+        established = self.await_connection(self._socket, repeats=repeats)
         return self.check_establishment(established)
 
     def publish(self, obj):
@@ -107,7 +112,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
                 time.sleep(0.2)
         obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._port.send_multipart([self._topic, obj_str.encode()])
+        self._socket.send_multipart([self._topic, obj_str.encode()])
 
 
 @Publishers.register("Image", "zeromq")
@@ -146,7 +151,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img = np.ascontiguousarray(img)
         img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._port.send_multipart([self._topic, img_str.encode()])
+        self._socket.send_multipart([self._topic, img_str.encode()])
 
 
 @Publishers.register("AudioChunk", "zeromq")

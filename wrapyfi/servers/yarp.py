@@ -95,3 +95,20 @@ class YarpImageServer(YarpNativeObjectServer):
             raise ValueError("Incorrect image shape for publisher")
         # img = np.require(img, dtype=self._type, requirements='C')
         super().reply(img)
+
+@Servers.register("Image", "yarp")
+class YarpImageServer(YarpNativeObjectServer):
+
+    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        self.width = width
+        self.height = height
+        self.rgb = rgb
+        self.fp = fp
+
+    def reply(self, img):
+        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
+                not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+            raise ValueError("Incorrect image shape for publisher")
+        # img = np.require(img, dtype=self._type, requirements='C')
+        super().reply(img)
