@@ -49,11 +49,10 @@ class Publishers(object):
 # TODO (fabawi): Support multiple instance publishing of the same class,
 #  currently only an issue with the output port naming convention
 class Publisher(object):
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, should_wait=True, **kwargs):
+    def __init__(self, name, out_port, carrier="", should_wait=True, **kwargs):
         self.__name__ = name
         self.out_port = out_port
         self.carrier = carrier
-        self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
         self.should_wait = should_wait
         self.established = False
 

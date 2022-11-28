@@ -2,6 +2,8 @@ import logging
 import json
 import time
 import os 
+from typing import Optional
+from typing import Tuple
 
 import numpy as np
 import zmq
@@ -15,20 +17,33 @@ SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
 SOCKET_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
 SOCKET_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_SUB_PORT", 5556))
 START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
-PROXY_BROKER_VERBOSE = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_VERBOSE", False) == "True"
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQPublisher(Publisher):
-    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None,
-                 socket_ip=SOCKET_IP, socket_port=SOCKET_PORT, socket_sub_port=SOCKET_SUB_PORT,
-                 start_proxy_broker=START_PROXY_BROKER, proxy_broker_spawn=PROXY_BROKER_SPAWN, proxy_broker_verbose=PROXY_BROKER_VERBOSE, 
-                 zeromq_kwargs=None, **kwargs):
-        carrier = carrier if carrier else "tcp"
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+                 socket_ip: str = SOCKET_IP, socket_port: int = SOCKET_PORT, socket_sub_port: int = SOCKET_SUB_PORT,
+                 start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
+                 zeromq_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the publisher and start the proxy broker if necessary
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param socket_ip: str: IP address of the socket. Default is '127.0.0.1
+        :param socket_port: int: Port of the socket. Default is 5555
+        :param socket_sub_port: int: Port of the socket for subscribing. Default is 5556
+        :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True
+        :param proxy_broker_spawn: str: Whether to spawn the proxy broker as a process or thread. Default is 'process'
+        :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQMiddlewarePubSub middleware
+        :param kwargs: Additional kwargs for the Publisher
+        """
+        if carrier != "tcp":
+            logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            carrier = "tcp"
+        super().__init__(name, out_port, carrier=carrier, **kwargs)
         # out_port is equivalent to topic in zeromq
-        # TODO (fabawi): out_port_connect probably not needed, follow ROS approach
         self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
         if start_proxy_broker:
@@ -38,7 +53,14 @@ class ZeroMQPublisher(Publisher):
         else:
             ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
 
-    def await_connection(self, socket, out_port=None, repeats=None):
+    def await_connection(self, socket, out_port: Optional[str] = None, repeats: Optional[int] = None):
+        """
+        Wait for the connection to be established
+        :param socket: zmq.Socket: Socket to await connection to
+        :param out_port: str: Name of the output topic
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         connected = False
         if out_port is None:
             out_port = self.out_port
@@ -60,8 +82,12 @@ class ZeroMQPublisher(Publisher):
         return connected
 
     def close(self):
+        """
+        Close the publisher
+        """
         if hasattr(self, "_socket") and self._socket:
-            self._socket.close()
+            if self._socket is not None:
+                self._socket.close()
 
     def __del__(self):
         self.close()
@@ -69,19 +95,19 @@ class ZeroMQPublisher(Publisher):
 
 @Publishers.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
-    """
+
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
+        """
         The NativeObjectPublisher using the ZMQ message construct assuming a combination of python native objects
-        and numpy arrays as input
+        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        :param kwargs: Additional kwargs for the Publisher
         """
-    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, serializer_kwargs=None, **kwargs):
-        """
-        Initializing the NativeObjectPublisher
-        :param name: Name of the publisher
-        :param out_port: The published topic name preceded by "/"
-        :param carrier: ZMQ currently only supports TCP for pub/sub pattern. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
-        """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, **kwargs)
         self._socket = self._netconnect = None
 
         self._plugin_encoder = JsonEncoder
@@ -91,7 +117,12 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection to the middleware
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default: None
+        :return: bool: True if connection established, False otherwise
+        """
         self._socket = zmq.Context.instance().socket(zmq.PUB)
         for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
@@ -104,6 +135,10 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         return self.check_establishment(established)
 
     def publish(self, obj):
+        """
+        Publish the object to the middleware
+        :param obj: object: Object to publish
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
@@ -118,26 +153,30 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
 @Publishers.register("Image", "zeromq")
 class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
-    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
         """
-        Initializing the ImagePublisher
-        :param name: Name of the publisher
-        :param out_port: The published port name preceded by "/"
-        :param carrier: ZMQ currently only supports TCP for pub/sub pattern. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
-        :param width: Image width
-        :param height: Image height
-        :param rgb: Transmits an RGB image when "True", or mono image when "False"
-        :param fp: Transmits 32-bit floating point image when "True", or 8-bit integer image when "False"
+        The ImagePublisher using the ZMQ message construct assuming a numpy array as input
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
+        :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default: True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default: False
         """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
+        super().__init__(name, out_port, carrier=carrier, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
         self._type = np.float32 if self.fp else np.uint8
 
-    def publish(self, img):
+    def publish(self, img: np.ndarray):
+        """
+        Publish the image to the middleware
+        :param img: np.ndarray: Image to publish formatted as a cv2 image (img_height, img_width, channels)
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
@@ -156,27 +195,27 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
 @Publishers.register("AudioChunk", "zeromq")
 class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
-    """
-    Using the ImagePublisher to carry the sound signal. There are better alternatives (Sound) but
-    don't seem to work with the python bindings at the moment
-    """
-    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, channels=1, rate=44100, chunk=-1, **kwargs):
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        Initializing the AudioPublisher
-        :param name: Name of the publisher
-        :param out_port: The published port name preceded by "/"
-        :param carrier: ZMQ currently only supports TCP for pub/sub pattern. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
-        :param channels: Number of audio channels
-        :param rate: Sampling rate of the audio signal
-        :param chunk: Size of the chunk in samples. Transmits 1 second when chunk=rate
+        The AudioChunkPublisher using the ZMQ message construct assuming a numpy array as input
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param channels: int: Number of channels. Default is 1
+        :param rate: int: Sampling rate. Default is 44100
+        :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
         super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, width=chunk, height=channels, rgb=False, fp=True)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
 
-    def publish(self, aud):
+    def publish(self, aud: Tuple[np.ndarray, int]):
+        """
+        Publish the audio chunk to the middleware
+        :param aud: np.ndarray: Audio chunk to publish formatted as ((audio_chunk, channels), samplerate)
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:

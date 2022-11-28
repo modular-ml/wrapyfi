@@ -4,6 +4,8 @@ import json
 import time
 import os
 import importlib.util
+from typing import Optional
+from typing import Tuple
 
 import numpy as np
 import rospy
@@ -21,12 +23,32 @@ WATCHDOG_POLL_REPEAT = None
 
 class ROSPublisher(Publisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, ros_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+                 queue_size: int = QUEUE_SIZE, ros_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the publisher
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        :param ros_kwargs: dict: Additional kwargs for the ROS middleware
+        :param kwargs: dict: Additional kwargs for the Publisher
+        """
+        super().__init__(name, out_port, carrier=carrier, **kwargs)
+        if carrier != "tcp":
+            logging.warning("ROS2 does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            carrier = "tcp"
         ROSMiddleware.activate(**ros_kwargs or {})
         self.queue_size = queue_size
 
-    def await_connection(self, publisher, out_port=None, repeats=None):
+    def await_connection(self, publisher, out_port: Optional[str] = None, repeats: Optional[int] = None):
+        """
+        Wait for atleast one subscriber to connect to the publisher
+        :param publisher: rospy.Publisher: Publisher to await connection to
+        :param out_port: str: Name of the output topic
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         connected = False
         if out_port is None:
             out_port = self.out_port
@@ -46,8 +68,12 @@ class ROSPublisher(Publisher):
         return connected
 
     def close(self):
-        if hasattr(self, "_publisher"):
-            self._publisher.shutdown()
+        """
+        Close the publisher
+        """
+        if hasattr(self, "_publisher") and self._publisher:
+            if self._publisher is not None:
+                self._publisher.shutdown()
 
     def __del__(self):
         self.close()
@@ -56,8 +82,19 @@ class ROSPublisher(Publisher):
 @Publishers.register("NativeObject", "ros")
 class ROSNativeObjectPublisher(ROSPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, serializer_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+                 queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
+        """
+        The NativeObject publisher using the ROS String message assuming a combination of python native objects
+        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        :param kwargs: dict: Additional kwargs for the Publisher
+        """
+        super().__init__(name, out_port, carrier=carrier, queue_size=queue_size, **kwargs)
         self._publisher = None
 
         self._plugin_encoder = JsonEncoder
@@ -67,7 +104,12 @@ class ROSNativeObjectPublisher(ROSPublisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         self._publisher = rospy.Publisher(self.out_port, std_msgs.msg.String, queue_size=self.queue_size)
         established = self.await_connection(self._publisher, repeats=repeats)
         return self.check_establishment(established)
@@ -87,8 +129,21 @@ class ROSNativeObjectPublisher(ROSPublisher):
 @Publishers.register("Image", "ros")
 class ROSImagePublisher(ROSPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",  queue_size: int = QUEUE_SIZE,
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
+        """
+        The ImagePublisher using the ROS Image message assuming a numpy array as input
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
+        :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default: True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default: False
+        """
+        super().__init__(name, out_port, carrier=carrier, queue_size=queue_size, **kwargs)
+
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -99,16 +154,27 @@ class ROSImagePublisher(ROSPublisher):
         else:
             self._encoding = 'bgr8' if self.rgb else 'mono8'
             self._type = np.uint8
+
         self._publisher = None
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
     def publish(self, img):
+        """
+        Publish the image to the middleware
+        :param img: np.ndarray: Image to publish formatted as a cv2 image (img_height, img_width, channels)
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
@@ -133,8 +199,19 @@ class ROSImagePublisher(ROSPublisher):
 @Publishers.register("AudioChunk", "ros")
 class ROSAudioChunkPublisher(ROSPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, channels=1, rate=44100, chunk=-1, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp",  queue_size: int = QUEUE_SIZE,
+                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+        """
+        The AudioChunkPublisher using the ROS Image message assuming a numpy array as input
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        :param channels: int: Number of channels. Default is 1
+        :param rate: int: Sampling rate. Default is 44100
+        :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
+        """
+        super().__init__(name, out_port, carrier=carrier, queue_size=queue_size, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -144,11 +221,20 @@ class ROSAudioChunkPublisher(ROSPublisher):
             PublisherWatchDog().add_publisher(self)
 
     def establish(self, repeats=None, **kwargs):
+        """
+        Establish the connection
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
-    def publish(self, aud):
+    def publish(self, aud: Tuple[np.ndarray, int]):
+        """
+        Publish the audio chunk to the middleware
+        :param aud: np.ndarray: Audio chunk to publish formatted as ((audio_chunk, channels), samplerate)
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
@@ -183,8 +269,16 @@ class ROSPropertiesPublisher(ROSPublisher):
     using dictionaries, since they are analogous with node namespaces:
     http://wiki.ros.org/rospy/Overview/Parameter%20Server
     """
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, persistent=True, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp", persistent: bool = True, **kwargs):
+        """
+        The PropertiesPublisher using the ROS parameter server
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param persistent: bool: True if the parameter should be kept on closing node, False if it should be deleted or
+                                    reset to its state before the node was started. Default is True
+        """
+        super().__init__(name, out_port, carrier=carrier, **kwargs)
         self.persistent = persistent
 
         if not self.should_wait:
@@ -192,13 +286,23 @@ class ROSPropertiesPublisher(ROSPublisher):
 
         self.previous_property = False
 
-    def establish(self, repeats=-1, **kwargs):
+    def establish(self, **kwargs):
+        """
+        Store the original property value in case it needs to be reset
+        """
         self.previous_property = rospy.get_param(self.out_port, False)
 
     def publish(self, obj):
+        """
+        Publish the property to the middleware (parameter server)
+        :param obj: object: Property to publish. If dict, will be set as a namespace
+        """
         rospy.set_param(self.out_port, obj)
 
     def close(self):
+        """
+        Close the publisher and reset the property to its original value if not persistent
+        """
         if hasattr(self, "out_port") and not self.persistent:
             rospy.delete_param(self.out_port)
             if self.previous_property:
@@ -211,14 +315,27 @@ class ROSPropertiesPublisher(ROSPublisher):
 @Publishers.register("ROSMessage", "ros")
 class ROSMessagePublisher(ROSPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, queue_size=QUEUE_SIZE, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, queue_size=queue_size, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp", queue_size: int = QUEUE_SIZE, **kwargs):
+        """
+        The ROSMessagePublisher using the ROS message type inferred from the message type. Supports standard ROS msgs
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        """
+        super().__init__(name, out_port, carrier=carrier, queue_size=queue_size, **kwargs)
 
         self._publisher = None
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
     def establish(self, repeats=None, obj=None, **kwargs):
+        """
+        Establish the connection
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :param obj: object: Object to establish the connection to
+        :return: bool: True if connection established, False otherwise
+        """
         if obj is None:
             return
         obj_type = obj._type.split("/")
@@ -229,6 +346,10 @@ class ROSMessagePublisher(ROSPublisher):
         return self.check_establishment(established)
 
     def publish(self, obj):
+        """
+        Publish the object to the middleware
+        :param obj: object: ROS message to publish
+        """
         if not self.established:
             established = self.establish(obj=obj)
             if not established:
