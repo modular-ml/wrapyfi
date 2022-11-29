@@ -124,7 +124,6 @@ class MiddlewareCommunicator(object):
                 returns.append(subreturns)
         return returns
 
-    # TODO (fabawi): check this server actually works
     @classmethod
     def __trigger_reply(cls, func, instance_id, kwd, *wds, **kwds):
         if "wrapped_executor" not in \
@@ -183,7 +182,6 @@ class MiddlewareCommunicator(object):
                     wrp.reply(ret)
         return returns
 
-    # TODO (fabawi): check this client actually works
     @classmethod
     def __trigger_request(cls, func, instance_id, kwd, *wds, **kwds):
         if "wrapped_executor" not in \

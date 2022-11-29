@@ -26,6 +26,7 @@ class ROSPublisher(Publisher):
                  queue_size: int = QUEUE_SIZE, ros_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -45,6 +46,7 @@ class ROSPublisher(Publisher):
     def await_connection(self, publisher, out_port: Optional[str] = None, repeats: Optional[int] = None):
         """
         Wait for at least one subscriber to connect to the publisher
+
         :param publisher: rospy.Publisher: Publisher to await connection to
         :param out_port: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
@@ -87,6 +89,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
                  queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the ROS String message assuming a combination of python native objects
+
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -108,6 +111,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -118,6 +122,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
     def publish(self, obj):
         """
         Publish the object to the middlware
+
         :param obj: object: Object to publish
         """
         if not self.established:
@@ -138,6 +143,7 @@ class ROSImagePublisher(ROSPublisher):
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
         """
         The ImagePublisher using the ROS Image message assuming a numpy array as input
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -169,6 +175,7 @@ class ROSImagePublisher(ROSPublisher):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -179,6 +186,7 @@ class ROSImagePublisher(ROSPublisher):
     def publish(self, img):
         """
         Publish the image to the middleware
+
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
         if not self.established:
@@ -209,6 +217,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunkPublisher using the ROS Image message assuming a numpy array as input
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -230,6 +239,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
     def establish(self, repeats=None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -240,6 +250,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
         Publish the audio chunk to the middleware
+
         :param aud: (np.ndarray, int): Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
@@ -279,6 +290,7 @@ class ROSPropertiesPublisher(ROSPublisher):
     def __init__(self, name: str, out_port: str, carrier: str = "tcp", persistent: bool = True, **kwargs):
         """
         The PropertiesPublisher using the ROS parameter server
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -299,6 +311,7 @@ class ROSPropertiesPublisher(ROSPublisher):
     def publish(self, obj):
         """
         Publish the property to the middleware (parameter server)
+
         :param obj: object: Property to publish. If dict, will be set as a namespace
         """
         rospy.set_param(self.out_port, obj)
@@ -323,6 +336,7 @@ class ROSMessagePublisher(ROSPublisher):
                  should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
         The ROSMessagePublisher using the ROS message type inferred from the message type. Supports standard ROS msgs
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -338,6 +352,7 @@ class ROSMessagePublisher(ROSPublisher):
     def establish(self, repeats=None, obj=None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :param obj: object: Object to establish the connection to
         :return: bool: True if connection established, False otherwise
@@ -354,6 +369,7 @@ class ROSMessagePublisher(ROSPublisher):
     def publish(self, obj):
         """
         Publish the object to the middleware
+
         :param obj: object: ROS message to publish
         """
         if not self.established:

@@ -27,6 +27,7 @@ class ZeroMQPublisher(Publisher):
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher and start the proxy broker if necessary
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -57,6 +58,7 @@ class ZeroMQPublisher(Publisher):
     def await_connection(self, socket=None, out_port: Optional[str] = None, repeats: Optional[int] = None):
         """
         Wait for the connection to be established
+
         :param socket: zmq.Socket: Socket to await connection to
         :param out_port: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
@@ -102,6 +104,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         """
         The NativeObjectPublisher using the ZeroMQ message construct assuming a combination of python native objects
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -122,6 +125,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection to the publisher
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -139,6 +143,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
     def publish(self, obj):
         """
         Publish the object to the middleware
+
         :param obj: object: Object to publish
         """
         if not self.established:
@@ -159,6 +164,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
         """
         The ImagePublisher using the ZeroMQ message construct assuming a numpy array as input
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -178,6 +184,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
     def publish(self, img: np.ndarray):
         """
         Publish the image to the middleware
+
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
         if not self.established:
@@ -202,6 +209,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunkPublisher using the ZeroMQ message construct assuming a numpy array as input
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -218,6 +226,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
         Publish the audio chunk to the middleware
+
         :param aud: (np.ndarray, int): Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:

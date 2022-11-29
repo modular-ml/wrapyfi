@@ -28,6 +28,7 @@ class ROS2Listener(Listener, Node):
                  queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the subscriber
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -65,6 +66,7 @@ class ROS2NativeObjectListener(ROS2Listener):
         """
         The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -93,6 +95,7 @@ class ROS2NativeObjectListener(ROS2Listener):
     def listen(self):
         """
         Listen for a message
+
         :return: Any: The received message as a native python object
         """
         if not self.established:
@@ -107,6 +110,7 @@ class ROS2NativeObjectListener(ROS2Listener):
     def _message_callback(self, msg):
         """
         Callback for the subscriber
+
         :param msg: std_msgs.msg.String: The received message
         """
         try:
@@ -122,6 +126,7 @@ class ROS2ImageListener(ROS2Listener):
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
         """
         The Image listener using the ROS2 Image message parsed to a numpy array
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -162,6 +167,7 @@ class ROS2ImageListener(ROS2Listener):
     def listen(self):
         """
         Listen for a message
+
         :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
         if not self.established:
@@ -183,6 +189,7 @@ class ROS2ImageListener(ROS2Listener):
     def _message_callback(self, data):
         """
         Callback for the subscriber
+
         :param data: sensor_msgs.msg.Image: The received message
         """
         try:
@@ -198,6 +205,7 @@ class ROS2AudioChunkListener(ROS2Listener):
                  queue_size: int = QUEUE_SIZE, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunk listener using the ROS2 Image message parsed to a numpy array
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -228,6 +236,7 @@ class ROS2AudioChunkListener(ROS2Listener):
     def listen(self):
         """
         Listen for a message
+
         :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
@@ -247,6 +256,7 @@ class ROS2AudioChunkListener(ROS2Listener):
     def _message_callback(self, data):
         """
         Callback for the subscriber
+
         :param data: sensor_msgs.msg.Image: The received message
         """
         try:

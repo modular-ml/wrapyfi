@@ -26,6 +26,7 @@ class ROSListener(Listener):
                  queue_size: int = QUEUE_SIZE, ros_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the subscriber
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -62,6 +63,7 @@ class ROSNativeObjectListener(ROSListener):
         """
         The NativeObject listener using the ROS String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -89,6 +91,7 @@ class ROSNativeObjectListener(ROSListener):
     def listen(self):
         """
         Listen for a message
+
         :return: Any: The received message as a native python object
         """
         if not self.established:
@@ -102,6 +105,7 @@ class ROSNativeObjectListener(ROSListener):
     def _message_callback(self, msg):
         """
         Callback for the subscriber
+
         :param msg: std_msgs.msg.String: The received message
         """
         try:
@@ -117,6 +121,7 @@ class ROSImageListener(ROSListener):
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
         """
         The Image listener using the ROS Image message parsed to a numpy array
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -156,6 +161,7 @@ class ROSImageListener(ROSListener):
     def listen(self):
         """
         Listen for a message
+
         :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
         if not self.established:
@@ -176,6 +182,7 @@ class ROSImageListener(ROSListener):
     def _message_callback(self, data):
         """
         Callback for the subscriber
+
         :param data: sensor_msgs.msg.Image: The received message
         """
         try:
@@ -191,6 +198,7 @@ class ROSAudioChunkListener(ROSListener):
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunk listener using the ROS Image message parsed to a numpy array
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -220,6 +228,7 @@ class ROSAudioChunkListener(ROSListener):
     def listen(self):
         """
         Listen for a message
+
         :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
@@ -258,6 +267,7 @@ class ROSPropertiesListener(ROSListener):
     def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
         The PropertiesListener using the ROS Parameter Server
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -275,6 +285,7 @@ class ROSPropertiesListener(ROSListener):
     def await_connection(self, in_port: Optional[int] = None, repeats: Optional[int] = None):
         """
         Wait for a parameter to be set
+
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param repeats: int: Number of times to check for the parameter. None for infinite. Default is None
         """
@@ -301,6 +312,7 @@ class ROSPropertiesListener(ROSListener):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the subscriber
+
         :param repeats: int: Number of times to check for the parameter. None for infinite. Default is None
         """
         established = self.await_connection(repeats=repeats)
@@ -309,6 +321,7 @@ class ROSPropertiesListener(ROSListener):
     def listen(self):
         """
         Listen for a message
+
         :return: Any: The received message as a native python object
         """
         if not self.established:
@@ -329,6 +342,7 @@ class ROSMessageListener(ROSListener):
     def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
         The ROSMessageListener using the ROS message type inferred from the message type. Supports standard ROS msgs
+
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
@@ -355,6 +369,7 @@ class ROSMessageListener(ROSListener):
     def listen(self):
         """
         Listen for a message
+
         :return: rospy.msg: The received message as a ROS message object
         """
         if not self.established:
@@ -369,6 +384,7 @@ class ROSMessageListener(ROSListener):
     def _message_callback(self, msg):
         """
         Callback for the subscriber
+
         :param msg: rospy.msg: The received message as a ROS message object
         """
         try:

@@ -20,6 +20,7 @@ class YarpPublisher(Publisher):
                  out_port_connect: Optional[str] = None, yarp_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
@@ -37,6 +38,7 @@ class YarpPublisher(Publisher):
     def await_connection(self, port, out_port: Optional[str] = None, repeats: Optional[int] = None):
         """
         Wait for at least one subscriber to connect to the publisher
+
         :param port: yarp.Port: Port to await connection to
         :param out_port: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
@@ -80,6 +82,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
         """
         The NativeObject publisher using the BufferedPortBottle string construct assuming a combination of python native objects
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
@@ -101,6 +104,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -113,6 +117,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
     def publish(self, obj):
         """
         Publish the object to the middleware
+
         :param obj: object: Object to publish
         """
         if not self.established:
@@ -137,6 +142,7 @@ class YarpImagePublisher(YarpPublisher):
                  rgb: bool = True, fp: bool = False, **kwargs):
         """
         The Image publisher using the BufferedPortImage construct assuming a numpy array as input
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
@@ -163,6 +169,7 @@ class YarpImagePublisher(YarpPublisher):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -206,6 +213,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
          The AudioChunk publisher using the BufferedPortImage construct assuming a numpy array as input
+
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
@@ -230,6 +238,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection
+
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
@@ -249,6 +258,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
         Publish the audio chunk to the middleware
+
         :param aud: (np.ndarray, int): Audio chunk to publish formatted as ((chunk_size, channels), samplerate)
         """
         if not self.established:
@@ -264,6 +274,9 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._port.write()
 
     def close(self):
+        """
+        Close the publisher connection to the yarp Sound port. This is not used at the moment, but left for future impl.
+        """
         super().close()
         if self._dummy_port is not None:
             self._dummy_port.close()
