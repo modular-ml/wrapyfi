@@ -13,7 +13,7 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapyfi.connect.clients import Client, Clients
-from wrapyfi.middlewares.ros2 import ROS2Middleware, ROS2NativeObjectService
+from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
@@ -48,6 +48,8 @@ class ROS2NativeObjectClient(ROS2Client):
         self._deserializer_kwargs = deserializer_kwargs or {}
 
     def establish(self):
+        # TODO (fabawi): add documentation on compiling the service
+        from wrapyfi_interfaces_ros2.srv import ROS2NativeObjectService
         self._client = self.create_client(ROS2NativeObjectService, self.in_port)
         while not self.cli.wait_for_service(timeout_sec=1.0):
             logging.info('Service not available, waiting again...')
