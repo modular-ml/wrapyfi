@@ -3,8 +3,7 @@ import sys
 import json
 import time
 import os
-from typing import Optional
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import rclpy
@@ -23,29 +22,30 @@ WATCHDOG_POLL_REPEAT = None
 
 class ROS2Publisher(Publisher, Node):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
-        :param kwargs: dict: Additional kwargs for the Publisher
+        :param kwargs: dict: Additional kwargs for the publisher
         """
         if carrier != "tcp":
             logging.warning("ROS2 does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
         ROS2Middleware.activate(**ros2_kwargs or {})
-        Publisher.__init__(self, name, out_port, carrier=carrier, **kwargs)
+        Publisher.__init__(self, name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name)
 
         self.queue_size = queue_size
 
     def await_connection(self, publisher, out_port: Optional[str] = None, repeats: Optional[int] = None):
         """
-        Wait for atleast one subscriber to connect to the publisher
+        Wait for at least one subscriber to connect to the publisher
         :param publisher: rclpy.publisher.Publisher: Publisher to await connection to
         :param out_port: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
@@ -84,7 +84,7 @@ class ROS2Publisher(Publisher, Node):
 @Publishers.register("NativeObject", "ros2")
 class ROS2NativeObjectPublisher(ROS2Publisher):
 
-    def __init__(self, name, out_port: str, carrier: str = "tcp",
+    def __init__(self, name, out_port: str, carrier: str = "tcp", should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the ROS2 String message assuming a combination of python native objects
@@ -92,11 +92,11 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param serializer_kwargs: dict: Additional kwargs for the serializer
-        :param kwargs: dict: Additional kwargs for the Publisher
         """
-        super().__init__(name, out_port, carrier=carrier, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self._publisher = None
 
         self._plugin_encoder = JsonEncoder
@@ -137,19 +137,21 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
 @Publishers.register("Image", "ros2")
 class ROS2ImagePublisher(ROS2Publisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
         """
         The ImagePublisher using the ROS2 Image message assuming a numpy array as input
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param queue_size: int: Queue size for the publisher. Default is 5
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
-        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default: True
-        :param fp: bool: True if the image is floating point, False if it is integer. Default: False
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         """
-        super().__init__(name, out_port, carrier=carrier, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.width = width
         self.height = height
@@ -180,7 +182,7 @@ class ROS2ImagePublisher(ROS2Publisher):
     def publish(self, img):
         """
         Publish the image to the middleware
-        :param img: np.ndarray: Image to publish formatted as a cv2 image (img_height, img_width, channels)
+        :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
@@ -206,15 +208,20 @@ class ROS2ImagePublisher(ROS2Publisher):
 @Publishers.register("AudioChunk", "ros2")
 class ROS2AudioChunkPublisher(ROS2Publisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunkPublisher using the ROS2 Image message assuming a numpy array as input
         :param name: str: Name of the publisher
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        :param channels: int: Number of channels. Default is 1
+        :param rate: int: Sampling rate. Default is 44100
+        :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_port, carrier=carrier, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.channels = channels
         self.rate = rate
@@ -239,7 +246,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
         Publish the audio chunk to the middleware
-        :param aud: np.ndarray: Audio chunk to publish formatted as ((audio_chunk, channels), samplerate)
+        :param aud: (np.ndarray, int): Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)

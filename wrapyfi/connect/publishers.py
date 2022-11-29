@@ -21,7 +21,7 @@ class PublisherWatchDog(metaclass=SingletonOptimized):
         while self.publisher_ring and (repeats > 0 | repeats <= -1):
             repeats -= 1
             for publisher in self.publisher_ring:
-                found_publisher= publisher.establish(repeats=self.inner_repeats)
+                found_publisher = publisher.establish(repeats=self.inner_repeats)
                 if found_publisher:
                     self.publisher_ring.remove(publisher)
 

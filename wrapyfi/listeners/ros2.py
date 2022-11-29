@@ -1,8 +1,9 @@
-import json
 import logging
+import json
 import queue
-import os
 import time
+import os
+from typing import Optional
 
 import numpy as np
 import rclpy
@@ -23,15 +24,34 @@ QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
 
 class ROS2Listener(Listener, Node):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, ros2_kwargs=None, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the subscriber
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param queue_size: int: Size of the queue for the subscriber. Default is 5
+        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
+        :param kwargs: dict: Additional kwargs for the subscriber
+        """
+        if carrier != "tcp":
+            logging.warning("ROS2 does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            carrier = "tcp"
         ROS2Middleware.activate(**ros2_kwargs or {})
         Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name, allow_undeclared_parameters=True)
+
         self.queue_size = queue_size
 
     def close(self):
-        if hasattr(self, "_subscriber"):
-            self.destroy_node()
+        """
+        Close the subscriber
+        """
+        if hasattr(self, "_subscriber") and self._subscriber:
+            if self._subscriber is not None:
+                self.destroy_node()
 
     def __del__(self):
         self.close()
@@ -40,8 +60,20 @@ class ROS2Listener(Listener, Node):
 @Listeners.register("NativeObject", "ros2")
 class ROS2NativeObjectListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, deserializer_kwargs=None, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+        """
+        The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param queue_size: int: Size of the queue for the subscriber. Default is 5
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
+        """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+
         self._subscriber = self._queue = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
@@ -50,12 +82,19 @@ class ROS2NativeObjectListener(ROS2Listener):
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
+        """
+        Establish the subscriber
+        """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         # self._subscriber = rospy.Subscriber(self.in_port, std_msgs.msg.String, callback=self._message_callback)
         self._subscriber = self.create_subscription(std_msgs.msg.String, self.in_port, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
+        """
+        Listen for a message
+        :return: Any: The received message as a native python object
+        """
         if not self.established:
             self.establish()
         try:
@@ -66,6 +105,10 @@ class ROS2NativeObjectListener(ROS2Listener):
             return None
 
     def _message_callback(self, msg):
+        """
+        Callback for the subscriber
+        :param msg: std_msgs.msg.String: The received message
+        """
         try:
             self._queue.put(msg.data, block=False)
         except queue.Full:
@@ -75,8 +118,22 @@ class ROS2NativeObjectListener(ROS2Listener):
 @Listeners.register("Image", "ros2")
 class ROS2ImageListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
+        """
+        The Image listener using the ROS2 Image message parsed to a numpy array
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param queue_size: int: Size of the queue for the subscriber. Default is 5
+        :param width: int: Width of the image. Default is -1 (use the width of the received image)
+        :param height: int: Height of the image. Default is -1 (use the height of the received image)
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -88,16 +145,25 @@ class ROS2ImageListener(ROS2Listener):
             self._encoding = 'bgr8' if self.rgb else 'mono8'
             self._type = np.uint8
         self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
+
         self._subscriber = self._queue = None
+
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
+        """
+        Establish the subscriber
+        """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         # self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
         self._subscriber = self.create_subscription(sensor_msgs.msg.Image, self.in_port, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
+        """
+        Listen for a message
+        :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
+        """
         if not self.established:
             self.establish()
         try:
@@ -115,6 +181,10 @@ class ROS2ImageListener(ROS2Listener):
             return None
 
     def _message_callback(self, data):
+        """
+        Callback for the subscriber
+        :param data: sensor_msgs.msg.Image: The received message
+        """
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
@@ -124,20 +194,42 @@ class ROS2ImageListener(ROS2Listener):
 @Listeners.register("AudioChunk", "ros2")
 class ROS2AudioChunkListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, queue_size=QUEUE_SIZE, channels=1, rate=44100, chunk=-1, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 queue_size: int = QUEUE_SIZE, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+        """
+        The AudioChunk listener using the ROS2 Image message parsed to a numpy array
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param queue_size: int: Size of the queue for the subscriber. Default is 5
+        :param channels: int: Number of channels in the audio. Default is 1
+        :param rate: int: Sampling rate of the audio. Default is 44100
+        :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
+        """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
+
         self._subscriber = self._queue = None
+
         ListenerWatchDog().add_listener(self)
 
     def establish(self):
+        """
+        Establish the subscriber
+        """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = self.create_subscription(sensor_msgs.msg.Image, self.in_port, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
+        """
+        Listen for a message
+        :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        """
         if not self.established:
             self.establish()
         try:
@@ -153,12 +245,18 @@ class ROS2AudioChunkListener(ROS2Listener):
             return None, self.rate
 
     def _message_callback(self, data):
+        """
+        Callback for the subscriber
+        :param data: sensor_msgs.msg.Image: The received message
+        """
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
             logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
 
+
+# TODO (fabawi): WIP - Support for ROS2
 @Listeners.register("Properties", "ros2")
 class ROS2PropertiesListener(ROS2Listener):
 

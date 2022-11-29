@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import os
+from typing import Optional
 
 import numpy as np
 import zmq
@@ -18,18 +19,38 @@ WATCHDOG_POLL_REPEAT = None
 
 class ZeroMQListener(Listener):
 
-    def __init__(self, name, in_port, carrier="tcp",
-                 socket_ip=SOCKET_IP, socket_port=SOCKET_PORT, zeromq_kwargs=None, **kwargs):
-        carrier = carrier if carrier else "tcp"
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
-        ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 socket_ip: str = SOCKET_IP, socket_port: int = SOCKET_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the subscriber
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
+        :param kwargs: dict: Additional kwargs for the subscriber
+        """
+        if carrier != "tcp":
+            logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            carrier = "tcp"
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+
         self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
 
-    def await_connection(self, socket=None, port_in=None, repeats=None):
+        ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
+
+    def await_connection(self, socket=None, in_port: Optional[str] = None, repeats: Optional[int] = None):
+        """
+        Wait for the connection to be established
+        :param socket: zmq.Socket: Socket to await connection to
+        :param in_port: str: Name of the input topic
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         connected = False
-        if port_in is None:
-            port_in = self.in_port
-        logging.info(f"Waiting for input port: {port_in}")
+        if in_port is None:
+            in_port = self.in_port
+        logging.info(f"Waiting for input port: {in_port}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -41,12 +62,18 @@ class ZeroMQListener(Listener):
                 # TODO (fabawi): communicate with proxy broker to check whether publisher exists
                 connected = True
                 if connected:
-                    logging.info(f"Connected to input port: {port_in}")
+                    logging.info(f"Connected to input port: {in_port}")
                     break
                 time.sleep(0.2)
         return connected
 
-    def read_port(self, socket):
+    def read_socket(self, socket):
+        """
+        Read the socket
+        :param socket: zmq.Socket: Socket to read from
+        :return: bytes: Data read from the socket
+        :return: yarp.Value: Value read from the port
+        """
         while True:
             obj = socket.read(shouldWait=False)
             if self.should_wait and obj is None:
@@ -55,6 +82,9 @@ class ZeroMQListener(Listener):
                 return obj
 
     def close(self):
+        """
+        Close the subscriber
+        """
         if hasattr(self, "_socket") and self._socket:
             if self._socket is not None:
                 self._socket.close()
@@ -66,8 +96,18 @@ class ZeroMQListener(Listener):
 @Listeners.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectListener(ZeroMQListener):
 
-    def __init__(self, name, in_port, carrier="tcp", deserializer_kwargs=None, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+        """
+        The NativeObject listener using the ZeroMQ message construct assuming the data is serialized as a JSON string.
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
+        """
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         self._socket = self._netconnect = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
@@ -76,7 +116,12 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection to the publisher
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         established = self.await_connection(repeats=repeats)
         if established:
             self._socket = zmq.Context.instance().socket(zmq.SUB)
@@ -92,6 +137,10 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         return self.check_establishment(established)
 
     def listen(self):
+        """
+        Listen for a message
+        :return: Any: The received message as a native python object
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
@@ -109,9 +158,22 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 @Listeners.register("Image", "zeromq")
 class ZeroMQImageListener(ZeroMQNativeObjectListener):
 
-    def __init__(self, name, out_port, carrier="tcp", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False,
-                 **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp",
+                 should_wait: bool = True, width: int = -1, height: int = -1,
+                 rgb: bool = True, fp: bool = False, **kwargs):
+        """
+       The Image listener using the ZeroMQ message construct parsed to a numpy array
+       :param name: str: Name of the subscriber
+       :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+       :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+       :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+       :param width: int: Width of the image. Default is -1 (use the width of the received image)
+       :param height: int: Height of the image. Default is -1 (use the height of the received image)
+       :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+       :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+       """
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -119,6 +181,10 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
         self._type = np.float32 if self.fp else np.uint8
 
     def listen(self):
+        """
+        Listen for a message
+        :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
@@ -136,13 +202,30 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
 
 @Listeners.register("AudioChunk", "zeromq")
 class ZeroMQAudioChunkListener(ZeroMQImageListener):
-    def __init__(self, name, in_port, carrier="tcp", channels=1, rate=44100, chunk=-1, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+        """
+        The AudioChunk listener using the ZeroMQ message construct parsed to a numpy array
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param queue_size: int: Size of the queue for the subscriber. Default is 5
+        :param channels: int: Number of channels in the audio. Default is 1
+        :param rate: int: Sampling rate of the audio. Default is 44100
+        :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
+        """
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
 
     def listen(self):
+        """
+        Listen for a message
+        :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
