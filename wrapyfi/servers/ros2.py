@@ -13,7 +13,7 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapyfi.connect.servers import Server, Servers
-from wrapyfi.middlewares.ros2 import ROS2Middleware, ROS2NativeObjectService
+from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
@@ -49,6 +49,8 @@ class ROS2NativeObjectServer(ROS2Server):
         self._server = None
 
     def establish(self):
+        # TODO (fabawi): add documentation on compiling the service
+        from wrapyfi_interfaces.ros2.srv import ROS2NativeObjectService
         self._server = self.create_service(ROS2NativeObjectService, self.out_port, self._service_callback)
         self.established = True
 
