@@ -22,7 +22,7 @@ class ROS2Client(Client, Node):
     def __init__(self, name, in_port, carrier="", ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
         Client.__init__(self, name, in_port, carrier=carrier, **kwargs)
-        Node.__init__(self, name)
+        Node.__init__(self, name + str(hex(id(self))))
 
     def close(self):
         if hasattr(self, "_client"):
@@ -38,6 +38,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def __init__(self, name, in_port, carrier="", serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
         super().__init__(name, in_port, carrier=carrier, **kwargs)
+
         self._client = None
         self._queue = queue.Queue(maxsize=1)
 
@@ -58,7 +59,9 @@ class ROS2NativeObjectClient(ROS2Client):
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
         self._client = self.create_client(ROS2NativeObjectService, self.in_port)
-        while not self.cli.wait_for_service(timeout_sec=1.0):
+        self._req_msg = ROS2NativeObjectService.Request()
+
+        while not self._client.wait_for_service(timeout_sec=1.0):
             logging.info('Service not available, waiting again...')
         self.established = True
 
@@ -75,16 +78,15 @@ class ROS2NativeObjectClient(ROS2Client):
         # transmit args to server
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
                               serializer_kwrags=self._serializer_kwargs)
-        args_msg = std_msgs.msg.String()
-        args_msg.data = args_str
-        future = self._client.call_async(args_msg)
+        self._req_msg.request = args_str
+        future = self._client.call_async(self._req_msg)
         # receive message from server
         while rclpy.ok():
             rclpy.spin_once(self)
             if future.done():
                 try:
                     msg = future.result()
-                    obj = json.loads(msg.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+                    obj = json.loads(msg.response, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
                     self._queue.put(obj, block=False)
                 except Exception as e:
                     logging.error("Service call failed: %s" % e)

@@ -42,7 +42,7 @@ class ROS2Listener(Listener, Node):
             carrier = "tcp"
         ROS2Middleware.activate(**ros2_kwargs or {})
         Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
-        Node.__init__(self, name, allow_undeclared_parameters=True)
+        Node.__init__(self, name + str(hex(id(self))), allow_undeclared_parameters=True)
 
         self.queue_size = queue_size
 

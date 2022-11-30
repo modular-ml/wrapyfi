@@ -40,7 +40,7 @@ class ROS2Publisher(Publisher, Node):
             carrier = "tcp"
         ROS2Middleware.activate(**ros2_kwargs or {})
         Publisher.__init__(self, name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
-        Node.__init__(self, name)
+        Node.__init__(self, name + str(hex(id(self))))
 
         self.queue_size = queue_size
 
