@@ -33,9 +33,14 @@ def check_cv2():
 
 setuptools.setup(
     name             = 'wrapyfi',
-    version          = '0.4.10',
+    version          = '0.4.11',
     description      = 'Wrapyfi is a wrapper for simplifying Middleware communication',
     url              = 'https://github.com/fabawi/wrapyfi/',
+    project_urls={
+        'Documentation': 'https://wrapyfi.readthedocs.io/en/latest/',
+        'Source':        'https://github.com/fabawi/wrapyfi/',
+        'Tracker':       'https://github.com/fabawi/wrapyfi/issues',
+    },
     author           = 'Fares Abawi',
     author_email     = 'fares.abawi@outlook.com',
     maintainer       = 'Fares Abawi',

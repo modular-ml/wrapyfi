@@ -21,7 +21,7 @@ class ROS2Client(Client, Node):
 
     def __init__(self, name, in_port, carrier="", ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
-        Client.__init__(name, in_port, carrier=carrier, **kwargs)
+        Client.__init__(self, name, in_port, carrier=carrier, **kwargs)
         Node.__init__(self, name)
 
     def close(self):
@@ -48,8 +48,15 @@ class ROS2NativeObjectClient(ROS2Client):
         self._deserializer_kwargs = deserializer_kwargs or {}
 
     def establish(self):
-        # TODO (fabawi): add documentation on compiling the service
-        from wrapyfi_interfaces.ros2.srv import ROS2NativeObjectService
+        try:
+            from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
+        except ImportError:
+            import wrapyfi
+            logging.error("Could not import ROS2NativeObjectService. "
+                          "Make sure the ros2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+            sys.exit(1)
         self._client = self.create_client(ROS2NativeObjectService, self.in_port)
         while not self.cli.wait_for_service(timeout_sec=1.0):
             logging.info('Service not available, waiting again...')

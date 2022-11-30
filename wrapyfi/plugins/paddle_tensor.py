@@ -9,6 +9,7 @@ from wrapyfi.utils import *
 
 try:
     import paddle
+    from paddle import Tensor
     HAVE_PADDLE = True
 except ImportError:
     HAVE_PADDLE = False

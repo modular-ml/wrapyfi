@@ -49,8 +49,15 @@ class ROS2NativeObjectServer(ROS2Server):
         self._server = None
 
     def establish(self):
-        # TODO (fabawi): add documentation on compiling the service
-        from wrapyfi_interfaces.ros2.srv import ROS2NativeObjectService
+        try:
+            from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
+        except ImportError:
+            import wrapyfi
+            logging.error("Could not import ROS2NativeObjectService. "
+                          "Make sure the ros2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+            sys.exit(1)
         self._server = self.create_service(ROS2NativeObjectService, self.out_port, self._service_callback)
         self.established = True
 

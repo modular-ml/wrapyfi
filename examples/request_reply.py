@@ -15,8 +15,9 @@ class ReqRep(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", args.mware, "ReqRep", "/req_rep/my_message",
                                      carrier="tcp", persistent=True)
-    @MiddlewareCommunicator.register("Image", args.mware, "ReqRep", "/req_rep/my_image_message",
-                                     carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10)
+    @MiddlewareCommunicator.register("NativeObject", args.mware, "ReqRep", "/req_rep/my_image_message",
+                                     carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10,
+                                     persistent=True)
     def send_message(self, img_width=320, img_height=240, *args, **kwargs):
         msg = input("Type your message: ")
         obj = {"message": msg,
