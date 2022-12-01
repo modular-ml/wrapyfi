@@ -23,3 +23,4 @@ class ROS2Middleware(metaclass=SingletonOptimized):
     def deinit():
         logging.info("Deinitialising ROS 2 middleware")
         rclpy.try_shutdown()
+

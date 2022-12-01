@@ -1,6 +1,7 @@
 import logging
 import json
 import time
+from typing import Optional, Literal, Tuple
 
 import numpy as np
 import yarp
@@ -10,16 +11,39 @@ from wrapyfi.middlewares.yarp import YarpMiddleware
 from wrapyfi.encoders import JsonEncoder
 
 
-WATCHDOG_POLL_REPEATS = None
+WATCHDOG_POLL_REPEAT = None
 
 
 class YarpPublisher(Publisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, yarp_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
+                 out_port_connect: Optional[str] = None, yarp_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the publisher
+
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
+                                        None appends ':out' to the out_port. Default is None
+        :param yarp_kwargs: dict: Additional kwargs for  the Yarp middleware
+        :param kwargs: dict: Additional kwargs for the publisher
+        """
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
         YarpMiddleware.activate(**yarp_kwargs or {})
 
-    def await_connection(self, port, out_port=None, repeats=None):
+        self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
+
+    def await_connection(self, port, out_port: Optional[str] = None, repeats: Optional[int] = None):
+        """
+        Wait for at least one subscriber to connect to the publisher
+
+        :param port: yarp.Port: Port to await connection to
+        :param out_port: str: Name of the output topic
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         connected = False
         if out_port is None:
             out_port = self.out_port
@@ -39,8 +63,12 @@ class YarpPublisher(Publisher):
         return connected
 
     def close(self):
+        """
+        Close the publisher
+        """
         if hasattr(self, "_port") and self._port:
-            self._port.close()
+            if self._port is not None:
+                self._port.close()
 
     def __del__(self):
         self.close()
@@ -48,19 +76,22 @@ class YarpPublisher(Publisher):
 
 @Publishers.register("NativeObject", "yarp")
 class YarpNativeObjectPublisher(YarpPublisher):
-    """
-    The NativeObjectPublisher using the BufferedPortBottle construct assuming a combination of python native objects
-    and numpy arrays as input
-    """
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, serializer_kwargs=None, **kwargs):
+
+    def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
+                 out_port_connect: str = None, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initializing the NativeObjectPublisher
-        :param name: Name of the publisher
-        :param out_port: The published port name preceded by "/"
-        :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
+        The NativeObject publisher using the BufferedPortBottle string construct assuming a combination of python native objects
+        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
+                                        None appends ':out' to the out_port. Default is None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect, **kwargs)
         self._port = self._netconnect = None
 
         self._plugin_encoder = JsonEncoder
@@ -70,7 +101,13 @@ class YarpNativeObjectPublisher(YarpPublisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection
+
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         self._port = yarp.BufferedPortBottle()
         self._port.open(self.out_port)
         self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
@@ -78,8 +115,13 @@ class YarpNativeObjectPublisher(YarpPublisher):
         return self.check_establishment(established)
 
     def publish(self, obj):
+        """
+        Publish the object to the middleware
+
+        :param obj: object: Object to publish
+        """
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -95,28 +137,42 @@ class YarpNativeObjectPublisher(YarpPublisher):
 @Publishers.register("Image", "yarp")
 class YarpImagePublisher(YarpPublisher):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+    def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
+                 out_port_connect: Optional[str] = None, width: int = -1, height: int = -1,
+                 rgb: bool = True, fp: bool = False, **kwargs):
         """
-        Initializing the ImagePublisher
-        :param name: Name of the publisher
-        :param out_port: The published port name preceded by "/"
-        :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
-        :param width: Image width
-        :param height: Image height
-        :param rgb: Transmits an RGB image when "True", or mono image when "False"
-        :param fp: Transmits 32-bit floating point image when "True", or 8-bit integer image when "False"
+        The Image publisher using the BufferedPortImage construct assuming a numpy array as input
+
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
+                                        None appends ':out' to the out_port. Default is None
+        :param width: int: Width of the image. Default is -1 meaning the width of the input image
+        :param height: int: Height of the image. Default is -1 meaning the height of the input image
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect, **kwargs)
+
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
+
         self._port = self._type = self._netconnect = None
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection
+
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         if self.rgb:
             self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
         else:
@@ -127,14 +183,13 @@ class YarpImagePublisher(YarpPublisher):
         established = self.await_connection(self._port, repeats=repeats)
         return self.check_establishment(established)
 
-    def publish(self, img):
+    def publish(self, img: np.ndarray):
         """
-        Publish the image
-        :param img: The cv2 image (img_height, img_width, channels)
-        :return: None
+        Publish the image to the middleware
+        :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels] to publish
         """
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -143,38 +198,50 @@ class YarpImagePublisher(YarpPublisher):
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
-        yarp_img = self._port.prepare()
-        yarp_img.resize(img.shape[1], img.shape[0])
-        yarp_img.setExternal(img, img.shape[1], img.shape[0])
+        img_msg = self._port.prepare()
+        img_msg.resize(img.shape[1], img.shape[0])
+        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
         self._port.write()
 
 
 @Publishers.register("AudioChunk", "yarp")
 class YarpAudioChunkPublisher(YarpImagePublisher):
-    """
-    Using the ImagePublisher to carry the sound signal. There are better alternatives (Sound) but
-    don't seem to work with the python bindings at the moment
-    """
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, channels=1, rate=44100, chunk=-1, **kwargs):
+
+    def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
+
+                 out_port_connect: Optional[str] = None,
+                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        Initializing the AudioPublisher
-        :param name: Name of the publisher
-        :param out_port: The published port name preceded by "/"
-        :param carrier: For a list of carrier names, visit https://www.yarp.it/carrier_config.html. Default is "tcp"
-        :param out_port_connect: This is an optional port connection for listening devices (follows out_port format)
-        :param channels: Number of audio channels
-        :param rate: Sampling rate of the audio signal
-        :param chunk: Size of the chunk in samples. Transmits 1 second when chunk=rate
+         The AudioChunk publisher using the BufferedPortImage construct assuming a numpy array as input
+
+        :param name: str: Name of the publisher
+        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
+                                        None appends ':out' to the out_port. Default is None
+        :param channels: int: Number of channels. Default is 1
+        :param rate: int: Sampling rate. Default is 44100
+        :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, width=chunk, height=channels, rgb=False, fp=True)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect,
+                         width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
         self._dummy_sound = self._dummy_port = self._dummy_netconnect = None
+
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection
+
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
         self._dummy_port = yarp.Port()
         self._dummy_port.open(self.out_port + "_SND")
@@ -188,14 +255,14 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._dummy_port.write(self._dummy_sound)
         return self.check_establishment(established)
 
-    def publish(self, aud):
+    def publish(self, aud: Tuple[np.ndarray, int]):
         """
-        Publish the audio
-        :param aud: The np audio signal ((audio_chunk, channels), samplerate)
-        :return: None
+        Publish the audio chunk to the middleware
+
+        :param aud: (np.ndarray, int): Audio chunk to publish formatted as ((chunk_size, channels), samplerate)
         """
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEATS)
+            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
@@ -207,8 +274,11 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             self._port.write()
 
     def close(self):
+        """
+        Close the publisher connection to the yarp Sound port. This is not used at the moment, but left for future impl.
+        """
         super().close()
-        if self._dummy_port:
+        if self._dummy_port is not None:
             self._dummy_port.close()
 
 

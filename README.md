@@ -52,6 +52,11 @@ python3 setup.py install
 
 # Usage
 
+Wrapyfi supports two patterns of communication: 
+* **Publisher-Subscriber** (pub-sub): A publisher sends data to a subscriber accepting arguments and executing methods on the publisher's end.
+e.g., with YARP
+
+
 <table>
 <tr>
 <th> Without Wrapyfi </th>
@@ -84,7 +89,7 @@ hello_world = HelloWorld()
 
 while True:
     my_message, = hello_world.send_message()
-    print(my_message["message"])
+    print(my_message)
 ```
     
 </sub>
@@ -115,7 +120,7 @@ hello_world.activate_communication(hello_world.send_message, mode=mode)
 
 while True:
     my_message, = hello_world.send_message()
-    print(my_message["message"])
+    print(my_message)
 ```
     
 </sub>
@@ -123,9 +128,94 @@ while True:
 </tr>
 </table>
 
-Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listiner's
+Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
 
-<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>
+
+* **Request-Response** (req-res): A requester sends a request to a responder, which responds to the request in a synchronous manner.
+e.g., with ROS
+
+<table>
+<tr>
+<th> Without Wrapyfi </th>
+<th> With Wrapyfi </th>
+</tr>
+<tr>
+<td>
+<sub>
+
+```python
+# Just your usual python class
+
+
+class HelloWorld(object):
+    
+    
+    
+    
+    def send_message(self, a, b):
+        msg = input("Type your message: ")
+        obj = {"message": msg, 
+               "a": a, "b": b, "sum": a + b}
+        return obj,
+
+
+hello_world = HelloWorld()
+
+
+
+    
+
+while True:
+    my_message, = hello_world.send_message(a=1, 
+                                           b=2)
+    print(my_message)
+```
+    
+</sub>
+</td>
+<td>
+<sub>
+
+```python
+from wrapyfi.connect.wrapper import MiddlewareCommunicator
+
+
+class HelloWorld(MiddlewareCommunicator):
+    @MiddlewareCommunicator.register("NativeObject", "ros",
+                                     "HelloWorld", 
+                                     "/hello/my_message", 
+                                     carrier="", should_wait=True)
+    def send_message(self, a, b):
+        msg = input("Type your message: ")
+        obj = {"message": msg, 
+               "a": a, "b": b, "sum": a + b}
+        return obj,
+
+
+hello_world = HelloWorld()
+
+LISTEN = True
+mode = "request" if LISTEN else "reply"
+hello_world.activate_communication(hello_world.send_message, mode=mode)
+
+while True:
+    my_message, = hello_world.send_message(a=1 if LISTEN else None, 
+                                           b=2 if LISTEN else None)
+    print(my_message)
+```
+    
+</sub>
+</td>
+</tr>
+</table>
+
+
+
+
+Run `roscore` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
+Note that the server's command line will not show the message until the client's command line has been used to send a request. The arguments are passed from the client to the server and the server's response is passed back to the client.
+
+<!--<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>-->
 
 For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapyfi in action. 
 
@@ -135,16 +225,18 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] **YARP**
 * [x] **ROS**
 * [x] **ROS 2**
-* [x] **ZeroMQ** (TODO: proper should_wait trigger instead of dummy)
+* [x] **ZeroMQ** (TODO: proper `should_wait` trigger instead of dummy argument for awaiting connection establishment)
 
 ## Data Structures
-* [x] **Numpy Array|Generic**
-* [x] **Pytorch Tensor**
-* [x] **Tensorflow 2 Tensor**
-* [x] **JAX Tensor**
-* [x] **MXNet Tensor**
-* [x] **Paddlepaddle Tensor**
-* [x] **Pandas Dataframe|Series**
+* [x] [**Numpy Array|Generic**](https://numpy.org/doc/1.23/)
+* [x] [**Pytorch Tensor**](https://pytorch.org/docs/stable/index.html)
+* [x] [**Tensorflow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
+* [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
+* [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
+* [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
+* [x] [**Pandas Dataframe|Series**](https://pandas.pydata.org/docs/)
+* [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
+* [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 
 ## Serializers
 * [x] **JSON**
@@ -152,7 +244,9 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 
 ## Image
 * [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
-* [x] **Pillow Image**
+
+## Sound 
+* [x] **Numpy Array**,int (supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format)
 
 # TODOS
 * [x] **Support encapsulating wrapped calls to publishers and listeners**
