@@ -8,7 +8,7 @@ autodoc_default_options = {
     'undoc-members': True,
     'exclude-members': '__weakref__'
 }
-master_doc = 'source/modules'
+master_doc = 'usage'
 html_theme = 'sphinx_rtd_theme'
 extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'myst_parser']
 autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
