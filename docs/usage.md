@@ -71,9 +71,14 @@ required or the objects within a list not within the [supported data structure t
 
 ## Configuration
 The `MiddlewareCommunicator`'s child class' methods modes can be independently set to:
+
 * **publish**: Run the method and publish the results using the middleware's transmission protocol
 * **listen**: Skip the method and wait for the publisher with the same port name to transmit a message, eventually returning the received message
-* **none**(default): Run the method as usual without triggering publish or listen. *hint*: Providing `None` (or `null` when providing a yaml configuration file) has the same effect
+
+* **reply**: Run the method and publish the results using the middleware's transmission protocol. Argments are received from the requester
+* **request**: Send a request to the replier in the form of arguments passed to the method. Skip the method and wait for the replier with the same port name to transmit a message, eventually returning the received message
+
+* **none**(default): Run the method as usual without triggering publish, listen, request or reply. *hint*: Providing `None` (or `null` when providing a yaml configuration file) has the same effect
 * **disable**: Disables the method and returns None for all its returns. Caution should be taken when disabling a method since it 
 could break subsequent calls
 
