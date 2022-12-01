@@ -225,16 +225,18 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] **YARP**
 * [x] **ROS**
 * [x] **ROS 2**
-* [x] **ZeroMQ** (TODO: proper should_wait trigger instead of dummy)
+* [x] **ZeroMQ** (TODO: proper `should_wait` trigger instead of dummy argument for awaiting connection establishment)
 
 ## Data Structures
-* [x] **Numpy Array|Generic**
-* [x] **Pytorch Tensor**
-* [x] **Tensorflow 2 Tensor**
-* [x] **JAX Tensor**
-* [x] **MXNet Tensor**
-* [x] **Paddlepaddle Tensor**
-* [x] **Pandas Dataframe|Series**
+* [x] [**Numpy Array|Generic**](https://numpy.org/doc/1.23/)
+* [x] [**Pytorch Tensor**](https://pytorch.org/docs/stable/index.html)
+* [x] [**Tensorflow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
+* [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
+* [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
+* [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
+* [x] [**Pandas Dataframe|Series**](https://pandas.pydata.org/docs/)
+* [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
+* [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 
 ## Serializers
 * [x] **JSON**
@@ -242,7 +244,9 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 
 ## Image
 * [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
-* [x] **Pillow Image**
+
+## Sound 
+* [x] **Numpy Array**,int (supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format)
 
 # TODOS
 * [x] **Support encapsulating wrapped calls to publishers and listeners**

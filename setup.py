@@ -46,7 +46,7 @@ setuptools.setup(
     maintainer       = 'Fares Abawi',
     maintainer_email = 'fares.abawi@outlook.com',
     packages         = setuptools.find_packages(),
-    extras_requires   ={'docs': ['sphinx', 'sphinx_rtd_theme']},
+    extras_requires   ={'docs': ['sphinx', 'sphinx_rtd_theme', 'myst_parser']},
     install_requires = ['pyyaml>=5.1.1', 'numpy>=1.19.2'] + check_cv2(),
     python_requires  = '>=3.6',
     setup_requires   = ['cython>=0.29.1']
