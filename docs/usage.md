@@ -116,33 +116,50 @@ TheClass:
 where the list element index corresponds the instance index. When providing a list, the number of list elements should correspond to the number 
 of instances. If the number of instances exceed the list length, the script exits and raises an error.
 
-## Publishers and Listeners
+## Communication Patterns
+
+Wrapyfi supports the publisher-subscriber [(PUB/SUB)](#publishers-and-listenerssubscribers-pubsub) pattern as well as the reply-request (REP/REQ) pattern. 
+The PUB/SUB pattern assumes message arguments are passed from the publisher-calling script to the publishing method. 
+The publisher executes the method and the subscriber (listener) merely triggers the method call, awaits the publisher to execute the method, and returns the publisher's method returns.
+The REP/REQ pattern on the other hand assumes arguments from the client (requester) are sent to the server (responder or replier). Once the server receives the request, it passes the arguments
+to its own method, executes it, and replies to the client back with its method returns.
+
+### Publishers and Listeners/Subscribers (PUB/SUB)
 
 The publishers and listeners of the same message type should have identical constructor signatures. The current Wrapyfi version supports
-4 types of messages 
+4 universal types of messages for all middleware. The extended types such as `ROSMessage` and `ROS2Message` are exclusive to the provided middleware.
 
-(Yarp):
+*(Yarp)*:
+
+All messages are transmitted using the yarp python bindings
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
 * **NativeObject**: Transmits a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-formats) using `yarp.BufferedPortBottle`
 * **Properties**: Transmits properties [*coming soon*]
 
-(ROS):
+*(ROS)*:
+
+All messages are transmitted using the rospy python binding
+
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `rospy sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `rospy sensor_messages.msg.Image`
+* **NativeObject**: Transmits and receives string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `rospy std_msgs.msg.String`
+* **Properties**: Transmits and receives parameters  to/from the parameter sever using the methods `rospy.set_param` and `rospy.get_param` respectively
+* **ROSMessage**: Transmits and receives a single [ROS message](http://wiki.ros.org/msg) per return decorator. Note that currently, only common ROS interface messages 
+                  are supported and detected automatically. This means that messages defined in common interfaces such as [std_msgs], [geometry_msgs], and [sensor_msgs] can be directly 
+                  returned by the method do not need to be converted to native types
+
+*(ROS 2)*: 
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `rospy sensor_messages.msg.Image`
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `rospy sensor_messages.msg.Image`
 * **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `rospy std_msgs.msg.String`
 * **Properties**: Transmits properties [*coming soon*]
+* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*coming soon*]
 
-(ROS 2): 
+*(ZeroMQ)*:
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `rospy sensor_messages.msg.Image`
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `rospy sensor_messages.msg.Image`
-* **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `rospy std_msgs.msg.String`
-* **Properties**: Transmits properties [*coming soon*]
-
-(ZeroMQ):
 * **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct.
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct.
 * **NativeObject**: Transmits a string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `zmq context.socket(zmq.PUB).send_multipart`
@@ -151,6 +168,7 @@ The publishers and listeners of the same message type should have identical cons
 ### Publisher- and Listener-specific Arguments
 
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.
+Since the transmitting and receiving arguments should generally be the same regardless of the communication pattern, `publisher_kwargs` and `listener_kwargs` also apply to the servers and clients respectively.
 
 ### Plugins
 
@@ -173,6 +191,7 @@ Other than native python objects, the following objects are supported:
 * `mxnet.nd.NDArray`
 * `jax.numpy.DeviceArray`
 * `paddle.Tensor`
+* `PIL.Image`
 
 #### Device Mapping for Tensors
 

@@ -10,8 +10,9 @@ autodoc_default_options = {
 }
 master_doc = 'source/modules'
 html_theme = 'sphinx_rtd_theme'
-extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'myst_parser']
 autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
+source_suffix = ['.rst', '.md']
 # autodoc_mock_imports = ["rclpy", "rospy", "yarp", "cv2", "numpy", "yaml",
 #                         "torch", "pandas", "tensorflow", "jax", "jaxlib", "mxnet", "paddle"]
 sys.path.insert(0, os.path.abspath('../'))
