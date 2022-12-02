@@ -6,6 +6,8 @@
 
 <hl/>
 
+|build-status| |docs| |coverage|
+
 Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without the need to
 alter the operation pipeline of your python scripts. Wrapyfi introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
