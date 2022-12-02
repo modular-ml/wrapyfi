@@ -6,7 +6,8 @@
 
 <hl/>
 
-|build-status| |docs| |coverage|
+[![Documentation Status](https://readthedocs.org/projects/wrapyfi/badge/?version=latest)](https://wrapyfi.readthedocs.io/en/latest/?badge=latest)
+
 
 Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without the need to
 alter the operation pipeline of your python scripts. Wrapyfi introduces
