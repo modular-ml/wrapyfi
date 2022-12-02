@@ -1,4 +1,4 @@
-# Usage
+# User Guide
 
 To Wrapyfi your code:
 

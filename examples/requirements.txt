@@ -8,4 +8,4 @@ torchvision>=0.13.1
 mxnet-cu112
 jax[cuda11_cudnn805] -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 jaxlib==0.3.2 -f https://storage.googleapis.com/jax-releases/jax_releases.html
-paddlepaddle-gpu==0.0.0.post116 -f https://www.paddlepaddle.org.cn/whl/linux/gpu/develop.html
+#paddlepaddle-gpu==0.0.0.post116 -f https://www.paddlepaddle.org.cn/whl/linux/gpu/develop.html
