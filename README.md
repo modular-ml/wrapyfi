@@ -3,7 +3,8 @@
   <img width="460" height="300" src="https://user-images.githubusercontent.com/4982924/194550571-e7738a6d-da05-4e0d-8904-8edf784ceef4.png">
 </p>
 
-# 
+
+<hl/>
 
 Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without the need to
 alter the operation pipeline of your python scripts. Wrapyfi introduces
@@ -14,7 +15,7 @@ Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.r
 To Wrapyfi a class, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
 requirement on your coding style: All wrapyfi compatible functions need to be defined within a class. 
 
-## Installation
+# Getting Started
 
 Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed. 
 
@@ -30,9 +31,10 @@ We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/
 ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
-A standalone broker can be found [here](wrapyfi/standalone/zmq_proxy_broker.py)
+A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/wrapyfi/standalone/zmq_proxy_broker.py)
 
-#### compatibility
+
+#### Compatibility
 * Ubuntu >= 18.04 (Not tested with earlier versions of Ubuntu or other OS)
 * Python >= 3.6
 * OpenCV >= 4.2
@@ -44,13 +46,23 @@ A standalone broker can be found [here](wrapyfi/standalone/zmq_proxy_broker.py)
 * ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
 
-To install Warpify:
+
+## Installation
+
+Clone Wrapyfi:
 
 ```
-python3 setup.py install
+git clone https://github.com/fabawi/wrapyfi.git
 ```
 
-# Usage
+To install Warpify using **pip**:
+
+```
+pip install .
+```
+
+
+## Usage
 
 Wrapyfi supports two patterns of communication: 
 * **Publisher-Subscriber** (pub-sub): A publisher sends data to a subscriber accepting arguments and executing methods on the publisher's end.
@@ -217,7 +229,7 @@ Note that the server's command line will not show the message until the client's
 
 <!--<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>-->
 
-For more examples on usage, refer to the [usage documentation](docs/usage.md). Run scripts in the [examples directory](examples) for seeing Wrapyfi in action. 
+For more examples on usage, refer to the [user guide](docs/usage.md) and [API documentation](docs/source/modules.rst). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/examples) for trying out Wrapyfi. 
 
 # Supported Formats
 
@@ -227,7 +239,15 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] **ROS 2**
 * [x] **ZeroMQ** (TODO: proper `should_wait` trigger instead of dummy argument for awaiting connection establishment)
 
+
+## Serializers
+* [x] **JSON**
+* [ ] **msgpack**
+
 ## Data Structures
+
+Supported Objects by the `NativeObject` type include:
+
 * [x] [**Numpy Array|Generic**](https://numpy.org/doc/1.23/)
 * [x] [**Pytorch Tensor**](https://pytorch.org/docs/stable/index.html)
 * [x] [**Tensorflow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
@@ -238,17 +258,16 @@ For more examples on usage, refer to the [usage documentation](docs/usage.md). R
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 * [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 
-## Serializers
-* [x] **JSON**
-* [ ] **msgpack**
-
 ## Image
+
+Supported Objects by the `Image` type include:
+
 * [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
 
 ## Sound 
+
+Supported Objects by the `AudioChunk` type include:
+
 * [x] **Numpy Array**,int (supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format)
 
-# TODOS
-* [x] **Support encapsulating wrapped calls to publishers and listeners**
-* [ ] **Support wrapping for module functions**
-* [x] **Support multiple class instances for functions set to publish [Experimental]**
+
