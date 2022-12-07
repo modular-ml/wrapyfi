@@ -200,7 +200,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img = np.ascontiguousarray(img)
         img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._socket.send(img_str.encode())
+        self._socket.send_multipart([self._topic, img_str.encode()])
 
 
 @Publishers.register("AudioChunk", "zeromq")
@@ -242,7 +242,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
             aud = np.ascontiguousarray(aud)
         aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._port.send(aud_str.encode())
+        self._socket.send_multipart([self._topic, aud_str.encode()])
 
 
 @Publishers.register("Properties", "zeromq")
