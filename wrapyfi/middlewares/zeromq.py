@@ -8,35 +8,46 @@ import zmq
 from wrapyfi.utils import SingletonOptimized
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
+ZEROMQ_POST_OPTS = ["SUBSCRIBE", "UNSUBSCRIBE", "LINGER", "ROUTER_HANDOVER", "ROUTER_MANDATORY", "PROBE_ROUTER", "XPUB_VERBOSE", "XPUB_VERBOSER", "REQ_CORRELATE", "REQ_RELAXED", "SNDHWM", "RCVHWM"]
 
 class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
     @staticmethod
     def activate(**kwargs):
-        zeromq_kwargs = {}
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
         for key, value in kwargs.items():
             try:
-                zeromq_kwargs[getattr(zmq, key)] = value
+                getattr(zmq, key)
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
             except AttributeError:
                 pass
 
-        ZeroMQMiddlewarePubSub(zeromq_proxy_kwargs=kwargs, **zeromq_kwargs)
+        ZeroMQMiddlewarePubSub(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zeromq_proxy_kwargs=None, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, **kwargs):
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
-        self.zeromq_kwargs = kwargs
+        self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ PUB/SUB middleware")
         ctx = zmq.Context.instance()
+        for socket_property in kwargs.items():
+            if isinstance(socket_property[1], str):
+                ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+            else:
+                ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
         atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                proxy = multiprocessing.Process(name='zeromq_broker', target=self.__init_proxy, kwargs=zeromq_proxy_kwargs)
+                proxy = multiprocessing.Process(name='zeromq_broker', target=self.__init_proxy, kwargs=kwargs)
                 proxy.daemon = True
                 proxy.start()
             else:  # if threaded
-                proxy = threading.Thread(name='zeromq_broker', target=self.__init_proxy, kwargs=zeromq_proxy_kwargs)
+                proxy = threading.Thread(name='zeromq_broker', target=self.__init_proxy, kwargs=kwargs)
                 proxy.setDaemon(True)
                 proxy.start()
             pass
