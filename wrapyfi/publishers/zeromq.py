@@ -132,9 +132,9 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         self._socket = zmq.Context.instance().socket(zmq.PUB)
         for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
-                self._socket.setsockopt(*socket_property)
+                self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
             else:
-                self._socket.setsockopt(*socket_property)
+                self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
         self._socket.connect(self.socket_sub_address)
         self._topic = self.out_port.encode()
         established = self.await_connection(self._socket, repeats=repeats)
@@ -200,7 +200,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img = np.ascontiguousarray(img)
         img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._socket.send_multipart([self._topic, img_str.encode()])
+        self._socket.send(img_str.encode())
 
 
 @Publishers.register("AudioChunk", "zeromq")
@@ -242,7 +242,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
             aud = np.ascontiguousarray(aud)
         aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._port.send_multipart([self._topic, aud_str.encode()])
+        self._port.send(aud_str.encode())
 
 
 @Publishers.register("Properties", "zeromq")
