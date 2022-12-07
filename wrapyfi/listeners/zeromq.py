@@ -132,9 +132,9 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
             self._socket = zmq.Context.instance().socket(zmq.SUB)
             for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
                 if isinstance(socket_property[1], str):
-                    self._socket.setsockopt(*socket_property)
+                    self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
                 else:
-                    self._socket.setsockopt(*socket_property)
+                    self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
             self._socket.connect(self.socket_address)
             self._topic = self.in_port.encode("utf-8")
             self._socket.setsockopt_string(zmq.SUBSCRIBE, self.in_port)
@@ -198,8 +198,8 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
             if not established:
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
-            obj = self._socket.recv_multipart()
-            img = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            obj = self._socket.recv()
+            img = json.loads(obj.decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
             if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                     not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
                 raise ValueError("Incorrect image shape for listener")
@@ -241,8 +241,8 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
             if not established:
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
-            obj = self._socket.recv_multipart()
-            aud = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            obj = self._socket.recv()
+            aud = json.loads(obj.decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
 
             chunk, channels = aud.shape[0], aud.shape[1]
             if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:
