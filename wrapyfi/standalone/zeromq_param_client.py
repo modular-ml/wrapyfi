@@ -72,36 +72,48 @@ def reverse_parse_prefix(topics: dict, prefix: str = ""):
 
 while True:
     # Send a request to the request server
-    new_command = str(input(f"input command: (default - {default_command})")) or default_command
-    request_server.send_string(new_command)
-    default_command = new_command
+    new_commands = str(input(f"input command: (default - {default_command})")) or default_command
+    default_command = new_commands
+    # Parse lists from [..,..] new_command if provided
+    if '[' in new_commands:
+        new_commands = new_commands.replace('[\'', '').replace('\']', '')
+        new_commands = new_commands.split('\', \'')
+    elif '{' in new_commands:
+        new_commands = new_commands.replace('\n','').replace('\t','')
+        new_commands = json.loads(new_commands)
+        new_commands = reverse_parse_prefix(new_commands, prefix="set ")
+    else:
+        new_commands = [new_commands]
 
-    response = request_server.recv_string()
-    print("Received response from server: %s" % response)
-    if "success:::" in response:
-        topics = {}
-        current_prefix = response.split(":::")[1].encode('utf-8')
-        param_server.subscribe(current_prefix)
-        # time.sleep(0.2)
-        prev_params = Counter()
-        param = "!"
-        while True:
-            # Receive updates from the parameter server
-            prefix, param, value = param_server.recv_multipart()
-            # Construct the full parameter name with the namespace prefix
-            prefix, param, value = prefix.decode('utf-8'), param.decode('utf-8'), value.decode('utf-8')
-            if (param in prev_params or param is None) and prev_params[param] == RECHECK_COUNT:
-                break
-            prev_params[param] += 1
-            full_param = "/".join([prefix, param, value])
-            parse_prefix(full_param, topics)
-            # print("Received update: %s" % (full_param))
-        topic_results = access_nested_dict(topics, current_prefix.decode('utf-8').split('/'))
-        print(json.dumps(topic_results, indent=2, default=str))
-        print("Reverse parse:")
-        print(reverse_parse_prefix(topic_results, prefix=f"set {current_prefix.decode('utf-8')}/"))
-        # Close the connection
-        param_server.unsubscribe(current_prefix)
+    for new_command in new_commands:
+        print("Sending request ", new_command)
+        request_server.send_string(new_command)
+        response = request_server.recv_string()
+        print("Received response from server: %s" % response)
+        if "success:::" in response:
+            topics = {}
+            current_prefix = response.split(":::")[1].encode('utf-8')
+            param_server.subscribe(current_prefix)
+            # time.sleep(0.2)
+            prev_params = Counter()
+            param = "!"
+            while True:
+                # Receive updates from the parameter server
+                prefix, param, value = param_server.recv_multipart()
+                # Construct the full parameter name with the namespace prefix
+                prefix, param, value = prefix.decode('utf-8'), param.decode('utf-8'), value.decode('utf-8')
+                if (param in prev_params or param is None) and prev_params[param] == RECHECK_COUNT:
+                    break
+                prev_params[param] += 1
+                full_param = "/".join([prefix, param, value])
+                parse_prefix(full_param, topics)
+                # print("Received update: %s" % (full_param))
+            topic_results = access_nested_dict(topics, current_prefix.decode('utf-8').split('/'))
+            print(json.dumps({current_prefix.decode('utf-8'): topic_results}, indent=None, default=str))
+            print("Reverse parse:")
+            print(reverse_parse_prefix(topic_results, prefix=f"set {current_prefix.decode('utf-8')}/"))
+            # Close the connection
+            param_server.unsubscribe(current_prefix)
 
 
 
