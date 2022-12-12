@@ -71,17 +71,21 @@ def reverse_parse_prefix(topics: dict, prefix: str = ""):
 
 
 while True:
-    # Send a request to the request server
+    # Send a request to the request server starting with write, read, delete, set or get
     new_commands = str(input(f"input command: (default - {default_command})")) or default_command
     default_command = new_commands
-    # Parse lists from [..,..] new_command if provided
-    if '[' in new_commands:
-        new_commands = new_commands.replace('[\'', '').replace('\']', '')
-        new_commands = new_commands.split('\', \'')
-    elif '{' in new_commands:
-        new_commands = new_commands.replace('\n','').replace('\t','')
-        new_commands = json.loads(new_commands)
-        new_commands = reverse_parse_prefix(new_commands, prefix="set ")
+    # Write supports lists e.g., write ['set foo/bar/42' 'set foo/bar/car/43'] and
+    # dicts e.g., write {'foo': {'bar': {'': '42', 'car': '43'}}}
+    if 'write' in new_commands:
+        # Parse lists from [..,..] new_command if provided
+        new_commands = new_commands.replace('write ', '')
+        if '[' in new_commands:
+            new_commands = new_commands.replace('[\'', '').replace('\']', '')
+            new_commands = new_commands.split('\', \'')
+        elif '{' in new_commands:
+            new_commands = new_commands.replace('\n','').replace('\t','')
+            new_commands = json.loads(new_commands)
+            new_commands = reverse_parse_prefix(new_commands, prefix="set ")
     else:
         new_commands = [new_commands]
 
@@ -99,7 +103,11 @@ while True:
             param = "!"
             while True:
                 # Receive updates from the parameter server
-                prefix, param, value = param_server.recv_multipart()
+                try:
+                    prefix, param, value = param_server.recv_multipart()
+                except zmq.error.Again:
+                    print("No new parameters received. Need atleast one topic to subscribe to.")
+                    break
                 # Construct the full parameter name with the namespace prefix
                 prefix, param, value = prefix.decode('utf-8'), param.decode('utf-8'), value.decode('utf-8')
                 if (param in prev_params or param is None) and prev_params[param] == RECHECK_COUNT:
@@ -108,7 +116,11 @@ while True:
                 full_param = "/".join([prefix, param, value])
                 parse_prefix(full_param, topics)
                 # print("Received update: %s" % (full_param))
-            topic_results = access_nested_dict(topics, current_prefix.decode('utf-8').split('/'))
+            try:
+                topic_results = access_nested_dict(topics, current_prefix.decode('utf-8').split('/'))
+            except KeyError:
+                print(current_prefix.decode('utf-8') + " has no children")
+                break
             print(json.dumps({current_prefix.decode('utf-8'): topic_results}, indent=None, default=str))
             print("Reverse parse:")
             print(reverse_parse_prefix(topic_results, prefix=f"set {current_prefix.decode('utf-8')}/"))
