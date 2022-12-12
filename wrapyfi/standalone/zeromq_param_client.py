@@ -20,7 +20,7 @@ param_server.setsockopt(zmq.RCVTIMEO, 2000)
 
 RECHECK_COUNT = 5
 
-default_command = "set foo/bar/42"
+default_command = "set /foo/bar/42"
 
 
 def access_nested_dict(d, keys):
@@ -74,18 +74,18 @@ while True:
     # Send a request to the request server starting with write, read, delete, set or get
     new_commands = str(input(f"input command: (default - {default_command})")) or default_command
     default_command = new_commands
-    # Write supports lists e.g., write ['set foo/bar/42' 'set foo/bar/car/43'] and
-    # dicts e.g., write {'foo': {'bar': {'': '42', 'car': '43'}}}
-    if 'write' in new_commands:
-        # Parse lists from [..,..] new_command if provided
+    # Pass a list of commands to the request server e.g. ['set /foo/bar/21', 'set /foo/bar/baz/42', 'get /foo/bar', 'delete /foo/bar/baz', 'read /foo']
+    if '[' in new_commands:
+        new_commands = new_commands.replace('[\'', '').replace('\']', '')
+        new_commands = new_commands.split('\', \'')
+    # Write supports writing full tree dicts e.g. write {'foo': {'bar': {'': '42', 'car': '43'}}}
+    elif 'write' in new_commands:
         new_commands = new_commands.replace('write ', '')
-        if '[' in new_commands:
-            new_commands = new_commands.replace('[\'', '').replace('\']', '')
-            new_commands = new_commands.split('\', \'')
-        elif '{' in new_commands:
+        if new_commands.startswith('{'):
             new_commands = new_commands.replace('\n','').replace('\t','')
             new_commands = json.loads(new_commands)
             new_commands = reverse_parse_prefix(new_commands, prefix="set ")
+    # Pass commands directly to the request server e.g. set /foo/bar/42
     else:
         new_commands = [new_commands]
 
@@ -120,9 +120,9 @@ while True:
                 topic_results = access_nested_dict(topics, current_prefix.decode('utf-8').split('/'))
             except KeyError:
                 print(current_prefix.decode('utf-8') + " has no children")
-                break
+                continue
             print(json.dumps({current_prefix.decode('utf-8'): topic_results}, indent=None, default=str))
-            print("Reverse parse:")
+            print("Reverse parse (always in set mode regardless of the transmitted command):")
             print(reverse_parse_prefix(topic_results, prefix=f"set {current_prefix.decode('utf-8')}/"))
             # Close the connection
             param_server.unsubscribe(current_prefix)
