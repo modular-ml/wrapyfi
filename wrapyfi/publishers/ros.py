@@ -3,10 +3,13 @@ import sys
 import json
 import time
 import os
+import base64
+import io
 import importlib.util
 from typing import Optional, Tuple
 
 import numpy as np
+import cv2
 import rospy
 import std_msgs.msg
 import sensor_msgs.msg
@@ -140,7 +143,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
 class ROSImagePublisher(ROSPublisher):
 
     def __init__(self, name: str, out_port: str, carrier: str = "tcp",  should_wait: bool = True, queue_size: int = QUEUE_SIZE,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The ImagePublisher using the ROS Image message assuming a numpy array as input
 
@@ -153,6 +156,7 @@ class ROSImagePublisher(ROSPublisher):
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
@@ -160,6 +164,8 @@ class ROSImagePublisher(ROSPublisher):
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
+
         if self.fp:
             self._encoding = '32FC3' if self.rgb else '32FC1'
             self._type = np.float32
@@ -179,7 +185,10 @@ class ROSImagePublisher(ROSPublisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        if self.jpg:
+            self._publisher = rospy.Publisher(self.out_port, std_msgs.msg.String, queue_size=self.queue_size)
+        else:
+            self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -195,19 +204,29 @@ class ROSImagePublisher(ROSPublisher):
                 return
             else:
                 time.sleep(0.2)
+
         if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
-        msg = sensor_msgs.msg.Image()
-        msg.header.stamp = rospy.Time.now()
-        msg.height = img.shape[0]
-        msg.width = img.shape[1]
-        msg.encoding = self._encoding
-        msg.is_bigendian = img.dtype.byteorder == '>' or (img.dtype.byteorder == '=' and sys.byteorder == 'big')
-        msg.step = img.strides[0]
-        msg.data = img.tobytes()
-        self._publisher.publish(msg)
+
+        if self.jpg:
+            img_compressed = cv2.imencode('.jpg', img)[1]
+            with io.BytesIO() as memfile:
+                np.save(memfile, img_compressed)
+                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
+            self._publisher.publish(img_str)
+
+        else:
+            msg = sensor_msgs.msg.Image()
+            msg.header.stamp = rospy.Time.now()
+            msg.height = img.shape[0]
+            msg.width = img.shape[1]
+            msg.encoding = self._encoding
+            msg.is_bigendian = img.dtype.byteorder == '>' or (img.dtype.byteorder == '=' and sys.byteorder == 'big')
+            msg.step = img.strides[0]
+            msg.data = img.tobytes()
+            self._publisher.publish(msg)
 
 
 @Publishers.register("AudioChunk", "ros")
@@ -227,7 +246,9 @@ class ROSAudioChunkPublisher(ROSPublisher):
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

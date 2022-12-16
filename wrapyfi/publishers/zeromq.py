@@ -1,10 +1,13 @@
 import logging
 import json
 import time
-import os 
+import os
+import base64
+import io
 from typing import Optional, Tuple
 
 import numpy as np
+import cv2
 import zmq
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
@@ -75,7 +78,7 @@ class ZeroMQPublisher(Publisher):
                 repeats = 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                # TODO (fabawi): actually check connection
+                # TODO (fabawi): actually check connection based on the new Param server
                 connected = True
                 # connected = port.getOutputCount() < 1
                 if connected:
@@ -161,7 +164,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
 class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
     def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The ImagePublisher using the ZeroMQ message construct assuming a numpy array as input
 
@@ -173,12 +176,16 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
+
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
+
         self._type = np.float32 if self.fp else np.uint8
 
     def publish(self, img: np.ndarray):
@@ -198,9 +205,17 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags['C_CONTIGUOUS']:
             img = np.ascontiguousarray(img)
-        img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
-                             serializer_kwrags=self._serializer_kwargs)
-        self._socket.send_multipart([self._topic, img_str.encode()])
+
+        if self.jpg:
+            img_compressed = cv2.imencode('.jpg', img)[1]
+            with io.BytesIO() as memfile:
+                np.save(memfile, img_compressed)
+                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
+        else:
+            img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
+                                 serializer_kwrags=self._serializer_kwargs)
+        img_header = '{timestamp:' + str(time.time()) + '}'
+        self._socket.send_multipart([self._topic, img_header.encode(), img_str.encode()])
 
 
 @Publishers.register("AudioChunk", "zeromq")
@@ -218,7 +233,9 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait,
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -242,7 +259,8 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
             aud = np.ascontiguousarray(aud)
         aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        self._socket.send_multipart([self._topic, aud_str.encode()])
+        aud_header = '{timestamp:' + str(time.time()) + '}'
+        self._socket.send_multipart([self._topic, aud_header.encode(), aud_str.encode()])
 
 
 @Publishers.register("Properties", "zeromq")

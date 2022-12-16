@@ -1,9 +1,12 @@
 import logging
 import json
 import time
+import base64
+import io
 from typing import Optional, Literal, Tuple
 
 import numpy as np
+import cv2
 import yarp
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
@@ -139,7 +142,7 @@ class YarpImagePublisher(YarpPublisher):
 
     def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
                  out_port_connect: Optional[str] = None, width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, **kwargs):
+                 rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The Image publisher using the BufferedPortImage construct assuming a numpy array as input
 
@@ -153,6 +156,7 @@ class YarpImagePublisher(YarpPublisher):
         :param height: int: Height of the image. Default is -1 meaning the height of the input image
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect, **kwargs)
 
@@ -160,6 +164,7 @@ class YarpImagePublisher(YarpPublisher):
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
 
         self._port = self._type = self._netconnect = None
 
@@ -173,7 +178,9 @@ class YarpImagePublisher(YarpPublisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        if self.rgb:
+        if self.jpg:
+            self._port = yarp.BufferedPortBottle()
+        elif self.rgb:
             self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
         else:
             self._port = yarp.BufferedPortImageFloat() if self.fp else yarp.BufferedPortImageMono()
@@ -194,14 +201,27 @@ class YarpImagePublisher(YarpPublisher):
                 return
             else:
                 time.sleep(0.2)
+
         if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
-        img_msg = self._port.prepare()
-        img_msg.resize(img.shape[1], img.shape[0])
-        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
-        self._port.write()
+
+        if self.jpg:
+            img_compressed = cv2.imencode('.jpg', img)[1]
+            with io.BytesIO() as memfile:
+                np.save(memfile, img_compressed)
+                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
+            oobj = self._port.prepare()
+            oobj.clear()
+            oobj.addString(img_str)
+            self._port.write()
+
+        else:
+            img_msg = self._port.prepare()
+            img_msg.resize(img.shape[1], img.shape[0])
+            img_msg.setExternal(img.data, img.shape[1], img.shape[0])
+            self._port.write()
 
 
 @Publishers.register("AudioChunk", "yarp")
@@ -225,7 +245,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect,
-                         width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
         self.rate = rate

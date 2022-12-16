@@ -199,7 +199,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            img = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            img = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
             if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                     not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
                 raise ValueError("Incorrect image shape for listener")
@@ -242,7 +242,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            aud = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            aud = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
 
             chunk, channels = aud.shape[0], aud.shape[1]
             if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:
