@@ -132,9 +132,9 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
             self._socket = zmq.Context.instance().socket(zmq.SUB)
             for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
                 if isinstance(socket_property[1], str):
-                    self._socket.setsockopt(*socket_property)
+                    self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
                 else:
-                    self._socket.setsockopt(*socket_property)
+                    self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
             self._socket.connect(self.socket_address)
             self._topic = self.in_port.encode("utf-8")
             self._socket.setsockopt_string(zmq.SUBSCRIBE, self.in_port)
