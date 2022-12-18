@@ -5,6 +5,7 @@ import os
 from typing import Optional
 
 import numpy as np
+import cv2
 import zmq
 
 from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
@@ -164,27 +165,29 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 @Listeners.register("Image", "zeromq")
 class ZeroMQImageListener(ZeroMQNativeObjectListener):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp",
-                 should_wait: bool = True, width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-       The Image listener using the ZeroMQ message construct parsed to a numpy array
+        The Image listener using the ZeroMQ message construct parsed to a numpy array
 
-       :param name: str: Name of the subscriber
-       :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
-       :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
-       :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
-       :param width: int: Width of the image. Default is -1 (use the width of the received image)
-       :param height: int: Height of the image. Default is -1 (use the height of the received image)
-       :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
-       :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-       """
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param width: int: Width of the image. Default is -1 (use the width of the received image)
+        :param height: int: Height of the image. Default is -1 (use the height of the received image)
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
+        """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
 
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
+
         self._type = np.float32 if self.fp else np.uint8
 
     def listen(self):
@@ -199,11 +202,20 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            img = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
-            if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
-                    not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
-                raise ValueError("Incorrect image shape for listener")
-            return img
+            if obj is None:
+                return None
+            elif self.jpg:
+                if self.rgb:
+                    img = cv2.imdecode(np.frombuffer(obj[2].decode(), np.uint8), cv2.IMREAD_COLOR)
+                else:
+                    img = cv2.imdecode(np.frombuffer(obj[2].decode(), np.uint8), cv2.IMREAD_GRAYSCALE)
+                return img
+            else:
+                img = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+                if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
+                        not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+                    raise ValueError("Incorrect image shape for listener")
+                return img
         else:
             return None
 
@@ -224,7 +236,8 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait,
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
         self.rate = rate

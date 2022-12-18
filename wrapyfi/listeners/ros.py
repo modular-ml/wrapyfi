@@ -6,6 +6,7 @@ import os
 from typing import Optional
 
 import numpy as np
+import cv2
 import rospy
 import rostopic
 import std_msgs.msg
@@ -118,7 +119,7 @@ class ROSNativeObjectListener(ROSListener):
 class ROSImageListener(ROSListener):
 
     def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, **kwargs):
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The Image listener using the ROS Image message parsed to a numpy array
 
@@ -131,6 +132,7 @@ class ROSImageListener(ROSListener):
         :param height: int: Height of the image. Default is -1 (use the height of the received image)
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
@@ -138,12 +140,18 @@ class ROSImageListener(ROSListener):
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
+
         if self.fp:
             self._encoding = '32FC3' if self.rgb else '32FC1'
             self._type = np.float32
         else:
             self._encoding = 'bgr8' if self.rgb else 'mono8'
             self._type = np.uint8
+        if self.jpg:
+            self._encoding = 'jpeg'
+            self._type = np.uint8
+
         self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
 
         self._subscriber = self._queue = None
@@ -155,7 +163,10 @@ class ROSImageListener(ROSListener):
         Establish the subscriber
         """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
+        if self.jpg:
+            self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.CompressedImage, callback=self._message_callback)
+        else:
+            self._subscriber = rospy.Subscriber(self.in_port, sensor_msgs.msg.Image, callback=self._message_callback)
         self.established = True
 
     def listen(self):
@@ -167,14 +178,23 @@ class ROSImageListener(ROSListener):
         if not self.established:
             self.establish()
         try:
-            height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            if encoding != self._encoding:
-                raise ValueError("Incorrect encoding for listener")
-            elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
-                raise ValueError("Incorrect image shape for listener")
-            img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
-            if img.shape[2] == 1:
-                img = img.squeeze(axis=2)
+            if self.jpg:
+                format, data = self._queue.get(block=self.should_wait)
+                if format != 'jpeg':
+                    raise ValueError(f"Unsupported image format: {format}")
+                if self.rgb:
+                    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+                else:
+                    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE)
+            else:
+                height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+                if encoding != self._encoding:
+                    raise ValueError("Incorrect encoding for listener")
+                elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                    raise ValueError("Incorrect image shape for listener")
+                img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
+                if img.shape[2] == 1:
+                    img = img.squeeze(axis=2)
             return img
         except queue.Empty:
             return None
@@ -186,7 +206,10 @@ class ROSImageListener(ROSListener):
         :param data: sensor_msgs.msg.Image: The received message
         """
         try:
-            self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+            if self.jpg:
+                self._queue.put((data.format, data.data), block=False)
+            else:
+                self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
             logging.warning(f"Discarding data because listener queue is full: {self.in_port}")
 
@@ -208,7 +231,8 @@ class ROSAudioChunkListener(ROSListener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
         self.rate = rate

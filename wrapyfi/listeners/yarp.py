@@ -4,6 +4,7 @@ import time
 from typing import Optional, Literal
 
 import numpy as np
+import cv2
 import yarp
 
 from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
@@ -134,9 +135,9 @@ class YarpNativeObjectListener(YarpListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        obj_msg = self.read_port(self._port)
-        if obj_msg is not None:
-            return json.loads(obj_msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        obj_port = self.read_port(self._port)
+        if obj_port is not None:
+            return json.loads(obj_port.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
         else:
             return None
 
@@ -144,9 +145,8 @@ class YarpNativeObjectListener(YarpListener):
 @Listeners.register("Image", "yarp")
 class YarpImageListener(YarpListener):
 
-    def __init__(self, name: str, in_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 should_wait: bool = True, width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The Image listener using the BufferedPortImage construct parsed to a numpy array
 
@@ -158,6 +158,7 @@ class YarpImageListener(YarpListener):
         :param height: int: Height of the image. Default is -1 (use the height of the received image)
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
 
@@ -165,6 +166,7 @@ class YarpImageListener(YarpListener):
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
 
         self._port = self._type = self._netconnect = None
 
@@ -180,7 +182,9 @@ class YarpImageListener(YarpListener):
         """
         established = self.await_connection(repeats=repeats)
         if established:
-            if self.rgb:
+            if self.jpg:
+                self._port = yarp.BufferedPortBottle()
+            elif self.rgb:
                 self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
             else:
                 self._port = yarp.BufferedPortImageFloat() if self.fp else yarp.BufferedPortImageMono()
@@ -203,18 +207,26 @@ class YarpImageListener(YarpListener):
         ret_img_msg = self.read_port(self._port)
         if ret_img_msg is None:
             return None
-        elif 0 < self.width != ret_img_msg.width() or 0 < self.height != ret_img_msg.height():
-            raise ValueError("Incorrect image shape for listener")
-        elif self.rgb:
-            img = np.zeros((ret_img_msg.height(), ret_img_msg.width(), 3), dtype=self._type, order='C')
-            img_msg = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
+        if self.jpg:
+            img_str = ret_img_msg.get(0).asString()
+            if self.rgb:
+                img = cv2.imdecode(np.frombuffer(img_str, np.uint8), cv2.IMREAD_COLOR)
+            else:
+                img = cv2.imdecode(np.frombuffer(img_str, np.uint8), cv2.IMREAD_GRAYSCALE)
+            return img
         else:
-            img = np.zeros((ret_img_msg.height(), ret_img_msg.width()), dtype=self._type, order='C')
-            img_msg = yarp.ImageFloat() if self.fp else yarp.ImageMono()
-        img_msg.resize(img.shape[1], img.shape[0])
-        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
-        img_msg.copy(ret_img_msg)
-        return img
+            if 0 < self.width != ret_img_msg.width() or 0 < self.height != ret_img_msg.height():
+                raise ValueError("Incorrect image shape for listener")
+            elif self.rgb:
+                img = np.zeros((ret_img_msg.height(), ret_img_msg.width(), 3), dtype=self._type, order='C')
+                img_port = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
+            else:
+                img = np.zeros((ret_img_msg.height(), ret_img_msg.width()), dtype=self._type, order='C')
+                img_port = yarp.ImageFloat() if self.fp else yarp.ImageMono()
+            img_port.resize(img.shape[1], img.shape[0])
+            img_port.setExternal(img.data, img.shape[1], img.shape[0])
+            img_port.copy(ret_img_msg)
+            return img
 
 
 @Listeners.register("AudioChunk", "yarp")
@@ -233,7 +245,8 @@ class YarpAudioChunkListener(YarpImageListener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait,
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
         self.rate = rate

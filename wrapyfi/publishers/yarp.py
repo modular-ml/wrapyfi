@@ -131,9 +131,9 @@ class YarpNativeObjectPublisher(YarpPublisher):
                 time.sleep(0.2)
         obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        oobj = self._port.prepare()
-        oobj.clear()
-        oobj.addString(obj_str)
+        obj_port = self._port.prepare()
+        obj_port.clear()
+        obj_port.addString(obj_str)
         self._port.write()
 
 
@@ -208,19 +208,16 @@ class YarpImagePublisher(YarpPublisher):
         img = np.require(img, dtype=self._type, requirements='C')
 
         if self.jpg:
-            img_compressed = cv2.imencode('.jpg', img)[1]
-            with io.BytesIO() as memfile:
-                np.save(memfile, img_compressed)
-                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
-            oobj = self._port.prepare()
-            oobj.clear()
-            oobj.addString(img_str)
+            img_str = np.array(cv2.imencode('.jpg', img)[1]).tostring()
+            img_port = self._port.prepare()
+            img_port.clear()
+            img_port.addString(img_str)
             self._port.write()
 
         else:
-            img_msg = self._port.prepare()
-            img_msg.resize(img.shape[1], img.shape[0])
-            img_msg.setExternal(img.data, img.shape[1], img.shape[0])
+            img_port = self._port.prepare()
+            img_port.resize(img.shape[1], img.shape[0])
+            img_port.setExternal(img.data, img.shape[1], img.shape[0])
             self._port.write()
 
 
@@ -289,8 +286,8 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
                 time.sleep(0.2)
         aud, _ = aud
         if aud is not None:
-            oaud = self._port.prepare()
-            oaud.setExternal(aud.data, self.chunk if self.chunk != -1 else oaud.shape[1], self.channels)
+            aud_port = self._port.prepare()
+            aud_port.setExternal(aud.data, self.chunk if self.chunk != -1 else aud_port.shape[1], self.channels)
             self._port.write()
 
     def close(self):

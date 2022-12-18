@@ -172,6 +172,9 @@ class ROSImagePublisher(ROSPublisher):
         else:
             self._encoding = 'bgr8' if self.rgb else 'mono8'
             self._type = np.uint8
+        if self.jpg:
+            self._encoding = 'jpeg'
+            self._type = np.uint8
 
         self._publisher = None
 
@@ -186,7 +189,7 @@ class ROSImagePublisher(ROSPublisher):
         :return: bool: True if connection established, False otherwise
         """
         if self.jpg:
-            self._publisher = rospy.Publisher(self.out_port, std_msgs.msg.String, queue_size=self.queue_size)
+            self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.CompressedImage, queue_size=self.queue_size)
         else:
             self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
         established = self.await_connection(self._publisher)
@@ -211,22 +214,20 @@ class ROSImagePublisher(ROSPublisher):
         img = np.require(img, dtype=self._type, requirements='C')
 
         if self.jpg:
-            img_compressed = cv2.imencode('.jpg', img)[1]
-            with io.BytesIO() as memfile:
-                np.save(memfile, img_compressed)
-                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
-            self._publisher.publish(img_str)
-
+            img_msg = sensor_msgs.msg.CompressedImage()
+            img_msg.header.stamp = rospy.Time.now()
+            img_msg.format = "jpeg"
+            img_msg.data = np.array(cv2.imencode('.jpg', img)[1]).tostring()
         else:
-            msg = sensor_msgs.msg.Image()
-            msg.header.stamp = rospy.Time.now()
-            msg.height = img.shape[0]
-            msg.width = img.shape[1]
-            msg.encoding = self._encoding
-            msg.is_bigendian = img.dtype.byteorder == '>' or (img.dtype.byteorder == '=' and sys.byteorder == 'big')
-            msg.step = img.strides[0]
-            msg.data = img.tobytes()
-            self._publisher.publish(msg)
+            img_msg = sensor_msgs.msg.Image()
+            img_msg.header.stamp = rospy.Time.now()
+            img_msg.height = img.shape[0]
+            img_msg.width = img.shape[1]
+            img_msg.encoding = self._encoding
+            img_msg.is_bigendian = img.dtype.byteorder == '>' or (img.dtype.byteorder == '=' and sys.byteorder == 'big')
+            img_msg.step = img.strides[0]
+            img_msg.data = img.tobytes()
+        self._publisher.publish(img_msg)
 
 
 @Publishers.register("AudioChunk", "ros")
@@ -288,15 +289,16 @@ class ROSAudioChunkPublisher(ROSPublisher):
         if 0 < self.chunk != aud.shape[0] or aud.shape[1] != self.channels:
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
-        msg = sensor_msgs.msg.Image()
-        msg.header.stamp = rospy.Time.now()
-        msg.height = aud.shape[0]
-        msg.width = aud.shape[1]
-        msg.encoding = '32FC1'
-        msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
-        msg.step = aud.strides[0]
-        msg.data = aud.tobytes()
-        self._publisher.publish(msg)
+
+        aud_msg = sensor_msgs.msg.Image()
+        aud_msg.header.stamp = rospy.Time.now()
+        aud_msg.height = aud.shape[0]
+        aud_msg.width = aud.shape[1]
+        aud_msg.encoding = '32FC1'
+        aud_msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
+        aud_msg.step = aud.strides[0]
+        aud_msg.data = aud.tobytes()
+        self._publisher.publish(aud_msg)
 
 
 @Publishers.register("Properties", "ros")

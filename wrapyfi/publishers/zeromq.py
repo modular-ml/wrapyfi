@@ -207,10 +207,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            img_compressed = cv2.imencode('.jpg', img)[1]
-            with io.BytesIO() as memfile:
-                np.save(memfile, img_compressed)
-                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
+            img_str = np.array(cv2.imencode('.jpg', img)[1]).tostring()
         else:
             img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
                                  serializer_kwrags=self._serializer_kwargs)
