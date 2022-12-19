@@ -4,6 +4,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 import zmq
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--socket_ip", type=str, default="127.0.0.1", help="The socket ip address")
