@@ -206,9 +206,9 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
                 return None
             elif self.jpg:
                 if self.rgb:
-                    img = cv2.imdecode(np.frombuffer(obj[2].decode(), np.uint8), cv2.IMREAD_COLOR)
+                    img = cv2.imdecode(np.frombuffer(obj[2], np.uint8), cv2.IMREAD_COLOR)
                 else:
-                    img = cv2.imdecode(np.frombuffer(obj[2].decode(), np.uint8), cv2.IMREAD_GRAYSCALE)
+                    img = cv2.imdecode(np.frombuffer(obj[2], np.uint8), cv2.IMREAD_GRAYSCALE)
                 return img
             else:
                 img = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)

@@ -218,9 +218,9 @@ class ROS2ImagePublisher(ROS2Publisher):
 
         if self.jpg:
             img_msg = sensor_msgs.msg.CompressedImage()
-            img_msg.header.stamp = rclpy.Time.now()
+            img_msg.header.stamp = rclpy.clock.Clock().now().to_msg()
             img_msg.format = "jpeg"
-            img_msg.data = np.array(cv2.imencode('.jpg', img)[1]).tostring()
+            img_msg.data = np.array(cv2.imencode('.jpg', img)[1]).tobytes()
         else:
             img_msg = sensor_msgs.msg.Image()
             img_msg.header.stamp = self.get_clock().now().to_msg()

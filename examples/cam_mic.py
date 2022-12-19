@@ -32,6 +32,7 @@ Run:
     python3 cam_mic.py --mode listen --stream audio video
 """
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
@@ -46,6 +47,7 @@ def parse_args():
     parser.add_argument("--aud-channels", type=int, default=1, help="The audio channels")
     parser.add_argument("--aud-chunk", type=int, default=10000, help="The transmitted audio chunk size")
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -70,7 +72,7 @@ if __name__ == "__main__":
             self.enable_video = self.vid_cap = "video" in stream
 
         @MiddlewareCommunicator.register("Image", args.mware, "CamMic", "/cam_mic/cam_feed",
-                                         carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10)
+                                         carrier="", width="$img_width", height="$img_height", rgb=True, jpg=True, queue_size=10)
         def collect_cam(self, img_width=320, img_height=240):
             if self.vid_cap is True:
                 self.vid_cap = cv2.VideoCapture(self.img_source)

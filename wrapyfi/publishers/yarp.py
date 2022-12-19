@@ -209,6 +209,9 @@ class YarpImagePublisher(YarpPublisher):
 
         if self.jpg:
             img_str = np.array(cv2.imencode('.jpg', img)[1]).tostring()
+            with io.BytesIO() as memfile:
+                np.save(memfile, img_str)
+                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
             img_port = self._port.prepare()
             img_port.clear()
             img_port.addString(img_str)

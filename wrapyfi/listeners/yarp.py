@@ -2,6 +2,8 @@ import logging
 import json
 import time
 from typing import Optional, Literal
+import io
+import base64
 
 import numpy as np
 import cv2
@@ -209,6 +211,8 @@ class YarpImageListener(YarpListener):
             return None
         if self.jpg:
             img_str = ret_img_msg.get(0).asString()
+            with io.BytesIO(base64.b64decode(img_str.encode('ascii'))) as memfile:
+                img_str = np.load(memfile)
             if self.rgb:
                 img = cv2.imdecode(np.frombuffer(img_str, np.uint8), cv2.IMREAD_COLOR)
             else:
