@@ -11,10 +11,10 @@ context = zmq.Context()
 
 # Connect to the request server
 request_server = context.socket(zmq.REQ)
-request_server.connect("tcp://localhost:5556")
+request_server.connect("tcp://localhost:5659")
 
 param_server = context.socket(zmq.SUB)
-param_server.connect("tcp://127.0.0.1:5555")
+param_server.connect("tcp://127.0.0.1:5655")
 # param_server.setsockopt_string(zmq.SUBSCRIBE, "foo")
 param_server.setsockopt(zmq.RCVTIMEO, 2000)
 

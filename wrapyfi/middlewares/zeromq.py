@@ -34,28 +34,28 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ PUB/SUB middleware")
-        ctx = zmq.Context.instance()
+        self.ctx = zmq.Context.instance()
         for socket_property in kwargs.items():
             if isinstance(socket_property[1], str):
-                ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+                self.ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
             else:
-                ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+                self.ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
         atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                proxy = multiprocessing.Process(name='zeromq_broker', target=self.__init_proxy, kwargs=kwargs)
-                proxy.daemon = True
-                proxy.start()
+                self.proxy = multiprocessing.Process(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=kwargs)
+                self.proxy.daemon = True
+                self.proxy.start()
             else:  # if threaded
-                proxy = threading.Thread(name='zeromq_broker', target=self.__init_proxy, kwargs=kwargs)
-                proxy.setDaemon(True)
-                proxy.start()
+                self.proxy = threading.Thread(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=kwargs)
+                self.proxy.setDaemon(True)
+                self.proxy.start()
             pass
 
     @staticmethod
-    def __init_proxy(socket_address="tcp://*:5555", socket_sub_address="tcp://*:5556", **kwargs):
+    def __init_proxy(socket_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556", **kwargs):
         xpub = zmq.Context.instance().socket(zmq.XPUB)
         try:
             xpub.bind(socket_address)
@@ -82,52 +82,57 @@ class ZeroMQMiddlewareRepReq(metaclass=SingletonOptimized):
 
     @staticmethod
     def activate(**kwargs):
-        zmq_kwargs = {}
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
         for key, value in kwargs.items():
             try:
                 getattr(zmq, key)
-                zmq_kwargs[key] = value
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
             except AttributeError:
                 pass
 
-        ZeroMQMiddlewareRepReq(zmq_proxy_kwargs=kwargs)
-        return zmq_kwargs
+        ZeroMQMiddlewareRepReq(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zmq_proxy_kwargs=None, *args, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, *args, **kwargs):
+        self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
+        self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ REP/REQ middleware")
-        ctx = zmq.Context.instance()
+        self.ctx = zmq.Context.instance()
         for socket_property in kwargs.items():
             if isinstance(socket_property[1], str):
-                ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+                self.ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
             else:
-                ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+                self.ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
         atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 
-        if zmq_proxy_kwargs is not None and zmq_proxy_kwargs:
-            if zmq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                proxy = multiprocessing.Process(name='zeromq_broker', target=self.__init_device, kwargs=zmq_proxy_kwargs)
-                proxy.daemon = True
-                proxy.start()
+        if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
+            if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
+                self.proxy = multiprocessing.Process(name='zeromq_repreq_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
+                self.proxy.daemon = True
+                self.proxy.start()
             else:  # if threaded
-                proxy = threading.Thread(name='zeromq_broker', target=self.__init_device, kwargs=zmq_proxy_kwargs)
-                proxy.setDaemon(True)
-                proxy.start()
+                self.proxy = threading.Thread(name='zeromq_repreq_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
+                self.proxy.setDaemon(True)
+                self.proxy.start()
             pass
 
     @staticmethod
-    def __init_device(socket_address="tcp://*:5559", socket_sub_address="tcp://*:5560", **kwargs):
+    def __init_device(server_address="tcp://127.0.0.1:5559", server_sub_address="tcp://127.0.0.1:5560", **kwargs):
         xrep = zmq.Context.instance().socket(zmq.XREP)
         try:
-            xrep.bind(socket_address)
+            xrep.bind(server_address)
         except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {socket_address}")
+            logging.error(f"[ZeroMQ] {e} {server_address}")
             return
         xreq = zmq.Context.instance().socket(zmq.XREQ)
         try:
-            xreq.bind(socket_sub_address)
+            xreq.bind(server_sub_address)
         except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {socket_sub_address}")
+            logging.error(f"[ZeroMQ] {e} {server_sub_address}")
             return
         logging.info(f"[ZeroMQ] Intialising REP/REQ device broker")
         zmq.proxy(xrep, xreq)
@@ -142,69 +147,75 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
     @staticmethod
     def activate(**kwargs):
-        zmq_kwargs = {}
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
         for key, value in kwargs.items():
             try:
                 getattr(zmq, key)
-                zmq_kwargs[key] = value
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
             except AttributeError:
                 pass
 
-        ZeroMQMiddlewareParamServer(zmq_proxy_kwargs=kwargs)
-        return zmq_kwargs
+        ZeroMQMiddlewareParamServer(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zmq_proxy_kwargs=None, *args, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, *args, **kwargs):
+        self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
+        self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ Parameter Server")
-        ctx = zmq.Context.instance()
+        self.ctx = zmq.Context.instance()
         for socket_property in kwargs.items():
             if isinstance(socket_property[1], str):
-                ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+                self.ctx.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
             else:
-                ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+                self.ctx.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+
         atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 
-        if zmq_proxy_kwargs is not None and zmq_proxy_kwargs:
-            manager = multiprocessing.Manager()
-            params = manager.dict()
-            params["WRAPYFI_ACTIVE"] = "True"
-            if zmq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                param_broadcaster = multiprocessing.Process(name='zeromq_param_broadcaster', target=self.__init_broadcaster,
-                                                            kwargs=zmq_proxy_kwargs, args=(params,))
-                param_broadcaster.daemon = True
-                param_broadcaster.start()
-                param_server = multiprocessing.Process(name='zeromq_param_server', target=self.__init_server,
-                                                            kwargs=zmq_proxy_kwargs, args=(params,))
-                param_server.daemon = True
-                param_server.start()
+        if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
+            self.manager = multiprocessing.Manager()
+            self.params = self.manager.dict()
+            self.params["WRAPYFI_ACTIVE"] = "True"
+            if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
+                self.param_broadcaster = multiprocessing.Process(name='zeromq_param_broadcaster', target=self.__init_broadcaster,
+                                                            kwargs=zeromq_proxy_kwargs, args=(self.params,))
+                self.param_broadcaster.daemon = True
+                self.param_broadcaster.start()
+                self.param_server = multiprocessing.Process(name='zeromq_param_server', target=self.__init_server,
+                                                            kwargs=zeromq_proxy_kwargs, args=(self.params,))
+                self.param_server.daemon = True
+                self.param_server.start()
             else:  # if threaded
 
-                param_broadcaster = threading.Thread(name='zeromq_param_broadcaster', target=self.__init_broadcaster,
-                                                     kwargs=zmq_proxy_kwargs, args=(params,))
-                param_broadcaster.setDaemon(True)
-                param_broadcaster.start()
-                param_server = threading.Thread(name='zeromq_param_server', target=self.__init_server,
-                                                     kwargs=zmq_proxy_kwargs, args=(params,))
-                param_server.setDaemon(True)
-                param_server.start()
+                self.param_broadcaster = threading.Thread(name='zeromq_param_broadcaster', target=self.__init_broadcaster,
+                                                     kwargs=zeromq_proxy_kwargs, args=(self.params,))
+                self.param_broadcaster.setDaemon(True)
+                self.param_broadcaster.start()
+                self.param_server = threading.Thread(name='zeromq_param_server', target=self.__init_server,
+                                                     kwargs=zeromq_proxy_kwargs, args=(self.params,))
+                self.param_server.setDaemon(True)
+                self.param_server.start()
             pass
 
     @staticmethod
-    def __init_broadcaster(params, socket_address="tcp://*:5655", socket_sub_address="tcp://*:5656", **kwargs):
+    def __init_broadcaster(params, socket_address="tcp://127.0.0.1:5655", socket_sub_address="tcp://127.0.0.1:5656", **kwargs):
         update_trigger = False
         cached_params = {}
         root_topics = set()
 
-        context = zmq.Context.instance()
+        ctx = zmq.Context.instance()
         # create XPUB
-        xpub_socket = context.socket(zmq.XPUB)
+        xpub_socket = ctx.socket(zmq.XPUB)
         xpub_socket.bind(socket_address)
         # create XSUB
-        xsub_socket = context.socket(zmq.XSUB)
+        xsub_socket = ctx.socket(zmq.XSUB)
         xsub_socket.bind(socket_sub_address)
         # connect a PUB socket to send parameters
-        param_server = context.socket(zmq.PUB)
-        param_server.connect(socket_address)
+        param_server = ctx.socket(zmq.PUB)
+        param_server.connect(socket_sub_address)
         # create poller
         poller = zmq.Poller()
         poller.register(xpub_socket, zmq.POLLIN)
@@ -242,7 +253,8 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
             print(event)
             if param_server is not None:
-                update_trigger, cached_params = ZeroMQMiddlewareParamServer.publish_params(param_server, params, cached_params, root_topics, update_trigger)
+                update_trigger, cached_params = ZeroMQMiddlewareParamServer.publish_params(
+                    param_server, params, cached_params, root_topics, update_trigger)
 
     @staticmethod
     def publish_params(param_server, params, cached_params, root_topics, update_trigger):
@@ -265,9 +277,9 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         return update_trigger, cached_params
 
     @staticmethod
-    def __init_server(params, server_address="tcp://*:5656", **kwargs):
-        context = zmq.Context.instance()
-        request_server = context.socket(zmq.REP)
+    def __init_server(params, server_address="tcp://127.0.0.1:5659", **kwargs):
+        ctx = zmq.Context.instance()
+        request_server = ctx.socket(zmq.REP)
         request_server.bind(server_address)
 
         while True:
