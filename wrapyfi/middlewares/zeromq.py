@@ -55,12 +55,12 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_proxy(socket_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556", **kwargs):
+    def __init_proxy(socket_pub_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556", **kwargs):
         xpub = zmq.Context.instance().socket(zmq.XPUB)
         try:
-            xpub.bind(socket_address)
+            xpub.bind(socket_pub_address)
         except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {socket_address}")
+            logging.error(f"[ZeroMQ] {e} {socket_pub_address}")
             return
         xsub = zmq.Context.instance().socket(zmq.XSUB)
         try:
@@ -68,7 +68,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         except zmq.ZMQError as e:
             logging.error(f"[ZeroMQ] {e} {socket_sub_address}")
             return
-        logging.info(f"[ZeroMQ] Intialising PUB/SUB proxy broker")
+        # logging.info(f"[ZeroMQ] Intialising PUB/SUB proxy broker")
         zmq.proxy(xpub, xsub)
 
 
@@ -121,20 +121,20 @@ class ZeroMQMiddlewareRepReq(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_device(server_address="tcp://127.0.0.1:5559", server_sub_address="tcp://127.0.0.1:5560", **kwargs):
+    def __init_device(socket_rep_address="tcp://127.0.0.1:5559", server_req_address="tcp://127.0.0.1:5560", **kwargs):
         xrep = zmq.Context.instance().socket(zmq.XREP)
         try:
-            xrep.bind(server_address)
+            xrep.bind(socket_rep_address)
         except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {server_address}")
+            logging.error(f"[ZeroMQ] {e} {socket_rep_address}")
             return
         xreq = zmq.Context.instance().socket(zmq.XREQ)
         try:
-            xreq.bind(server_sub_address)
+            xreq.bind(server_req_address)
         except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {server_sub_address}")
+            logging.error(f"[ZeroMQ] {e} {server_req_address}")
             return
-        logging.info(f"[ZeroMQ] Intialising REP/REQ device broker")
+        # logging.info(f"[ZeroMQ] Intialising REP/REQ device broker")
         zmq.proxy(xrep, xreq)
 
     @staticmethod
@@ -201,7 +201,8 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_broadcaster(params, socket_address="tcp://127.0.0.1:5655", socket_sub_address="tcp://127.0.0.1:5656", **kwargs):
+    def __init_broadcaster(params, param_pub_address="tcp://127.0.0.1:5655", param_sub_address="tcp://127.0.0.1:5656",
+                           param_poll_interval=1, verbose=False, **kwargs):
         update_trigger = False
         cached_params = {}
         root_topics = set()
@@ -209,24 +210,26 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         ctx = zmq.Context.instance()
         # create XPUB
         xpub_socket = ctx.socket(zmq.XPUB)
-        xpub_socket.bind(socket_address)
+        xpub_socket.bind(param_pub_address)
         # create XSUB
         xsub_socket = ctx.socket(zmq.XSUB)
-        xsub_socket.bind(socket_sub_address)
+        xsub_socket.bind(param_sub_address)
         # connect a PUB socket to send parameters
         param_server = ctx.socket(zmq.PUB)
-        param_server.connect(socket_sub_address)
+        param_server.connect(param_sub_address)
         # create poller
         poller = zmq.Poller()
         poller.register(xpub_socket, zmq.POLLIN)
         poller.register(xsub_socket, zmq.POLLIN)
-        logging.info(f"[ZeroMQ] Intialising PUB/SUB device broker")
+        if verbose:
+            logging.info(f"[ZeroMQ] Intialising PUB/SUB device broker")
         while True:
             # get event
-            event = dict(poller.poll(1))
+            event = dict(poller.poll(param_poll_interval))
             if xpub_socket in event:
                 message = xpub_socket.recv_multipart()
-                logging.info("[ZeroMQ BROKER] xpub_socket recv message: %r" % message)
+                if verbose:
+                    logging.info("[ZeroMQ BROKER] xpub_socket recv message: %r" % message)
                 if message[0].startswith(b"\x00"):
                     root_topics.remove(message[0][1:].decode("utf-8"))
                 elif message[0].startswith(b"\x01"):
@@ -235,14 +238,16 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
             if xsub_socket in event:
                 message = xsub_socket.recv_multipart()
-                logging.info("[ZeroMQ BROKER] xsub_socket recv message: %r" % message)
+                if verbose:
+                    logging.info("[ZeroMQ BROKER] xsub_socket recv message: %r" % message)
                 if message[0].startswith(b"\x01") or message[0].startswith(b"\x00"):
                     xpub_socket.send_multipart(message)
                 else:
                     fltr_key = message[0].decode("utf-8")
                     fltr_message = {key: val for key, val in params.items()
                                     if key.startswith(fltr_key)}
-                    logging.info("[ZeroMQ BROKER] xsub_socket filtered message: %r" % fltr_message)
+                    if verbose:
+                        logging.info("[ZeroMQ BROKER] xsub_socket filtered message: %r" % fltr_message)
                     for key, val in fltr_message.items():
                         prefix, param = key.rsplit("/", 1) if "/" in key else ("", key)
                         xpub_socket.send_multipart([prefix.encode("utf-8"), param.encode("utf-8"), val.encode("utf-8")])
@@ -251,7 +256,6 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
             if event:
                 update_trigger = True
 
-            print(event)
             if param_server is not None:
                 update_trigger, cached_params = ZeroMQMiddlewareParamServer.publish_params(
                     param_server, params, cached_params, root_topics, update_trigger)
@@ -277,10 +281,10 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         return update_trigger, cached_params
 
     @staticmethod
-    def __init_server(params, server_address="tcp://127.0.0.1:5659", **kwargs):
+    def __init_server(params, param_repreq_address="tcp://127.0.0.1:5659", **kwargs):
         ctx = zmq.Context.instance()
         request_server = ctx.socket(zmq.REP)
-        request_server.bind(server_address)
+        request_server.bind(param_repreq_address)
 
         while True:
             # Receive requests from clients and handle them accordingly

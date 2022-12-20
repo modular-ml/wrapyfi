@@ -14,14 +14,14 @@ from wrapyfi.encoders import JsonDecodeHook
 
 
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
-SOCKET_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
+SOCKET_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PUB_PORT", 5555))
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQListener(Listener):
 
     def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
-                 socket_ip: str = SOCKET_IP, socket_port: int = SOCKET_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
+                 socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the subscriber
 
@@ -29,6 +29,10 @@ class ZeroMQListener(Listener):
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param socket_ip: str: IP address of the socket. Default is '127.0.0.1
+        :param socket_pub_port: int: Port of the socket for publishing.
+                                 Note that the subscriber listens directly to this port which is proxied .
+                                 Default is 5555
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
@@ -37,7 +41,7 @@ class ZeroMQListener(Listener):
             carrier = "tcp"
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
 
-        self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
+        self.socket_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
 
         ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
 

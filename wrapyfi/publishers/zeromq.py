@@ -16,8 +16,12 @@ from wrapyfi.encoders import JsonEncoder
 
 
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
-SOCKET_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
+SOCKET_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PUB_PORT", 5555))
 SOCKET_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_SUB_PORT", 5556))
+PARAM_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_PUB_PORT", 5655))
+PARAM_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_SUB_PORT", 5656))
+PARAM_REPREQ_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_REPREQ_PORT", 5659))
+PARAM_POLL_INTERVAL = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL", 1))
 START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
 WATCHDOG_POLL_REPEAT = None
@@ -25,7 +29,7 @@ WATCHDOG_POLL_REPEAT = None
 
 class ZeroMQPublisher(Publisher):
     def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
-                 socket_ip: str = SOCKET_IP, socket_port: int = SOCKET_PORT, socket_sub_port: int = SOCKET_SUB_PORT,
+                 socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, socket_sub_port: int = SOCKET_SUB_PORT,
                  start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
@@ -36,7 +40,7 @@ class ZeroMQPublisher(Publisher):
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param socket_ip: str: IP address of the socket. Default is '127.0.0.1
-        :param socket_port: int: Port of the socket. Default is 5555
+        :param socket_pub_port: int: Port of the socket for publishing. Default is 5555
         :param socket_sub_port: int: Port of the socket for subscribing. Default is 5556
         :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True
         :param proxy_broker_spawn: str: Whether to spawn the proxy broker as a process or thread. Default is 'process'
@@ -49,10 +53,11 @@ class ZeroMQPublisher(Publisher):
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
 
         # out_port is equivalent to topic in zeromq
-        self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
+        self.socket_pub_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
         if start_proxy_broker:
-            ZeroMQMiddlewarePubSub.activate(socket_address=self.socket_address, socket_sub_address=self.socket_sub_address,
+            ZeroMQMiddlewarePubSub.activate(socket_pub_address=self.socket_pub_address,
+                                            socket_sub_address=self.socket_sub_address,
                                             proxy_broker_spawn=proxy_broker_spawn,
                                             **zeromq_kwargs or {})
         else:
