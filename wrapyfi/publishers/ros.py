@@ -79,7 +79,7 @@ class ROSPublisher(Publisher):
         """
         if hasattr(self, "_publisher") and self._publisher:
             if self._publisher is not None:
-                self._publisher.shutdown()
+                self._publisher.unregister()
 
     def __del__(self):
         self.close()

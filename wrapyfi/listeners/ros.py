@@ -50,7 +50,7 @@ class ROSListener(Listener):
         """
         if hasattr(self, "_subscriber") and self._subscriber:
             if self._subscriber is not None:
-                self._subscriber.shutdown()
+                self._subscriber.unregister()
 
     def __del__(self):
         self.close()

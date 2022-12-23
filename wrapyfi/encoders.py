@@ -1,3 +1,4 @@
+import abc
 import io
 import json
 import base64
@@ -27,8 +28,8 @@ class JsonEncoder(json.JSONEncoder):
                 np.save(memfile, obj)
                 obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
             return dict(__wrapyfi__=('numpy.ndarray', obj_data))
-
-        plugin_match = self.plugins.get(type(obj).__mro__[-2], None)
+        meta_type = type(obj).__mro__[-2]
+        plugin_match = self.plugins.get(meta_type if meta_type is not abc.ABC else type(obj).__mro__[-3], None)
         if plugin_match is not None:
             detected, plugin_return = plugin_match.encode(obj)
             if detected:
