@@ -8,4 +8,5 @@ torchvision>=0.13.1
 mxnet-cu112
 jax[cuda11_cudnn805] -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 jaxlib==0.3.22 -f https://storage.googleapis.com/jax-releases/jax_releases.html
+## install with micromamba: micromamba install cudatoolkit=10.2 -c nvidia -c conda-forge
 #paddlepaddle-gpu==0.0.0.post116 -f https://www.paddlepaddle.org.cn/whl/linux/gpu/develop.html

@@ -217,7 +217,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
                                  serializer_kwrags=self._serializer_kwargs)
         img_header = '{timestamp:' + str(time.time()) + '}'
-        self._socket.send_multipart([self._topic, img_header.encode(), img_str])
+        self._socket.send_multipart([self._topic, img_header.encode(), img_str.encode()])
 
 
 @Publishers.register("AudioChunk", "zeromq")

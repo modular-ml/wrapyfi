@@ -1,17 +1,17 @@
 import argparse
 import time
 
-import torch as th
-import mxnet as mx
-import paddle as pa
-import jax as jx
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-# avoid allocating all GPU memory assuming tf>=2.2
-gpus = tf.config.experimental.list_physical_devices('GPU')
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
+
+try:
+    import tensorflow as tf
+    # avoid allocating all GPU memory assuming tf>=2.2
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+except ImportError:
+    tf = None
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
@@ -21,7 +21,7 @@ SHOULD_WAIT = False
 parser = argparse.ArgumentParser()
 parser.add_argument("--publish", dest="mode", action="store_const", const="publish", default="listen", help="Publish mode")
 parser.add_argument("--listen", dest="mode", action="store_const", const="listen", default="listen", help="Listen mode (default)")
-parser.add_argument("--mwares", type=str, default=["ros", "yarp", "zeromq"],  # ros2
+parser.add_argument("--mwares", type=str, default=["ros", "yarp", "zeromq"],  #["ros2"]
                     choices=MiddlewareCommunicator.get_communicators(), nargs="+",
                     help="The middlewares to use for transmission")
 parser.add_argument("--plugins", type=str,
@@ -32,41 +32,63 @@ parser.add_argument("--height", type=int, default=200, help="The tensor image he
 parser.add_argument("--width", type=int, default=200, help="The tensor image width")
 parser.add_argument("--trials", type=int, default=2000, help="Number of trials to run per middleware")
 parser.add_argument("--skip-trials", type=int, default=0, help="Number of trials to skip before logging "
-                                                                  "to csv to avoid warmup time logging")
+                                                               "to csv to avoid warmup time logging")
 args = parser.parse_args()
 
 
 class Benchmarker(MiddlewareCommunicator):
 
-    def get_numpy_object(self, dims):
+    @staticmethod
+    def get_numpy_object(dims):
         return {"numpy": np.ones(dims)}
 
-    def get_pandas_object(self, dims):
+    @staticmethod
+    def get_pandas_object(dims):
         return {"pandas": pd.DataFrame(np.ones(dims), index=None, columns=list(range(dims[-1])))}
-    def get_tensorflow_object(self, dims):
+
+    @staticmethod
+    def get_pillow_object(dims):
+        from PIL import Image
+        return {"pillow": Image.fromarray(np.ones(dims, dtype=np.uint8))}
+
+    @staticmethod
+    def get_tensorflow_object(dims):
         return {"tensorflow": tf.ones(dims)}
 
-    def get_jax_object(self, dims):
+    @staticmethod
+    def get_jax_object(dims):
+        import jax as jx
         return {"jax": jx.numpy.ones(dims)}
 
-    def get_mxnet_object(self, dims):
+    @staticmethod
+    def get_mxnet_object(dims):
+        import mxnet as mx
         return {"mxnet": mx.nd.ones(dims)}
 
-    def get_mxnet_gpu_object(self, dims, gpu=0):
+    @staticmethod
+    def get_mxnet_gpu_object(dims, gpu=0):
+        import mxnet as mx
         return {"mxnet_gpu": mx.nd.ones(dims, ctx=mx.gpu(gpu))}
 
-    def get_pytorch_object(self, dims):
+    @staticmethod
+    def get_pytorch_object(dims):
+        import torch as th
         return {"pytorch": th.ones(dims)}
 
-    def get_pytorch_gpu_object(self, dims, gpu=0):
+    @staticmethod
+    def get_pytorch_gpu_object(dims, gpu=0):
+        import torch as th
         return {"pytorch_gpu": th.ones(dims, device=f"cuda:{gpu}")}
 
-    def get_paddle_object(self, dims):
+    @staticmethod
+    def get_paddle_object(dims):
+        import paddle as pa
         return {"paddle": pa.Tensor(pa.ones(dims), place=pa.CPUPlace())}
 
-    def get_paddle_gpu_object(self, dims, gpu=0):
+    @staticmethod
+    def get_paddle_gpu_object(dims, gpu=0):
+        import paddle as pa
         return {"paddle_gpu": pa.Tensor(pa.zeros(dims), place=pa.CUDAPlace(gpu))}
-
 
     def get_all_objects(self, count, plugin_name):
         obj = {"count": count,
@@ -77,25 +99,25 @@ class Benchmarker(MiddlewareCommunicator):
     @MiddlewareCommunicator.register("NativeObject", "yarp",
                                      "ExampleClass", "/example/get_native_objects",
                                      carrier="tcp", should_wait=SHOULD_WAIT)
-    def yarp_get_native_objects(self, count, plugin_name):
+    def get_yarp_native_objects(self, count, plugin_name):
         return self.get_all_objects(count, plugin_name),
 
     @MiddlewareCommunicator.register("NativeObject", "ros",
                                      "ExampleClass", "/example/get_native_objects",
                                      carrier="tcp", should_wait=SHOULD_WAIT)
-    def ros_get_native_objects(self, count, plugin_name):
+    def get_ros_native_objects(self, count, plugin_name):
         return self.get_all_objects(count, plugin_name),
 
     @MiddlewareCommunicator.register("NativeObject", "ros2",
                                      "ExampleClass", "/example/get_native_objects",
                                      carrier="tcp", should_wait=SHOULD_WAIT)
-    def ros2_get_native_objects(self, count, plugin_name):
+    def get_ros2_native_objects(self, count, plugin_name):
         return self.get_all_objects(count, plugin_name),
 
     @MiddlewareCommunicator.register("NativeObject", "zeromq",
                                      "ExampleClass", "/example/get_native_objects",
                                      carrier="tcp", should_wait=SHOULD_WAIT)
-    def zeromq_get_native_objects(self, count, plugin_name):
+    def get_zeromq_native_objects(self, count, plugin_name):
         return self.get_all_objects(count, plugin_name),
 
 
@@ -103,15 +125,8 @@ benchmarker = Benchmarker()
 benchmark_logger = pd.DataFrame(columns=["middleware", "plugin", "time", "count", "delay"])
 benchmark_iterator = {}
 
-
-if "ros" in args.mwares:
-    benchmark_iterator["ros"] = benchmarker.ros_get_native_objects
-if "ros2" in args.mwares:
-    benchmark_iterator["ros2"] = benchmarker.ros2_get_native_objects
-if "zeromq" in args.mwares:
-        benchmark_iterator["zeromq"] = benchmarker.zeromq_get_native_objects
-if "yarp" in args.mwares:
-    benchmark_iterator["yarp"] = benchmarker.yarp_get_native_objects
+for middleware_name in args.mwares:
+    benchmark_iterator[middleware_name] = getattr(benchmarker, f"get_{middleware_name}_native_objects")
 
 for middleware_name, method in benchmark_iterator.items():
     benchmarker.activate_communication(method, mode=args.mode)
