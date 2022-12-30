@@ -16,7 +16,7 @@ except ImportError:
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 
-SHOULD_WAIT = False
+SHOULD_WAIT = True
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--publish", dest="mode", action="store_const", const="publish", default="listen", help="Publish mode")
@@ -122,7 +122,7 @@ class Benchmarker(MiddlewareCommunicator):
 
 
 benchmarker = Benchmarker()
-benchmark_logger = pd.DataFrame(columns=["middleware", "plugin", "time", "count", "delay"])
+benchmark_logger = pd.DataFrame(columns=["middleware", "plugin", "timestamp", "count", "delay"])
 benchmark_iterator = {}
 
 for middleware_name in args.mwares:
@@ -145,7 +145,7 @@ for middleware_name, method in benchmark_iterator.items():
                 if counter > args.skip_trials:
                     benchmark_logger = benchmark_logger.append(pd.DataFrame({"middleware": [middleware_name],
                                                                              "plugin": [plugin_name],
-                                                                             "time": [native_objects["time"]],
+                                                                             "timestamp": [native_objects["timestamp"]],
                                                                              "count": [native_objects["count"]],
                                                                              "delay": [time_acc_native_objects[-1]]}),
                                                                ignore_index=True)
