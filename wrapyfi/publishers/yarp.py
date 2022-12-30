@@ -212,6 +212,9 @@ class YarpImagePublisher(YarpPublisher):
         Publish the image to the middleware
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels] to publish
         """
+        if img is None:
+            return
+
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:

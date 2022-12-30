@@ -204,6 +204,9 @@ class ROS2ImagePublisher(ROS2Publisher):
 
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
+        if img is None:
+            return
+
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
