@@ -57,15 +57,15 @@ def reverse_parse_prefix(topics: dict, prefix: str = ""):
     return [prefix + string.replace('//', '/') for string in strings]
 
 
-def main(role, param_ip, param_pub_port, param_sub_port, param_repreq_port, param_poll_interval, param_poll_repeat, **kwargs):
+def main(role, param_ip, param_pub_port, param_sub_port, param_reqrep_port, param_poll_interval, param_poll_repeat, **kwargs):
     if role == "server":
         param_pub_address = f"tcp://{param_ip}:{param_pub_port}"
         param_sub_address = f"tcp://{param_ip}:{param_sub_port}"
-        param_repreq_address = f"tcp://{param_ip}:{param_repreq_port}"
+        param_reqrep_address = f"tcp://{param_ip}:{param_reqrep_port}"
 
         ZeroMQMiddlewareParamServer.activate(**{"param_pub_address": param_pub_address,
                                                 "param_sub_address": param_sub_address,
-                                                "param_repreq_address": param_repreq_address,
+                                                "param_reqrep_address": param_reqrep_address,
                                                 "param_poll_interval": param_poll_interval,
                                                 "proxy_broker_spawn": "process", "verbose": True}, **kwargs)
         while True:
@@ -73,13 +73,13 @@ def main(role, param_ip, param_pub_port, param_sub_port, param_repreq_port, para
 
     elif role == "client":
         param_pub_address = f"tcp://{param_ip}:{param_pub_port}"
-        param_repreq_address = f"tcp://{param_ip}:{param_repreq_port}"
+        param_reqrep_address = f"tcp://{param_ip}:{param_reqrep_port}"
         default_command = DEFAULT_COMMAND
 
         context = zmq.Context.instance()
 
         request_server = context.socket(zmq.REQ)
-        request_server.connect(param_repreq_address)
+        request_server.connect(param_reqrep_address)
 
         param_server = context.socket(zmq.SUB)
         param_server.connect(param_pub_address)
@@ -107,11 +107,11 @@ def main(role, param_ip, param_pub_port, param_sub_port, param_repreq_port, para
             for new_command in new_commands:
                 print("Sending request ", new_command)
                 request_server.send_string(new_command)
-                response = request_server.recv_string()
-                print("Received response from server: %s" % response)
-                if "success:::" in response:
+                reply = request_server.recv_string()
+                print("Received reply from server: %s" % reply)
+                if "success:::" in reply:
                     topics = {}
-                    current_prefix = response.split(":::")[1].encode('utf-8')
+                    current_prefix = reply.split(":::")[1].encode('utf-8')
                     param_server.subscribe(current_prefix)
                     # time.sleep(0.2)
                     prev_params = Counter()
@@ -148,7 +148,7 @@ def parse_args():
     parser.add_argument("--param_ip", type=str, default="127.0.0.1", help="Parameter sever IP address")
     parser.add_argument("--param_pub_port", type=int, default=5655, help="Socket publishing (PUB) port")
     parser.add_argument("--param_sub_port", type=int, default=5656, help="Socket subscription (SUB) port")
-    parser.add_argument("--param_repreq_port", type=int, default=5659, help="Socket reply (REP)/request (REQ) port")
+    parser.add_argument("--param_reqrep_port", type=int, default=5659, help="Socket request (REQ)/reply (REP) port")
     parser.add_argument("--param_poll_interval", type=int, default=1, help="PUB/SUB poll interval in milliseconds "
                                                                            "(only used when role=server)")
     parser.add_argument("--param_poll_repeat", type=int, default=5, help="SUB poll repetition in terms of no. of "

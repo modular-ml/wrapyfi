@@ -25,22 +25,22 @@ QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS2_QUEUE_SIZE", 5))
 
 class ROS2Listener(Listener, Node):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+    def __init__(self, name: str, in_port: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the subscriber
 
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
-        if carrier != "tcp":
-            logging.warning("ROS2 does not support other carriers than TCP for pub/sub pattern. Using TCP.")
-            carrier = "tcp"
+        carrier = "udp"
+        if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
+            logging.warning("ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+
         ROS2Middleware.activate(**ros2_kwargs or {})
         Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name + str(hex(id(self))), allow_undeclared_parameters=True)
@@ -62,7 +62,7 @@ class ROS2Listener(Listener, Node):
 @Listeners.register("NativeObject", "ros2")
 class ROS2NativeObjectListener(ROS2Listener):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+    def __init__(self, name: str, in_port: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
@@ -70,12 +70,11 @@ class ROS2NativeObjectListener(ROS2Listener):
 
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, in_port, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self._subscriber = self._queue = None
 
@@ -123,14 +122,13 @@ class ROS2NativeObjectListener(ROS2Listener):
 @Listeners.register("Image", "ros2")
 class ROS2ImageListener(ROS2Listener):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+    def __init__(self, name: str, in_port: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The Image listener using the ROS2 Image message parsed to a numpy array
 
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param width: int: Width of the image. Default is -1 (use the width of the received image)
@@ -139,7 +137,7 @@ class ROS2ImageListener(ROS2Listener):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, in_port, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.width = width
         self.height = height
@@ -223,21 +221,20 @@ class ROS2ImageListener(ROS2Listener):
 @Listeners.register("AudioChunk", "ros2")
 class ROS2AudioChunkListener(ROS2Listener):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+    def __init__(self, name: str, in_port: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunk listener using the ROS2 Image message parsed to a numpy array
 
         :param name: str: Name of the subscriber
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS2 currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param channels: int: Number of channels in the audio. Default is 1
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
+        super().__init__(name, in_port, should_wait=should_wait, queue_size=queue_size,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
@@ -293,8 +290,8 @@ class ROS2AudioChunkListener(ROS2Listener):
 @Listeners.register("Properties", "ros2")
 class ROS2PropertiesListener(ROS2Listener):
 
-    def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+    def __init__(self, name, in_port, should_wait=True, **kwargs):
+        super().__init__(name, in_port, should_wait=should_wait, **kwargs)
         self._subscriber = self._queue = None
 
         if not self.should_wait:
