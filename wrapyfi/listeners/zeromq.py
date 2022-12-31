@@ -5,6 +5,7 @@ import os
 from typing import Optional
 
 import numpy as np
+import cv2
 import zmq
 
 from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
@@ -13,14 +14,14 @@ from wrapyfi.encoders import JsonDecodeHook
 
 
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
-SOCKET_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PORT", 5555))
+SOCKET_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PUB_PORT", 5555))
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQListener(Listener):
 
     def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
-                 socket_ip: str = SOCKET_IP, socket_port: int = SOCKET_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
+                 socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the subscriber
 
@@ -28,6 +29,10 @@ class ZeroMQListener(Listener):
         :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param socket_ip: str: IP address of the socket. Default is '127.0.0.1
+        :param socket_pub_port: int: Port of the socket for publishing.
+                                 Note that the subscriber listens directly to this port which is proxied .
+                                 Default is 5555
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
@@ -36,7 +41,7 @@ class ZeroMQListener(Listener):
             carrier = "tcp"
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
 
-        self.socket_address = f"{carrier}://{socket_ip}:{socket_port}"
+        self.socket_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
 
         ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
 
@@ -132,9 +137,9 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
             self._socket = zmq.Context.instance().socket(zmq.SUB)
             for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
                 if isinstance(socket_property[1], str):
-                    self._socket.setsockopt(*socket_property)
+                    self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
                 else:
-                    self._socket.setsockopt(*socket_property)
+                    self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
             self._socket.connect(self.socket_address)
             self._topic = self.in_port.encode("utf-8")
             self._socket.setsockopt_string(zmq.SUBSCRIBE, self.in_port)
@@ -164,27 +169,29 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 @Listeners.register("Image", "zeromq")
 class ZeroMQImageListener(ZeroMQNativeObjectListener):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp",
-                 should_wait: bool = True, width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, **kwargs):
+    def __init__(self, name: str, in_port: str, carrier: str = "tcp", should_wait: bool = True,
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-       The Image listener using the ZeroMQ message construct parsed to a numpy array
+        The Image listener using the ZeroMQ message construct parsed to a numpy array
 
-       :param name: str: Name of the subscriber
-       :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
-       :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
-       :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
-       :param width: int: Width of the image. Default is -1 (use the width of the received image)
-       :param height: int: Height of the image. Default is -1 (use the height of the received image)
-       :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
-       :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-       """
+        :param name: str: Name of the subscriber
+        :param in_port: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param width: int: Width of the image. Default is -1 (use the width of the received image)
+        :param height: int: Height of the image. Default is -1 (use the height of the received image)
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
+        """
         super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
 
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
+
         self._type = np.float32 if self.fp else np.uint8
 
     def listen(self):
@@ -199,11 +206,20 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            img = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
-            if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
-                    not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
-                raise ValueError("Incorrect image shape for listener")
-            return img
+            if obj is None:
+                return None
+            elif self.jpg:
+                if self.rgb:
+                    img = cv2.imdecode(np.frombuffer(obj[2], np.uint8), cv2.IMREAD_COLOR)
+                else:
+                    img = cv2.imdecode(np.frombuffer(obj[2], np.uint8), cv2.IMREAD_GRAYSCALE)
+                return img
+            else:
+                img = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+                if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
+                        not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+                    raise ValueError("Incorrect image shape for listener")
+                return img
         else:
             return None
 
@@ -224,7 +240,8 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait, width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+        super().__init__(name, in_port, carrier=carrier, should_wait=should_wait,
+                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
         self.rate = rate
@@ -242,7 +259,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            aud = json.loads(obj[1].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            aud = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
 
             chunk, channels = aud.shape[0], aud.shape[1]
             if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:

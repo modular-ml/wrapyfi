@@ -12,8 +12,14 @@ try:
 except ImportError:
     HAVE_JAX = False
 
+try:
+    # if jax 0.3.22 is installed, then jax.numpy is a module
+    types = None if not HAVE_JAX else jax.numpy.DeviceArray.__mro__[:-1] + (jax.Array,)
+except AttributeError:
+    types = None if not HAVE_JAX else jax.numpy.DeviceArray.__mro__[:-1]
 
-@PluginRegistrar.register(types=None if not HAVE_JAX else jax.numpy.DeviceArray.__mro__[:-1])
+
+@PluginRegistrar.register(types=types)
 class JAXTensor(Plugin):
     def __init__(self, **kwargs):
         pass

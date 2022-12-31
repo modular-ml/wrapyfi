@@ -1,9 +1,12 @@
 import logging
 import json
 import time
+import base64
+import io
 from typing import Optional, Literal, Tuple
 
 import numpy as np
+import cv2
 import yarp
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
@@ -17,7 +20,7 @@ WATCHDOG_POLL_REPEAT = None
 class YarpPublisher(Publisher):
 
     def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 out_port_connect: Optional[str] = None, yarp_kwargs: Optional[dict] = None, **kwargs):
+                 persistent: bool = True, out_port_connect: Optional[str] = None, yarp_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher
 
@@ -25,12 +28,18 @@ class YarpPublisher(Publisher):
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param persistent: bool: Whether the publisher port should remain connected after closure. Default is True
         :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
                                         None appends ':out' to the out_port. Default is None
         :param yarp_kwargs: dict: Additional kwargs for  the Yarp middleware
         :param kwargs: dict: Additional kwargs for the publisher
         """
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
+
+        self.style = yarp.ContactStyle()
+        self.style.persistent = persistent
+        self.style.carrier = self.carrier
+
         YarpMiddleware.activate(**yarp_kwargs or {})
 
         self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
@@ -78,7 +87,7 @@ class YarpPublisher(Publisher):
 class YarpNativeObjectPublisher(YarpPublisher):
 
     def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 out_port_connect: str = None, serializer_kwargs: Optional[dict] = None, **kwargs):
+                 persistent: bool = True, out_port_connect: str = None, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the BufferedPortBottle string construct assuming a combination of python native objects
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
@@ -87,11 +96,13 @@ class YarpNativeObjectPublisher(YarpPublisher):
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param persistent: bool: Whether the publisher port should remain connected after closure. Default is True
         :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
                                         None appends ':out' to the out_port. Default is None
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, persistent=persistent,
+                         out_port_connect=out_port_connect, **kwargs)
         self._port = self._netconnect = None
 
         self._plugin_encoder = JsonEncoder
@@ -100,6 +111,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
 
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
+
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
@@ -110,7 +122,10 @@ class YarpNativeObjectPublisher(YarpPublisher):
         """
         self._port = yarp.BufferedPortBottle()
         self._port.open(self.out_port)
-        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+        if self.style.persistent:
+            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.style)
+        else:
+            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
         established = self.await_connection(self._port, repeats=repeats)
         return self.check_establishment(established)
 
@@ -128,9 +143,9 @@ class YarpNativeObjectPublisher(YarpPublisher):
                 time.sleep(0.2)
         obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs)
-        oobj = self._port.prepare()
-        oobj.clear()
-        oobj.addString(obj_str)
+        obj_port = self._port.prepare()
+        obj_port.clear()
+        obj_port.addString(obj_str)
         self._port.write()
 
 
@@ -138,8 +153,8 @@ class YarpNativeObjectPublisher(YarpPublisher):
 class YarpImagePublisher(YarpPublisher):
 
     def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 out_port_connect: Optional[str] = None, width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, **kwargs):
+                 persistent: bool = True, out_port_connect: Optional[str] = None, width: int = -1, height: int = -1,
+                 rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The Image publisher using the BufferedPortImage construct assuming a numpy array as input
 
@@ -147,19 +162,23 @@ class YarpImagePublisher(YarpPublisher):
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param persistent: bool: Whether the publisher port should remain connected after closure. Default is True
         :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
                                         None appends ':out' to the out_port. Default is None
         :param width: int: Width of the image. Default is -1 meaning the width of the input image
         :param height: int: Height of the image. Default is -1 meaning the height of the input image
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect, **kwargs)
+        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, persistent=persistent,
+                         out_port_connect=out_port_connect, **kwargs)
 
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
+        self.jpg = jpg
 
         self._port = self._type = self._netconnect = None
 
@@ -173,13 +192,18 @@ class YarpImagePublisher(YarpPublisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        if self.rgb:
+        if self.jpg:
+            self._port = yarp.BufferedPortBottle()
+        elif self.rgb:
             self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
         else:
             self._port = yarp.BufferedPortImageFloat() if self.fp else yarp.BufferedPortImageMono()
         self._type = np.float32 if self.fp else np.uint8
         self._port.open(self.out_port)
-        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+        if self.style.persistent:
+            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.style)
+        else:
+            self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
         established = self.await_connection(self._port, repeats=repeats)
         return self.check_establishment(established)
 
@@ -188,28 +212,43 @@ class YarpImagePublisher(YarpPublisher):
         Publish the image to the middleware
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels] to publish
         """
+        if img is None:
+            return
+
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
                 time.sleep(0.2)
+
         if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         img = np.require(img, dtype=self._type, requirements='C')
-        img_msg = self._port.prepare()
-        img_msg.resize(img.shape[1], img.shape[0])
-        img_msg.setExternal(img.data, img.shape[1], img.shape[0])
-        self._port.write()
+
+        if self.jpg:
+            img_str = np.array(cv2.imencode('.jpg', img)[1]).tostring()
+            with io.BytesIO() as memfile:
+                np.save(memfile, img_str)
+                img_str = base64.b64encode(memfile.getvalue()).decode('ascii')
+            img_port = self._port.prepare()
+            img_port.clear()
+            img_port.addString(img_str)
+            self._port.write()
+
+        else:
+            img_port = self._port.prepare()
+            img_port.resize(img.shape[1], img.shape[0])
+            img_port.setExternal(img.data, img.shape[1], img.shape[0])
+            self._port.write()
 
 
 @Publishers.register("AudioChunk", "yarp")
 class YarpAudioChunkPublisher(YarpImagePublisher):
 
     def __init__(self, name: str, out_port: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-
-                 out_port_connect: Optional[str] = None,
+                 persistent: bool = True, out_port_connect: Optional[str] = None,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
          The AudioChunk publisher using the BufferedPortImage construct assuming a numpy array as input
@@ -218,6 +257,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param persistent: bool: Whether the publisher port should remain connected after closure. Default is True
         :param out_port_connect: str: Name of the output topic connection alias '/' (e.g. '/topic:out') to connect to.
                                         None appends ':out' to the out_port. Default is None
         :param channels: int: Number of channels. Default is 1
@@ -225,7 +265,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
         super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, out_port_connect=out_port_connect,
-                         width=chunk, height=channels, rgb=False, fp=True, **kwargs)
+                         persistent=persistent, width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
         self.rate = rate
@@ -269,8 +309,8 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
                 time.sleep(0.2)
         aud, _ = aud
         if aud is not None:
-            oaud = self._port.prepare()
-            oaud.setExternal(aud.data, self.chunk if self.chunk != -1 else oaud.shape[1], self.channels)
+            aud_port = self._port.prepare()
+            aud_port.setExternal(aud.data, self.chunk if self.chunk != -1 else aud_port.shape[1], self.channels)
             self._port.write()
 
     def close(self):
