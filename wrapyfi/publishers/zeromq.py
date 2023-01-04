@@ -218,9 +218,9 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img_str = np.array(cv2.imencode('.jpg', img)[1]).tostring()
         else:
             img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
-                                 serializer_kwrags=self._serializer_kwargs)
+                                 serializer_kwrags=self._serializer_kwargs).encode()
         img_header = '{timestamp:' + str(time.time()) + '}'
-        self._socket.send_multipart([self._topic, img_header.encode(), img_str.encode()])
+        self._socket.send_multipart([self._topic, img_header.encode(), img_str])
 
 
 @Publishers.register("AudioChunk", "zeromq")
@@ -263,9 +263,9 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
         if not aud.flags['C_CONTIGUOUS']:
             aud = np.ascontiguousarray(aud)
         aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
-                             serializer_kwrags=self._serializer_kwargs)
+                             serializer_kwrags=self._serializer_kwargs).encode()
         aud_header = '{timestamp:' + str(time.time()) + '}'
-        self._socket.send_multipart([self._topic, aud_header.encode(), aud_str.encode()])
+        self._socket.send_multipart([self._topic, aud_header.encode(), aud_str])
 
 
 @Publishers.register("Properties", "zeromq")
