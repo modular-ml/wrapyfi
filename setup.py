@@ -1,12 +1,12 @@
 import setuptools
-import pkg_resources
-from packaging import version
 
 
 def check_cv2():
     UPGRADE_CV2 = False
     REQUIRED_CV2_VERSION = "4.2.0"
     try:
+        import pkg_resources
+        from packaging import version
         import cv2
         if version.parse(cv2.__version__) < version.parse(REQUIRED_CV2_VERSION):
             UPGRADE_CV2 = True
