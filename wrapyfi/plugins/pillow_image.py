@@ -34,5 +34,5 @@ class PILImage(Plugin):
         else:
             with io.BytesIO(obj_full[1].encode('latin1')) as memfile:
                 memfile.seek(0)
-                return True, Image.open(memfile)
+                return True, Image.open(memfile).copy()
 
