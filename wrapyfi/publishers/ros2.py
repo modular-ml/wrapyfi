@@ -40,6 +40,8 @@ class ROS2Publisher(Publisher, Node):
         carrier = "udp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning("ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+        if "carrier" in kwargs:
+            del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
         Publisher.__init__(self, name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name + str(hex(id(self))))
