@@ -146,7 +146,7 @@ while True:
 Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
 
 
-* **Request-Response** (req-res): A requester sends a request to a responder, which responds to the request in a synchronous manner.
+* **Request-Reply** (req-rep): A requester sends a request to a responder, which responds to the request in a synchronous manner.
 e.g., with ROS
 
 <table>

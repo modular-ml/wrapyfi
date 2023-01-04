@@ -78,7 +78,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         zmq.Context.instance().destroy()
 
 
-class ZeroMQMiddlewareRepReq(metaclass=SingletonOptimized):
+class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
     @staticmethod
     def activate(**kwargs):
@@ -94,7 +94,7 @@ class ZeroMQMiddlewareRepReq(metaclass=SingletonOptimized):
             except AttributeError:
                 pass
 
-        ZeroMQMiddlewareRepReq(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
+        ZeroMQMiddlewareReqRep(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
     def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, *args, **kwargs):
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
@@ -111,11 +111,11 @@ class ZeroMQMiddlewareRepReq(metaclass=SingletonOptimized):
 
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                self.proxy = multiprocessing.Process(name='zeromq_repreq_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
+                self.proxy = multiprocessing.Process(name='zeromq_reqrep_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
                 self.proxy.daemon = True
                 self.proxy.start()
             else:  # if threaded
-                self.proxy = threading.Thread(name='zeromq_repreq_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
+                self.proxy = threading.Thread(name='zeromq_reqrep_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
                 self.proxy.setDaemon(True)
                 self.proxy.start()
             pass
@@ -281,10 +281,10 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         return update_trigger, cached_params
 
     @staticmethod
-    def __init_server(params, param_repreq_address="tcp://127.0.0.1:5659", **kwargs):
+    def __init_server(params, param_reqrep_address="tcp://127.0.0.1:5659", **kwargs):
         ctx = zmq.Context.instance()
         request_server = ctx.socket(zmq.REP)
-        request_server.bind(param_repreq_address)
+        request_server.bind(param_reqrep_address)
 
         while True:
             # Receive requests from clients and handle them accordingly

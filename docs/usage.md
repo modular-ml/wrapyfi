@@ -125,10 +125,10 @@ of instances. If the number of instances exceed the list length, the script exit
 
 ## Communication Patterns
 
-Wrapyfi supports the publisher-subscriber [(PUB/SUB)](#publishers-and-listenerssubscribers-pubsub) pattern as well as the reply-request (REP/REQ) pattern. 
+Wrapyfi supports the publisher-subscriber [(PUB/SUB)](#publishers-and-listenerssubscribers-pubsub) pattern as well as the request-reply (REQ/REP) pattern. 
 The PUB/SUB pattern assumes message arguments are passed from the publisher-calling script to the publishing method. 
 The publisher executes the method and the subscriber (listener) merely triggers the method call, awaits the publisher to execute the method, and returns the publisher's method returns.
-The REP/REQ pattern on the other hand assumes arguments from the client (requester) are sent to the server (responder or replier). Once the server receives the request, it passes the arguments
+The REQ/REP pattern on the other hand assumes arguments from the client (requester) are sent to the server (responder or replier). Once the server receives the request, it passes the arguments
 to its own method, executes it, and replies to the client back with its method returns.
 
 
@@ -141,7 +141,8 @@ The publishers and listeners of the same message type should have identical cons
 
 All messages are transmitted using the yarp python bindings
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`
+* **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`. 
+             When JPG conversion specified, uses a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-formats) using `yarp.BufferedPortBottle`
 * **Properties**: Transmits properties [*coming soon*]
@@ -150,7 +151,7 @@ All messages are transmitted using the yarp python bindings
 
 All messages are transmitted using the rospy python bindings as topic messages
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion specified, uses the `sensor_messages.msg.CompressedImage` message instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`
 * **Properties**: Transmits and receives parameters  to/from the parameter sever using the methods `rospy.set_param` and `rospy.get_param` respectively
@@ -163,7 +164,7 @@ All messages are transmitted using the rospy python bindings as topic messages
 
 All messages are transmitted using the rclpy python bindings as topic messages
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion specified, uses the `sensor_messages.msg.CompressedImage` message instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`
 * **Properties**: Transmits properties [*coming soon*]
@@ -173,14 +174,18 @@ All messages are transmitted using the rclpy python bindings as topic messages
 
 All messages are transmitted using the zmq python bindings. Transmission follows the [proxied XPUB/XSUB pattern](https://rfc.zeromq.org/spec/29/)
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct. Note that all `Image` types
+                    are transmitted as multipart messages, where the first element is the topic name and the second element is the header (e.g., timestamp), 
+                    and the third element is the image itself 
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using 
-                    `zmq context.socket(zmq.PUB).send_multipart` for publishing and `zmq context.socket(zmq.SUB).receive_multipart` for receiving messages
+                    `zmq context.socket(zmq.PUB).send_multipart` for publishing and `zmq context.socket(zmq.SUB).receive_multipart` for receiving messages.
+                    The `zmq.PUB` socket is wrapped in a `zmq.proxy` to allow multiple subscribers to the same publisher. Note that all `NativeObject` types
+                    are transmitted as multipart messages, where the first element is the topic name and the second element is the message itself (Except for `Image`)
 * **Properties**: Transmits properties [*coming soon*]
 
 
-### Servers and Clients (REP/REQ)
+### Servers and Clients (REQ/REP)
 
 The servers and clients of the same message type should have identical constructor signatures. The current Wrapyfi version supports
 3 universal types of messages for all middleware. The extended types such as `ROSMessage` and `ROS2Message` are exclusive to the provided middleware.
@@ -316,12 +321,15 @@ Wrapyfi reserves specific environment variable names for the functionality of it
 ZeroMQ requires socket configurations which can be passed as arguments to the respective middleware constructor (through the Wrapyfi decorator) or using environment variables. Note that these configurations are needed both by the proxy and the message publisher and listener. The downside to such an approach is that all messages share the same configs. This can be achieved by setting:
         
 * `WRAPYFI_ZEROMQ_SOCKET_IP`: IP address of the socket. Defaults to "127.0.0.1"
-* `WRAPYFI_ZEROMQ_SOCKET_PORT`: The socket port. Defaults to 5555
+* `WRAPYFI_ZEROMQ_SOCKET_PUB_PORT`: The publishing socket port. Defaults to 5555
 * `WRAPYFI_ZEROMQ_SOCKET_SUB_PORT`: The sub-socket port (listening port for the broker). Defaults to 5556
 * `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](../wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
-* `WRAPYFI_ZEROMQ_PROXY_BROKER_VERBOSE`: Printout messages from within the broker. Defaults to "False"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
-        
+* `WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL`: Polling interval in milliseconds for the parameter server. Defaults to 1 (**currently not supported**)
+* `WRAPYFI_ZEROMQ_PARAM_REQREP_PORT`: The parameter server request-reply port. Defaults to 5659 (**currently not supported**)
+* `WRAPYFI_ZEROMQ_PARAM_PUB_PORT`: The parameter server pub-socket port. Defaults to 5655 (**currently not supported**)
+* `WRAPYFI_ZEROMQ_PARAM_SUB_PORT`: The parameter server sub-socket port. Defaults to 5656 (**currently not supported**)
+
 ROS and ROS2 queue sizes can be set by:
 
 * `WRAPYFI_ROS_QUEUE_SIZE`: Size of the queue buffer. Defaults to 5
