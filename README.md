@@ -34,7 +34,7 @@ We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/
 ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
-A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/wrapyfi/standalone/zeromq_proxy_broker.py)
+A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi/standalone/zeromq_proxy_broker.py)
 
 
 #### Compatibility
@@ -232,7 +232,7 @@ Note that the server's command line will not show the message until the client's
 
 <!--<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>-->
 
-For more examples on usage, refer to the [user guide](docs/usage.md) and [API documentation](docs/source/modules.rst). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/examples) for trying out Wrapyfi. 
+For more examples on usage, refer to the [user guide](docs/usage.md) and [API documentation](docs/source/modules.rst). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/master/examples) for trying out Wrapyfi. 
 
 # Supported Formats
 
