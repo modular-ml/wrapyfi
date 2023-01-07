@@ -16,7 +16,7 @@ multiple machines.
 Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
 
 To Wrapyfi a class, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
-requirement on your coding style: All wrapyfi compatible functions need to be defined within a class. 
+requirement on your coding style: All Wrapyfi-compatible functions need to be defined within a class. 
 
 # Getting Started
 
@@ -26,10 +26,10 @@ Follow the [YARP installation guide](https://github.com/modular-ml/wrapyfi-inter
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
 For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
-We recommend installing ROS on conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
+We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
 
 For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
-We recommend installing ROS 2 on conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
+We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
 
 ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
@@ -232,7 +232,7 @@ Note that the server's command line will not show the message until the client's
 
 <!--<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>-->
 
-For more examples on usage, refer to the [user guide](docs/usage.md) and [API documentation](docs/source/modules.rst). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/master/examples) for trying out Wrapyfi. 
+For more examples of usage, refer to the [user guide](docs/usage.md) and [API documentation](docs/source/modules.rst). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/master/examples) for trying out Wrapyfi. 
 
 # Supported Formats
 
