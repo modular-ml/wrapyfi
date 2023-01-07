@@ -245,7 +245,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 ### Publisher- and Listener-specific Arguments
 
 ```{warning}
-Differences are expected between the returns of publishers and listeners, sometimes due to compression methods (e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), intentional setting of different devices for different tensors (refer to [device mappign for tensors](#device-mapping-for-tensors)), and differences in library versions between receiving and transmitting pugins (refer to plugins(#plugins). 
+Differences are expected between the returns of publishers and listeners, sometimes due to compression methods (e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), intentional setting of different devices for different tensors (refer to [device mapping for tensors](#device-mapping-for-tensors)), and differences in library versions between receiving and transmitting pugins (refer to [plugins](#plugins). 
 ```
 
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.
@@ -262,7 +262,7 @@ The **NativeObject** message type supports structures beyond native python objec
 * Ensure that the plugin resides within a directory named `plugins` residing inside the `WRAPYFI_PLUGINS_PATH` and that the directory contains an `__init__.py` file
 
 ```{warning}
-Due to differences in versions, the decoding may result in inconsitent outcomes, which must be handled for all versions e.g., MXNet plugin differences are handles in the existing plugin. 
+Due to differences in versions, the decoding may result in inconsitent outcomes, which must be handled for all versions e.g., MXNet plugin differences are handled in the existing plugin. 
 ```
 
 #### Data Structure Types
