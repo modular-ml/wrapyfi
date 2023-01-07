@@ -64,6 +64,15 @@ To install Warpify using **pip**:
 pip install .
 ```
 
+For immediate use, you can install pyzmq (default communicator) with Wrapyfi:
+
+```
+pip install .[pyzmq]
+```
+
+Most plugins require additional dependencies and should be installed separately. 
+Other middleware such as ROS are environment specific and require dependencies which cannot be installed using pip. 
+Wrapyfi should be used within such environments.
 
 ## Usage
 
