@@ -46,11 +46,11 @@ def main(comm_type, socket_ip, socket_pub_port, socket_sub_port, socket_rep_port
             event = dict(poller.poll(1000))
             if xpub_socket in event:
                 message = xpub_socket.recv_multipart()
-                print("[ZeroMQ BROKER] xpub_socket recv message: %r" % message)
+                #print("[ZeroMQ BROKER] xpub_socket recv message: %r" % message)
                 xsub_socket.send_multipart(message)
             if xsub_socket in event:
                 message = xsub_socket.recv_multipart()
-                print("[ZeroMQ BROKER] xsub_socket recv message: %r" % message)
+                #print("[ZeroMQ BROKER] xsub_socket recv message: %r" % message)
                 xpub_socket.send_multipart(message)
 
 def parse_args():
