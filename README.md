@@ -20,7 +20,7 @@ requirement on your coding style: All Wrapyfi-compatible functions need to be de
 
 # Attribution
 
-Please refer to the following paper when citing Wrapyfi in academic work:
+Please refer to the following [paper](https://arxiv.org/abs/2302.09648) when citing Wrapyfi in academic work:
 
 ```
 @misc{abawi2023wrapyfi,
