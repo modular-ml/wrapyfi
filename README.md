@@ -18,6 +18,21 @@ Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.r
 To Wrapyfi a class, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
 requirement on your coding style: All Wrapyfi-compatible functions need to be defined within a class. 
 
+# Attribution
+
+Please refer to the following paper when citing Wrapyfi in academic work:
+
+```
+@misc{abawi2023wrapyfi,
+  author = {Abawi, Fares and Allgeuer, Philipp and Fu, Di and Wermter, Stefan},
+  title = {{Wrapyfi: A Wrapper for Message-Oriented and Robotics Middleware}},
+  publisher = {arXiv},
+  doi = {10.48550/ARXIV.2302.09648},
+  url = {https://arxiv.org/abs/2302.09648},
+  year = {2023}
+}
+```
+
 # Getting Started
 
 Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed. 
