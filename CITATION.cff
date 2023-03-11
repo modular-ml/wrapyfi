@@ -1,17 +1,22 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-authors:
-- family-names: "Abawi"
-  given-names: "Fares"
-  orcid: "https://orcid.org/0000-0002-4240-5351"
-- family-names: "Allgeuer"
-  given-names: "Philipp"
-- family-names: "Fu"
-  given-names: "Di"
-- family-names: "Wermter"
-  given-names: "Stefan"
-title: "Wrapyfi: A Wrapper for Message-Oriented and Robotics Middleware"
-version: 0.4.12
-doi: 10.48550/arXiv.2302.09648
-date-released: 2023-02-23
-url: "https://github.com/fabawi/wrapyfi"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Abawi"
+    given-names: "Fares"
+    orcid: "https://orcid.org/0000-0002-4240-5351"
+  - family-names: "Allgeuer"
+    given-names: "Philipp"
+  - family-names: "Fu"
+    given-names: "Di"
+  - family-names: "Wermter"
+    given-names: "Stefan"
+  title: "Wrapyfi: A Wrapper for Message-Oriented and Robotics Middleware"
+  journal: "arXiv preprint arXiv:2302.09648"
+  publisher: 
+    name: "The Open Journal"
+  version: 0.4.12
+  doi: 10.48550/arXiv.2302.09648
+  date-released: 2023-02-23
+  url: "https://github.com/fabawi/wrapyfi"
