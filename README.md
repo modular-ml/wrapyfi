@@ -23,9 +23,10 @@ requirement on your coding style: All Wrapyfi-compatible functions need to be de
 Please refer to the following [paper](https://arxiv.org/abs/2302.09648) when citing Wrapyfi in academic work:
 
 ```
-@misc{abawi2023wrapyfi,
+@article{abawi2023wrapyfi,
   author = {Abawi, Fares and Allgeuer, Philipp and Fu, Di and Wermter, Stefan},
   title = {{Wrapyfi: A Wrapper for Message-Oriented and Robotics Middleware}},
+  journal = {arXiv preprint arXiv:2302.09648},
   publisher = {arXiv},
   doi = {10.48550/ARXIV.2302.09648},
   url = {https://arxiv.org/abs/2302.09648},
