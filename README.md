@@ -285,6 +285,8 @@ Supported Objects by the `NativeObject` type include:
 * [x] [**Pandas Dataframe|Series**](https://pandas.pydata.org/docs/)
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 * [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
+* [ ] [**Pandas 2.0 Dataframe|Series**](https://pandas.pydata.org/docs/)
+* [ ] [**PyArrow**](https://arrow.apache.org/docs/python/index.html)
 
 ## Image
 
