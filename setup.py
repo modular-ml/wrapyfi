@@ -33,7 +33,7 @@ def check_cv2():
 
 setuptools.setup(
     name             = 'wrapyfi',
-    version          = '0.4.12',
+    version          = '0.4.13',
     description      = 'Wrapyfi is a wrapper for simplifying Middleware communication',
     url              = 'https://github.com/fabawi/wrapyfi/',
     project_urls={
@@ -42,9 +42,9 @@ setuptools.setup(
         'Tracker':       'https://github.com/fabawi/wrapyfi/issues',
     },
     author           = 'Fares Abawi',
-    author_email     = 'fares.abawi@outlook.com',
+    author_email     = 'f.abawi@outlook.com',
     maintainer       = 'Fares Abawi',
-    maintainer_email = 'fares.abawi@outlook.com',
+    maintainer_email = 'f.abawi@outlook.com',
     packages         = setuptools.find_packages(),
     extras_require   ={'docs': ['sphinx', 'sphinx_rtd_theme', 'myst_parser'], 'pyzmq': ['pyzmq']},
     install_requires = ['pyyaml>=5.1.1', 'numpy>=1.19.2'] + check_cv2(),
