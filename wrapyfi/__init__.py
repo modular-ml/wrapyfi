@@ -1,4 +1,4 @@
-__version__ = "0.4.13"
+__version__ = "0.4.14"
 __url__ = "https://github.com/fabawi/wrapyfi/"
 name = "wrapyfi"
 
