@@ -224,7 +224,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
 
 @Publishers.register("AudioChunk", "zeromq")
-class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
+class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
     def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
@@ -257,8 +257,11 @@ class ZeroMQAudioChunkPublisher(ZeroMQPublisher):
                 return
             else:
                 time.sleep(0.2)
-        chunk, channels = aud.shape[0], aud.shape[1]
-        if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels * 4:
+        if len(aud.shape) > 1:
+            chunk, channels = aud.shape[0], aud.shape[1]
+        else:
+            chunk, channels = aud.shape[0], 1
+        if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels:
             raise ValueError("Incorrect audio shape for publisher")
         if not aud.flags['C_CONTIGUOUS']:
             aud = np.ascontiguousarray(aud)

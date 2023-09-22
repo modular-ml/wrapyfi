@@ -1,3 +1,4 @@
+import logging
 import os
 from glob import glob
 
@@ -75,3 +76,22 @@ class Publisher(object):
     def publish(self, obj):
         raise NotImplementedError
 
+
+@Publishers.register("MMO", "fallback")
+class FallbackPublisher(Publisher):
+
+    def __init__(self, name: str, out_port: str, carrier: str = "",
+                 should_wait: bool = True, missing_middleware_object: str = "", **kwargs):
+        logging.warning(f"Fallback publisher employed due to missing middleware or object type: "
+                        f"{missing_middleware_object}")
+        Publisher.__init__(self, name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        self.missing_middleware_object = missing_middleware_object
+
+    def establish(self, repeats=-1, **kwargs):
+        return None
+
+    def publish(self, obj):
+        return obj
+
+    def close(self):
+        return None

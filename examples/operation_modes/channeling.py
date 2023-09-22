@@ -1,8 +1,5 @@
 import argparse
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
-import torch
-import tensorflow
-import mxnet
 import numpy as np
 
 parser = argparse.ArgumentParser()
@@ -13,7 +10,7 @@ parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=M
 args = parser.parse_args()
 
 
-class ExampleClass(MiddlewareCommunicator):
+class MirroringClass(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", "yarp",
                                      "ExampleClass", "/example/read_message",
@@ -23,7 +20,8 @@ class ExampleClass(MiddlewareCommunicator):
         obj = {"message": msg}
         return obj,
 
-class ExampleClass(MiddlewareCommunicator):
+
+class ChannelingClass(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", "yarp",
                                      "ExampleClass", "/example/native_yarp_message",
@@ -40,14 +38,19 @@ class ExampleClass(MiddlewareCommunicator):
                              aud_rate=44100, aud_chunk=8820, aud_channels=1):
         ros_img = np.random.randint(256, size=(img_height, img_width, 3),
                                      dtype=np.uint8)
-        zeromq_aud = np.random.uniform(-1,1, aud_chunk)
+        zeromq_aud = np.random.uniform(-1, 1, aud_chunk)
         yarp_native = [ros_img, zeromq_aud]
         return yarp_native, ros_img, zeromq_aud
 
 
-hello_world = ExampleClass()
-hello_world.activate_communication(ExampleClass.read_message, mode=args.mode)
+channeling = ChannelingClass()
+channeling.activate_communication(ChannelingClass.read_mulret_mulmware, mode=args.mode)
 
 while True:
-    my_message, = hello_world.read_message()
-    print("Method result:", my_message["message"])
+    yarp_native, ros_img, zeromq_aud = channeling.read_mulret_mulmware()
+    if yarp_native is not None:
+        print("yarp_native::", yarp_native)
+    if ros_img is not None:
+        print("ros_img::", ros_img)
+    if zeromq_aud is not None:
+        print("zeromq_aud", zeromq_aud)
