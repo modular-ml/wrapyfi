@@ -172,8 +172,16 @@ class MiddlewareCommunicator(object):
                         communicator["return_func_args"], return_func_pub_kwargs, wds[1:], kwd)
                     return_func_type = communicator["return_func_type"]
                     return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
-                    communicator["wrapped_executor"] = srv.Servers.registry[
-                        return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                    try:
+                        communicator["wrapped_executor"] = srv.Servers.registry[
+                            return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                    except KeyError:
+                        communicator["wrapped_executor"] = srv.Servers.registry[
+                            "MMO:fallback"](*new_args,
+                                            missing_middleware_object=return_func_type + return_func_middleware,
+                                            **new_kwargs)
+                        communicator["return_func_type"] = "MMO:"
+
                 # list for single return
                 elif isinstance(communicator["return_func_type"], list):
                     communicator["wrapped_executor"] = []
@@ -188,9 +196,17 @@ class MiddlewareCommunicator(object):
                             kwd)
                         return_func_type = communicator["return_func_type"][comm_idx]
                         return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
-                        communicator["wrapped_executor"].append(
-                            srv.Servers.registry[return_func_type + return_func_middleware](
-                                *new_args, **new_kwargs))
+                        try:
+                            communicator["wrapped_executor"].append(
+                                srv.Servers.registry[return_func_type + return_func_middleware](
+                                    *new_args, **new_kwargs))
+                        except KeyError:
+                            communicator["wrapped_executor"].append(
+                                srv.Servers.registry[
+                                    "MMO:fallback"](*new_args,
+                                                    missing_middleware_object=return_func_type + return_func_middleware,
+                                                    **new_kwargs))
+                            communicator["return_func_type"][comm_idx] = "MMO:"
 
         returns = None
         for ret_idx, functor in enumerate(
@@ -230,8 +246,16 @@ class MiddlewareCommunicator(object):
                                                       kwd)
                     return_func_type = communicator["return_func_type"]
                     return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
-                    communicator["wrapped_executor"] = clt.Clients.registry[
-                        return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                    try:
+                        communicator["wrapped_executor"] = clt.Clients.registry[
+                            return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                    except KeyError:
+                        communicator["wrapped_executor"] = clt.Clients.registry[
+                            "MMO:fallback"](*new_args,
+                                            missing_middleware_object=return_func_type + return_func_middleware,
+                                            **new_kwargs)
+                        communicator["return_func_type"] = "MMO:"
+
                 # list for single return
                 elif isinstance(communicator["return_func_type"], list):
                     communicator["wrapped_executor"] = []
@@ -244,8 +268,16 @@ class MiddlewareCommunicator(object):
                                                           return_func_lsn_kwargs, wds[1:], kwd)
                         return_func_type = communicator["return_func_type"][comm_idx]
                         return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
-                        communicator["wrapped_executor"].append(
-                            clt.Clients.registry[return_func_type + return_func_middleware](*new_args, **new_kwargs))
+                        try:
+                            communicator["wrapped_executor"].append(
+                                clt.Clients.registry[return_func_type + return_func_middleware](*new_args, **new_kwargs))
+                        except KeyError:
+                            communicator["wrapped_executor"].append(
+                                clt.Clients.registry[
+                                    "MMO:fallback"](*new_args,
+                                                    missing_middleware_object=return_func_type + return_func_middleware,
+                                                    **new_kwargs))
+                            communicator["return_func_type"][comm_idx] = "MMO:"
 
         returns = []
         for ret_idx, functor in enumerate(
