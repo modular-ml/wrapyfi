@@ -254,7 +254,7 @@ Since the transmitting and receiving arguments should generally be the same rega
 ### Plugins
 
 The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](../wrapyfi/plugins). Plugins can be added by:
-* Creating a derived class that inherits from the base class `wrapify.utils.Plugin`
+* Creating a derived class that inherits from the base class `wrapyfi.utils.Plugin`
 * Overriding the `encode` method for converting the object to a `json` serializable string. Deserializing the string is performed within the overridden `decode` method
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
 * Decorating the class with `@PluginRegistrar.register` and appending the plugin to the list of supported objects
