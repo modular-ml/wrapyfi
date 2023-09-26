@@ -63,7 +63,7 @@ single returns e.g.:
 ```
 
 ```{warning}
-Methods with a single return should be followed by a comma e.g., return encapsulated a, . This explicitly casts the return as a tuple to avoid confusion with list returns as single return elements/
+Methods with a single return should be followed by a comma e.g., return encapsulated a, . This explicitly casts the return as a tuple to avoid confusion with list returns as single return element/s
 ```
 
 Each of the list's returns is encapsulated with its own publisher and listener, with the named arguments transmitted as 

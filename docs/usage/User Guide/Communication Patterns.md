@@ -89,7 +89,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS2 requires custom services to deal with arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
-Refer to [these instructions for compiling Wrapyfi ROS2 services](../wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS2 services](../../ros2_interfaces_lnk.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as services.
@@ -115,7 +115,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 ### Publisher- and Listener-specific Arguments
 
 ```{warning}
-Differences are expected between the returns of publishers and listeners, sometimes due to compression methods (e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), intentional setting of different devices for different tensors (refer to [device mapping for tensors](<Plugins.md#device-mapping-for-tensors>)), and differences in library versions between receiving and transmitting pugins (refer to [plugins](<Plugins.md#plugins>). 
+Differences are expected between the returns of publishers and listeners, sometimes due to compression methods (e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), intentional setting of different devices for different tensors (refer to [device mapping for tensors](<Plugins.md#device-mapping-for-tensors>)), and differences in library versions between receiving and transmitting plugins (refer to [plugins](<Plugins.md#plugins>)). 
 ```
 
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.
