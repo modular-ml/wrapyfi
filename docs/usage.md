@@ -219,7 +219,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS2 requires custom services to deal with arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
-Refer to [these instructions for compiling Wrapyfi ROS2 services](../wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as services.
