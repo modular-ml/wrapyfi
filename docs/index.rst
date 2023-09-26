@@ -2,7 +2,7 @@
 Wrapyfi Documentation
 =====================================
 
-.. image:: https://github.com/fabawi/wrapyfi/tree/master/resources/wrapyfi.png
+.. image:: https://raw.githubusercontent.com/fabawi/wrapyfi/master/resources/wrapyfi.png
   :width: 400
   :alt: Wrapyfi logo
 

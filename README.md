@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="460" height="300" src="https://github.com/fabawi/wrapyfi/tree/master/resources/wrapyfi.png">
+  <img width="460" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/master/resources/wrapyfi.png">
 </p>
 
 
