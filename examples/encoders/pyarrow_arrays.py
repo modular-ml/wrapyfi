@@ -10,7 +10,6 @@ A message publisher and listener for native python objects and pyarrow arrays
 Here we demonstrate 
 1. Using the NativeObject message
 2. Transmit a nested dummy python object with native objects and multidim pyarrow arrays
-3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message

@@ -5,12 +5,11 @@ import pandas as pd
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 """
-A message publisher and listener for native python objects and numpy arrays
+A message publisher and listener for native python objects, numpy arrays and pandas dataframes
 
 Here we demonstrate 
 1. Using the NativeObject message
 2. Transmit a nested dummy python object with native objects and multidim numpy arrays
-3. Demonstrating the responsive transmission
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message

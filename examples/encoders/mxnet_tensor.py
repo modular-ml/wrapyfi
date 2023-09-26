@@ -9,7 +9,7 @@ A message publisher and listener for MXNet tensors
 Here we demonstrate
 1. Using the NativeObject message
 2. Transmit a nested dummy python object with native objects and multidim MXNet tensors
-3. Demonstrating the flipping of devices by mapping CPU to GPU and vice versa
+3. Flipping of devices by mapping CPU to GPU and vice versa
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
