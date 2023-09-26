@@ -25,7 +25,7 @@ ICub head controller and camera viewer
 
 Here we demonstrate 
 1. Using the Image messages
-2. Run publishers and listeners in concurrence with the yarp.RFModule
+2. Running publishers and listeners in concurrence with the yarp.RFModule
 3. Utilizing Wrapyfi for creating a port listener only
 
 

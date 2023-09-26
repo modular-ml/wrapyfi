@@ -29,8 +29,8 @@ class Notify(MiddlewareCommunicator):
         imarray = np.random.rand(100, 100, 3) * 255
         ret = {"message": msg,
                "pillow_random": Image.fromarray(imarray.astype('uint8')).convert('RGBA'),
-               "pillow_png": Image.open("wrapyfi.png"),
-               "pillow_jpg": Image.open("wrapyfi.jpg")}
+               "pillow_png": Image.open("../../resources/wrapyfi.png"),
+               "pillow_jpg": Image.open("../../resources/wrapyfi.jpg")}
         return ret,
 
 def parse_args():
