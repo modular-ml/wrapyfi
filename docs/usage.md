@@ -32,7 +32,7 @@ methods for a given class, the class should inherit the `MiddlewareCommunicator`
 `@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Port name>)` is automatically registered by Wrapyfi. 
 
 The `<Data structure type>` is the publisher/listener type for a given method's return. The supported data
-types are listed in the [publishers and listeners](#publishers-and-listeners) section.
+types are listed [here](#data-structure-types) section.
 
 The `<Communicator>` defines the communication medium e.g.: `yarp`, `ros2`, `ros`, or `zeromq`. The default communicator is `zeromq` but can be replaced by setting the environment variables `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided) to the middleware of choice e.g.: 
         
@@ -71,7 +71,7 @@ a single dictionary within the list. Notice that `encapsulated_a` returns a list
 3 list configurations as well. Note that by using a single `NativeObject` as a `<Data structure type>`, the same 
 can be achieved. However, the YARP implementation of the `NativeObject` utilizes `BufferedPortBottle` and serializes the 
 object before transmission. The `NativeObject` may result in a greater overhead and should only be used when multiple nesting depths are 
-required or the objects within a list are not within the [supported data structure types](#publishers-and-listeners).
+required or the objects within a list are not within the [supported data structure types](#data-structure-types).
 
 
 ## Configuration
@@ -130,7 +130,7 @@ of instances. If the number of instances exceeds the list length, the script exi
 
 ## Communication Patterns
 
-Wrapyfi supports the publisher-subscriber [(PUB/SUB)](#publishers-and-listenerssubscribers-pubsub) pattern as well as the request-reply (REQ/REP) pattern. 
+Wrapyfi supports the publisher-subscriber [(PUB/SUB)](#publishers-and-listeners-subscribers-pub-sub) pattern as well as the request-reply [(REQ/REP)](#servers-and-clients-req-rep) pattern. 
 The PUB/SUB pattern assumes message arguments are passed from the publisher-calling script to the publishing method. 
 The publisher executes the method and the subscriber (listener) merely triggers the method call, awaits the publisher to execute the method, and returns the publisher's method returns.
 The REQ/REP pattern on the other hand assumes arguments from the client (requester) are sent to the server (responder or replier). Once the server receives the request, it passes the arguments
@@ -149,7 +149,7 @@ All messages are transmitted using the yarp python bindings
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`. 
              When JPG conversion is specified, use a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-formats) using `yarp.BufferedPortBottle`
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-structure-types) using `yarp.BufferedPortBottle`
 * **Properties**: Transmits properties [*coming soon*]
 
 *(ROS)*:
@@ -158,7 +158,7 @@ All messages are transmitted using the rospy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 * **Properties**: Transmits and receives parameters  to/from the parameter server using the methods `rospy.set_param` and `rospy.get_param` respectively
 * **ROSMessage**: Transmits and receives a single [ROS message](http://wiki.ros.org/msg) per return decorator. Note that currently, only common ROS interface messages 
                   are supported and detected automatically. This means that messages defined in common interfaces such as [std_msgs](http://wiki.ros.org/std_msgs), 
@@ -171,7 +171,7 @@ All messages are transmitted using the rclpy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 * **Properties**: Transmits properties [*coming soon*]
 * **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*coming soon*]
 
@@ -183,7 +183,7 @@ All messages are transmitted using the zmq python bindings. Transmission follows
                     are transmitted as multipart messages, where the first element is the topic name and the second element is the header (e.g., timestamp), 
                     and the third element is the image itself 
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-formats) using 
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-structure-types) using 
                     `zmq context.socket(zmq.PUB).send_multipart` for publishing and `zmq context.socket(zmq.SUB).receive_multipart` for receiving messages.
                     The `zmq.PUB` socket is wrapped in a `zmq.proxy` to allow multiple subscribers to the same publisher. Note that all `NativeObject` types
                     are transmitted as multipart messages, where the first element is the topic name and the second element is the message itself (Except for `Image`)
@@ -198,22 +198,22 @@ The servers and clients of the same message type should have identical construct
 *(YARP)*:
 
 All messages are transmitted using the yarp python bindings [for RPC communication](https://www.yarp.it/latest/rpc_ports.html).
-The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `yarp.Bottle`.
+The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `yarp.Bottle`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image encoded as a `json` string using `yarp.Bottle`. 
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk encoded as a `json` string using `yarp.Bottle` [*coming soon*]
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `yarp.Bottle`
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `yarp.Bottle`
 
 *(ROS)*:
 
 All messages are transmitted using the rospy python bindings as services.
-The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`.
+The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 
 *(ROS2)*:
 
@@ -223,22 +223,22 @@ Refer to [these instructions for compiling Wrapyfi ROS2 services](../wrapyfi_ext
 ```
 
 All messages are transmitted using the rclpy python bindings as services.
-The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`.
+The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image` [*coming soon*]
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image` [*coming soon*]
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `std_msgs.msg.String`
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 
 *(ZeroMQ)*:
 
 All messages are transmitted using the zmq python bindings. Transmission follows the [proxied XREP/XREQ pattern](http://wiki.zeromq.org/tutorials:dealer-and-router)
-The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using `zmq context.socket(zmq.REQ).send_multipart`.
+The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `zmq context.socket(zmq.REQ).send_multipart`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct [*coming soon*]
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct [*coming soon*]
-* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-formats) using 
+* **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using 
                     `zmq context.socket(zmq.REP)` for replying and `zmq context.socket(zmq.REQ)` for receiving messages
 
 
@@ -251,7 +251,7 @@ Differences are expected between the returns of publishers and listeners, someti
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.
 Since the transmitting and receiving arguments should generally be the same regardless of the communication pattern, `publisher_kwargs` and `listener_kwargs` also apply to the servers and clients respectively.
 
-### Plugins
+## Plugins
 
 The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](../wrapyfi/plugins). Plugins can be added by:
 * Creating a derived class that inherits from the base class `wrapyfi.utils.Plugin`
@@ -265,20 +265,21 @@ The **NativeObject** message type supports structures beyond native python objec
 Due to differences in versions, the decoding may result in inconsitent outcomes, which must be handled for all versions e.g., MXNet plugin differences are handled in the existing plugin. 
 ```
 
-#### Data Structure Types
+### Data Structure Types
 
 Other than native python objects, the following objects are supported:
 
 * `numpy.ndarray` and `numpy.generic`
-* `pandas.DataFrame` and `pandas.Series`
+* `pandas.DataFrame` and `pandas.Series` (pandas v1)
 * `torch.Tensor`
 * `tensorflow.Tensor` and `tensorflow.EagerTensor`
 * `mxnet.nd.NDArray`
 * `jax.numpy.DeviceArray`
 * `paddle.Tensor`
 * `PIL.Image`
+* `pyarrow.StructArray`
 
-#### Device Mapping for Tensors
+### Device Mapping for Tensors
 
 To map tensor listener decoders to specific devices (CPUs/GPUs), add an argument to tensor data structures with direct GPU/TPU mapping to support re-mapping on mirrored nodes e.g.,
 
@@ -319,7 +320,7 @@ The plugins supporting remapping are:
 * `torch.Tensor`
 * `paddle.Tensor`
 
-#### Serialization
+### Serialization
 
 ```{warning}
 When encoding dictionaries, `json` supports string keys only and converts any instances of `int` keys to string, causing a difference between the publisher and subscriber returns. It is best to avoid using `int` keys, otherwise handle the difference on the receiving end.
