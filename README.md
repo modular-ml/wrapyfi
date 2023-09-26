@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="460" height="300" src="https://user-images.githubusercontent.com/4982924/194550571-e7738a6d-da05-4e0d-8904-8edf784ceef4.png">
+  <img width="460" height="300" src="https://github.com/fabawi/wrapyfi/tree/master/resources/wrapyfi.png">
 </p>
 
 
@@ -254,8 +254,6 @@ while True:
 
 Run `roscore` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
 Note that the server's command line will not show the message until the client's command line has been used to send a request. The arguments are passed from the client to the server and the server's response is passed back to the client.
-
-<!--<img src="https://user-images.githubusercontent.com/4982924/144660266-42b00a00-72ee-4977-b5aa-29e3691321ef.gif" width="96%"/>-->
 
 For more examples of usage, refer to the [user guide](docs/usage.md). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/master/examples) for trying out Wrapyfi. 
 

@@ -24,7 +24,7 @@ class ReqRep(MiddlewareCommunicator):
                "args": args,
                "kwargs": kwargs}
 
-        img = cv2.imread("../wrapyfi.png")
+        img = cv2.imread("../../resources/wrapyfi.png")
         img = cv2.resize(img, (img_width, img_height), interpolation = cv2.INTER_AREA)
         return obj, img
 
