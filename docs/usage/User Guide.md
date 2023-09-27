@@ -68,9 +68,36 @@ Methods with a single return should be followed by a comma e.g., return encapsul
 
 Each of the list's returns is encapsulated with its own publisher and listener, with the named arguments transmitted as 
 a single dictionary within the list. Notice that `encapsulated_a` returns a list of length 3, therefore, the first decorator contains 
-3 list configurations as well. Note that by using a single `NativeObject` as a `<Data structure type>`, the same 
-can be achieved. However, the YARP implementation of the `NativeObject` utilizes `BufferedPortBottle` and serializes the 
-object before transmission. The `NativeObject` may result in a greater overhead and should only be used when multiple nesting depths are 
-required or the objects within a list are not within the [supported data structure types](<User Guide/Plugins.md#data-structure-types>).
+3 list configurations as well. This is useful especially when transmitting multiple images or audio chunks over YARP, ROS, and ROS2.
+Note that by using a single `NativeObject` as a `<Data structure type>`, the same 
+can be achieved. However, the implementation of the `NativeObject` for most middleware serializes the 
+objects as strings before transmission. The `NativeObject` may result in a greater overhead and should only be used when multiple nesting depths are 
+required or the objects within a list are not within the [supported data structure types](#data-structure-types).
 
+### Argument Passing
+The `$` symbol is used in Wrapyfi to specify that a decorator should update its arguments according to the arguments of the decorated method. This can be useful when the decorator needs to modify its behavior during runtime. For instance:
+```
+...
+        @MiddlewareCommunicator.register('NativeObject', 
+           '$0', 'ExampleCls', '/example/example_arg_pass', 
+           carrier='tcp', should_wait='$blocking')
+          def example_arg_pass(self, mware, msg='', blocking=True):
+```
+
+Setting the decorator's keyword argument `should_wait='$blocking'` expects the decorated method to receive a boolean `blocking` argument, altering the encapsulating decorator's behavior when the encapsulated method is called. Setting the decorator's second argument to `$0` acquires the value of `mware` (the first argument passed to `example_arg_pass`) and sets it as the middleware for that method. These arguments take effect on the first invocation of a method. Changing arguments after the first invocation results in no change in behavior, unless a `MiddlewareCommunicator` inheriting class for a given method is [closed](#closing-and-deleting-classes). 
+
+### Closing and Deleting Classes
+Currently, closing a connection requires closing all connections established by every method within that class. 
+
+```{warning}
+Selectively deactivating method connections is planned for Wrapyfi v0.4.16.
+```
+
+To close and delete a `MiddlewareCommunicator` inheriting class means that the middleware connection will be disconnected gracefully. The class references will be removed from all registries, the communication ports will be freed, and the instance will be destroyed. To close a class instance:
+
+```
+# assuming an existing instance-> example_instance = ExampleCls()
+example_instance.close()
+del example_instance
+```
 
