@@ -9,13 +9,13 @@
 [![Documentation Status](https://readthedocs.org/projects/wrapyfi/badge/?version=latest)](https://wrapyfi.readthedocs.io/en/latest/?badge=latest)
 
 
-Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without the need to
-alter the operation pipeline of your python scripts. Wrapyfi introduces
+Wrapyfi is a middleware communication wrapper for transmitting data across nodes, without 
+altering the operation pipeline of your Python scripts. Wrapyfi introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
 Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
 
-To Wrapyfi a class, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
+To integrate Wrapyfi with your scripts, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
 requirement on your coding style: All Wrapyfi-compatible functions need to be defined within a class. 
 
 # Attribution
@@ -107,7 +107,7 @@ e.g., with YARP
 <sub>
 
 ```python
-# Just your usual python class
+# Just your usual Python class
 
 
 class HelloWorld(object):
@@ -168,7 +168,7 @@ while True:
 </tr>
 </table>
 
-Run `yarpserver` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
+Run `yarpserver` from the command line. Now execute the Python script above (with Wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
 
 
 * **Request-Reply** (req-rep): A requester sends a request to a responder, which responds to the request in a synchronous manner.
@@ -184,7 +184,7 @@ e.g., with ROS
 <sub>
 
 ```python
-# Just your usual python class
+# Just your usual Python class
 
 
 class HelloWorld(object):
@@ -252,7 +252,7 @@ while True:
 
 
 
-Run `roscore` from the command line. Now execute the python script above (with wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
+Run `roscore` from the command line. Now execute the Python script above (with Wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
 Note that the server's command line will not show the message until the client's command line has been used to send a request. The arguments are passed from the client to the server and the server's response is passed back to the client.
 
 For more examples of usage, refer to the [user guide](docs/usage.md). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/master/examples) for trying out Wrapyfi. 
