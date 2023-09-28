@@ -53,5 +53,20 @@ release = project_info['version']
 version = '.'.join(release.split('.')[:2])
 url = project_info['url']
 
+# modify the latex cover page for pdf generation
+latex_elements = {
+    'preamble': r'''
+\usepackage{titling}
+\pretitle{%
+  \begin{center}
+  \vspace{\droptitle}
+  \includegraphics[width=60mm]{../resources/wrapyfi.png}\\[\bigskipamount]
+  \Large{\textbf{''' + project + '''}}\\
+  \normalsize{v''' + release + '''}
+}
+\posttitle{\end{center}}
+'''
+}
+
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.append(os.path.abspath('./_extensions'))
