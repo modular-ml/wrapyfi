@@ -42,6 +42,7 @@ For instance, when `load_mxnet_device=mxnet.gpu(0)` or `load_mxnet_device="cuda:
 Suppose we have the following Wrapyfied method:
 
 ```
+
     @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
                                      carrier="tcp", should_wait=True, load_mxnet_device=mxnet.cpu(0), 
                                      map_mxnet_devices={"cuda:0": "cuda:1", 
