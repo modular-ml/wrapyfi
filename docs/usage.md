@@ -316,13 +316,13 @@ class MXNetTensor(Plugin):
     def __init__(self, load_mxnet_device=None, map_mxnet_devices=None, **kwargs):
 ```
 
-where `map_mxnet_devices` should be `{'default': mxnet.gpu(0)` when `load_mxnet_device=mxnet.gpu(0)` and `map_mxnet_devices=None`.
+where `map_mxnet_devices` should be `{'default': mxnet.gpu(0)}` when `load_mxnet_device=mxnet.gpu(0)` and `map_mxnet_devices=None`.
 For instance, when `load_mxnet_device=mxnet.gpu(0)` or `load_mxnet_device="cuda:0"`, `map_mxnet_devices` can be set manually as a dictionary representing the source device as key and the target device as value for non-default device maps. 
 
 Suppose we have the following Wrapyfied method:
 
 ```
-@MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
+        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
                                          carrier="tcp", should_wait=True, load_mxnet_device=mxnet.cpu(0), 
                                          map_mxnet_devices={"cuda:0": "cuda:1", 
                                                              mxnet.gpu(1): "cuda:0", 
