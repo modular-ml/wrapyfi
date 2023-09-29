@@ -36,27 +36,27 @@ class MXNetTensor(Plugin):
     def __init__(self, load_mxnet_device=None, map_mxnet_devices=None, **kwargs):
 ```
 
-where `map_mxnet_devices` should be `{'default': mxnet.gpu(0)` when `load_mxnet_device=mxnet.gpu(0)` and `map_mxnet_devices=None`.
+where `map_mxnet_devices` should be `{'default': mxnet.gpu(0)}` when `load_mxnet_device=mxnet.gpu(0)` and `map_mxnet_devices=None`.
 For instance, when `load_mxnet_device=mxnet.gpu(0)` or `load_mxnet_device="cuda:0"`, `map_mxnet_devices` can be set manually as a dictionary representing the source device as key and the target device as value for non-default device maps. 
 
 Suppose we have the following Wrapyfied method:
 
 ```
-@MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="tcp", should_wait=True, load_mxnet_device=mxnet.cpu(0), 
-                                         map_mxnet_devices={"cuda:0": "cuda:1", 
-                                                             mxnet.gpu(1): "cuda:0", 
-                                                             "cuda:3": "cpu:0", 
-                                                             mxnet.gpu(2):  mxnet.gpu(0)})
-        def exchange_object(self):
-            msg = input("Type your message: ")
-            ret = {"message": msg,
-                   "mx_ones": mxnet.nd.ones((2, 4)),
-                   "mxnet_zeros_cuda1": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(1)),
-                   "mxnet_zeros_cuda0": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(0)),
-                   "mxnet_zeros_cuda2": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(2)),
-                   "mxnet_zeros_cuda3": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(3))}
-            return ret,
+    @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
+                                     carrier="tcp", should_wait=True, load_mxnet_device=mxnet.cpu(0), 
+                                     map_mxnet_devices={"cuda:0": "cuda:1", 
+                                                         mxnet.gpu(1): "cuda:0", 
+                                                         "cuda:3": "cpu:0", 
+                                                         mxnet.gpu(2):  mxnet.gpu(0)})
+    def exchange_object(self):
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "mx_ones": mxnet.nd.ones((2, 4)),
+               "mxnet_zeros_cuda1": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(1)),
+               "mxnet_zeros_cuda0": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(0)),
+               "mxnet_zeros_cuda2": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(2)),
+               "mxnet_zeros_cuda3": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(3))}
+        return ret,
 ```
 
 then the source and target gpus 1 & 0 would be flipped, gpu 3 would be placed on cpu 0, and gpu 2 would be placed on gpu 0. Defining `mxnet.gpu(1): mxnet.gpu(0)` and `cuda:1`: `cuda:2` in the same mapping should raise an error since the same device is mapped to two different targets.
