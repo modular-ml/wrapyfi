@@ -27,10 +27,9 @@ class ZarrData(Plugin):
 
             if obj_type == 'Array':
                 zarr.save_array(store_path, obj)
-            else:  # obj is a Group
+            else:
                 zarr.save_group(store_path, obj)
 
-            # Now, let's serialize the store directory to bytes
             with io.BytesIO() as binary_stream:
                 with zipfile.ZipFile(binary_stream, 'w') as zipf:
                     for foldername, subfolders, filenames in os.walk(store_path):
@@ -45,7 +44,7 @@ class ZarrData(Plugin):
     def decode(self, obj_type, obj_full, *args, **kwargs):
         obj_data = obj_full[1]
         zarr_type = obj_full[2]
-        zarr_name = obj_full[3]  # zarr_name is used only if zarr_type is 'Array'
+        zarr_name = obj_full[3]  # zarr_name is used only if zarr_type is 'Array'. Currently not used.
 
         with io.BytesIO(base64.b64decode(obj_data.encode('ascii'))) as binary_stream:
             with tempfile.TemporaryDirectory() as tmpdirname:
@@ -56,6 +55,6 @@ class ZarrData(Plugin):
                 if zarr_type == 'Array':
                     array = zarr.open_array(store_path, mode='r')
                     return True, array
-                else:  # Assuming zarr_type is 'Group'
+                else:
                     group = zarr.open_group(store_path, mode='r')
                     return True, group

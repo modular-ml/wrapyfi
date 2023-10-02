@@ -286,6 +286,7 @@ Supported Objects by the `NativeObject` type include:
 * [x] [**Xarray DataArray|Dataset**](http://xarray.pydata.org/en/stable/)
 * [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
 * [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)
+* [x] [**Pint Quantity**](https://pint.readthedocs.io/en/stable/)
 * [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 * [ ] [**Pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
 
