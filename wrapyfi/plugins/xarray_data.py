@@ -25,7 +25,7 @@ class XArrayData(Plugin):
             obj_dict = obj.to_dataset().to_dict()
             obj_type = 'DataArray'
             obj_name = obj.name
-        else:
+        elif isinstance(obj, xr.Dataset):
             obj_dict = obj.to_dict()
 
         def traverse_and_convert(obj):

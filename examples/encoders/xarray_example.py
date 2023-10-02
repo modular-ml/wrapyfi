@@ -54,7 +54,7 @@ if __name__ == "__main__":
                    "string",
                    "string2",
                    0.4344,
-                   {"other": (1, 2, 3, 4.32,)}]
+                   {"other": tuple([1, 2, 3, 4.32],), "set2": {'a', 2, None}}]
             return ret,
 
 

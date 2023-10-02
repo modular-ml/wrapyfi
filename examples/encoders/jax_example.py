@@ -1,5 +1,5 @@
 import argparse
-import jax.numpy as jnp
+import jax_example.numpy as jnp
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

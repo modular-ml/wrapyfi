@@ -307,6 +307,9 @@ Other than native python objects, the following objects are supported:
 * `PIL.Image`
 * `pyarrow.StructArray`
 * `xarray.DataArray` and `xarray.Dataset`
+* `dask.array.Array` and `dask.dataframe.DataFrame`
+* `zarr.core.Array` and `zarr.core.Group`
+
 
 ### Device Mapping for Tensors
 

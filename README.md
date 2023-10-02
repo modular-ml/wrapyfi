@@ -282,11 +282,12 @@ Supported Objects by the `NativeObject` type include:
 * [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 * [x] [**Pandas DataFrame|Series**](https://pandas.pydata.org/docs/)
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
-* [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
-* [ ] [**Pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
 * [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)
 * [x] [**Xarray DataArray|Dataset**](http://xarray.pydata.org/en/stable/)
-* [ ] [**Dask**](https://www.dask.org/get-started)
+* [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
+* [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)
+* [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
+* [ ] [**Pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
 
 ## Image
 

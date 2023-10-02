@@ -20,11 +20,20 @@ class PandasData(Plugin):
 
     def encode(self, obj, *args, **kwargs):
         with io.BytesIO() as memfile:
-            obj.to_json(memfile, orient="records")
+            if isinstance(obj, pandas.DataFrame):
+                obj_type = 'DataFrame'
+                obj.to_json(memfile, orient="split")
+            elif isinstance(obj, pandas.Series):
+                obj_type = 'Series'
+                obj.to_frame().to_json(memfile, orient="split")
             obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data))
+        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data, obj_type))
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
         with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
-            return True, pandas.read_json(memfile, orient="records")
+            obj = pandas.read_json(memfile, orient="split")
+            obj_type = obj_full[2]
+            if obj_type == 'Series':
+                obj = obj.iloc[:, 0]
+        return True, obj
 
