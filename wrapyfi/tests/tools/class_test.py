@@ -1,5 +1,7 @@
-import numpy as np
+import logging
 import time
+import numpy as np
+
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
@@ -16,6 +18,199 @@ class Test(MiddlewareCommunicator):
                "2": 2.73211,
                "dict": {"other": [None, False, 16, 4.32,]}}
         return ret,
+
+    ######################################## Encoders ########################################
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                     carrier="tcp", should_wait="$should_wait")
+    def exchange_object_jax(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_jax", should_wait=False):
+        try:
+            import jax.numpy as jnp
+        except ImportError:
+            logging.warning("jax not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "jax_ones": jnp.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_torch(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_torch", should_wait=False):
+        try:
+            import torch
+        except ImportError:
+            logging.warning("torch not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "torch_ones": torch.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                     carrier="tcp", should_wait="$should_wait")
+    def exchange_object_tensorflow(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_tensorflow", should_wait=False):
+        try:
+            import tensorflow as tf
+        except ImportError:
+            logging.warning("tensorflow not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "tensorflow_ones": tf.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                     carrier="tcp", should_wait="$should_wait")
+    def exchange_object_paddlepadde(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_paddlepadde", should_wait=False):
+        try:
+            import paddle
+        except ImportError:
+            logging.warning("paddlepadde not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "paddlepadde_ones": paddle.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_mxnet(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_mxnet", should_wait=False):
+        try:
+            import mxnet
+        except ImportError:
+            logging.warning("mxnet not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "mxnet_ones": mxnet.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic", carrier="tcp", should_wait="$should_wait")
+    def exchange_object_pyarrow(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_pyarrow", should_wait=False):
+        try:
+            import pyarrow
+        except ImportError:
+            logging.warning("pyarrow not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "pyarrow_ones": pyarrow.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                            carrier="tcp", should_wait="$should_wait")
+    def exchange_object_numpy(msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_numpy", should_wait=False):
+        ret = {"message": msg,
+               "numpy_ones": np.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_pandas(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_pandas", should_wait=False):
+        try:
+            import pandas as pd
+        except ImportError:
+            logging.warning("pandas not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "pandas_ones": pd.DataFrame(np.ones((2, 4)))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_dask(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_dask", should_wait=False):
+        try:
+            import dask.array as da
+        except ImportError:
+            logging.warning("dask not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "dask_ones": da.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_xarray(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_xarray", should_wait=False):
+        try:
+            import xarray as xr
+        except ImportError:
+            logging.warning("xarray not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "xarray_ones": xr.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_sympy(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_sympy", should_wait=False):
+        try:
+            import sympy as sp
+        except ImportError:
+            logging.warning("sympy not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "sympy_ones": sp.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_pint(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_pint", should_wait=False):
+        try:
+            import pint
+        except ImportError:
+            logging.warning("pint not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "pint_ones": pint.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_astropy(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_astropy", should_wait=False):
+        try:
+            import astropy
+        except ImportError:
+            logging.warning("astropy not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "astropy_ones": astropy.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_pillow(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_pillow", should_wait=False):
+        try:
+            import PIL
+        except ImportError:
+            logging.warning("pillow not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "pillow_ones": PIL.ones((2, 4))}
+        return ret,
+
+    @MiddlewareCommunicator.register("NativeObject", "$mware", "Test", "$topic",
+                                        carrier="tcp", should_wait="$should_wait")
+    def exchange_object_opencv(self, msg=None, mware=DEFAULT_COMMUNICATOR, topic="/test/test_opencv", should_wait=False):
+        try:
+            import cv2
+        except ImportError:
+            logging.warning("opencv not installed")
+            return
+        msg = input("Type your message: ")
+        ret = {"message": msg,
+               "opencv_ones": cv2.ones((2, 4))}
+        return ret,
+
+
+
 
 
 def test_func(queue_buffer, mode="listen", mware=DEFAULT_COMMUNICATOR, topic="/test/test_native_exchange", iterations=2,

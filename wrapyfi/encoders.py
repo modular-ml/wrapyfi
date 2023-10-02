@@ -2,6 +2,7 @@ import abc
 import io
 import json
 import base64
+from datetime import datetime
 
 import numpy as np
 
@@ -22,6 +23,12 @@ class JsonEncoder(json.JSONEncoder):
 
         elif isinstance(obj, set):
             return dict(__wrapyfi__=('set', list(obj)))
+
+        elif isinstance(obj, datetime):
+            return dict(__wrapyfi__=('datetime', obj.isoformat()))
+
+        elif isinstance(obj, np.datetime64):
+            return dict(__wrapyfi__=('numpy.datetime64', str(obj)))
 
         elif isinstance(obj, (np.ndarray, np.generic)):
             with io.BytesIO() as memfile:
@@ -57,6 +64,12 @@ class JsonDecodeHook(object):
 
                 elif obj_type == 'set':
                     return set(wrapyfi[1])
+
+                elif obj_type == 'datetime':
+                    return datetime.fromisoformat(wrapyfi[1])
+
+                elif obj_type == 'numpy.datetime64':
+                    return np.datetime64(wrapyfi[1])
 
                 elif obj_type == 'numpy.ndarray':
                     with io.BytesIO(base64.b64decode(wrapyfi[1].encode('ascii'))) as memfile:
