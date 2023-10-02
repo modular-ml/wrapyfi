@@ -280,12 +280,15 @@ Supported Objects by the `NativeObject` type include:
 * [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
 * [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
 * [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
-* [x] [**Pandas Dataframe|Series**](https://pandas.pydata.org/docs/)
+* [x] [**Pandas DataFrame|Series**](https://pandas.pydata.org/docs/)
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
+* [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)
+* [x] [**Xarray DataArray|Dataset**](http://xarray.pydata.org/en/stable/)
+* [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
+* [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)
+* [x] [**Pint Quantity**](https://pint.readthedocs.io/en/stable/)
 * [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
-* [ ] [**Pandas 2.0 Dataframe|Series**](https://pandas.pydata.org/docs/)
-* [x] [**PyArrow**](https://arrow.apache.org/docs/python/index.html)
-* [ ] [**Dask**](https://www.dask.org/get-started)
+* [ ] [**Pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
 
 ## Image
 

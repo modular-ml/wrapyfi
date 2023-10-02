@@ -91,7 +91,7 @@ Setting the decorator's keyword argument `should_wait='$blocking'` expects the d
 Currently, closing a connection requires closing all connections established by every method within that class. 
 
 ```{warning}
-Selectively deactivating method connections is planned for Wrapyfi v0.4.16.
+Selectively deactivating method connections is planned for Wrapyfi v0.5.0.
 ```
 
 To close and delete a `MiddlewareCommunicator` inheriting class means that the middleware connection will be disconnected gracefully. The class references will be removed from all registries, the communication ports will be freed, and the instance will be destroyed. To close a class instance:
@@ -287,7 +287,33 @@ The **NativeObject** message type supports structures beyond native python objec
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
 * Decorating the class with `@PluginRegistrar.register` and appending the plugin to the list of supported objects
 * Appending the script path where the class is defined to the `WRAPYFI_PLUGINS_PATH` environment variable
-* Ensure that the plugin resides within a directory named `plugins` residing inside the `WRAPYFI_PLUGINS_PATH` and that the directory contains an `__init__.py` file
+* Ensure that the plugin resides within a directory named `plugins` nested inside the `WRAPYFI_PLUGINS_PATH` and that the directory contains an `__init__.py` file
+
+#### Plugin Example
+
+An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/astropy_example.py).
+In the example, we append the example's directory to the `WRAPYFI_PLUGINS_PATH` environment variable and import the plugin. 
+The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/plugins) directory
+is then used to encode and decode the custom object (from within the `examples/encoders/` directory): 
+
+```
+# create the publisher with default middleware (changed with --mware). The plugin is automatically loaded
+python3 astropy_example.py --mode publish
+# create the listener with default middleware (changed with --mware). The plugin is automatically loaded
+python3 astropy_example.py --mode listen
+```
+
+from the two terminal outputs, the same object should be printed after typing a random message and pressing enter:
+
+```
+Method result: [{'message': 'hello world', 'astropy_table': <Table length=3>
+  name     flux 
+ bytes8  float64
+-------- -------
+source 1     1.2
+source 2     2.2
+source 3     3.1, 'list': [1, 2, 3]}, 'string', 0.4344, {'other': (1, 2, 3, 4.32)}]
+```
 
 ```{warning}
 Due to differences in versions, the decoding may result in inconsitent outcomes, which must be handled for all versions e.g., MXNet plugin differences are handled in the existing plugin. 
@@ -306,6 +332,11 @@ Other than native python objects, the following objects are supported:
 * `paddle.Tensor`
 * `PIL.Image`
 * `pyarrow.StructArray`
+* `xarray.DataArray` and `xarray.Dataset`
+* `dask.array.Array` and `dask.dataframe.DataFrame`
+* `zarr.core.Array` and `zarr.core.Group`
+* `pint.Quantity`
+
 
 ### Device Mapping for Tensors
 
