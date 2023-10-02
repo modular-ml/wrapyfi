@@ -25,6 +25,7 @@ Other than native python objects, the following objects are supported:
 * `paddle.Tensor`
 * `PIL.Image`
 * `pyarrow.StructArray`
+* `xarray.DataArray` and `xarray.Dataset`
 
 ### Device Mapping for Tensors
 
