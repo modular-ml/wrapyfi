@@ -39,7 +39,7 @@ class ZeroMQPublisher(Publisher):
         :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
-        :param socket_ip: str: IP address of the socket. Default is '127.0.0.1
+        :param socket_ip: str: IP address of the socket. Default is '127.0.0.1'
         :param socket_pub_port: int: Port of the socket for publishing. Default is 5555
         :param socket_sub_port: int: Port of the socket for subscribing. Default is 5556
         :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True

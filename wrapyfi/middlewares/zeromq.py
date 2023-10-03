@@ -121,7 +121,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_device(socket_rep_address="tcp://127.0.0.1:5559", server_req_address="tcp://127.0.0.1:5560", **kwargs):
+    def __init_device(socket_rep_address="tcp://127.0.0.1:5559", socket_req_address="tcp://127.0.0.1:5560", **kwargs):
         xrep = zmq.Context.instance().socket(zmq.XREP)
         try:
             xrep.bind(socket_rep_address)
@@ -130,9 +130,9 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
             return
         xreq = zmq.Context.instance().socket(zmq.XREQ)
         try:
-            xreq.bind(server_req_address)
+            xreq.bind(socket_req_address)
         except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {server_req_address}")
+            logging.error(f"[ZeroMQ] {e} {socket_req_address}")
             return
         # logging.info(f"[ZeroMQ] Intialising REP/REQ device broker")
         zmq.proxy(xrep, xreq)
