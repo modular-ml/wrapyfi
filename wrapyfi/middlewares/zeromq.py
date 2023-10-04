@@ -3,13 +3,17 @@ import atexit
 import threading
 import multiprocessing
 import time
+from collections import defaultdict
+import json
 
 import zmq
 
 from wrapyfi.utils import SingletonOptimized
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
-ZEROMQ_POST_OPTS = ["SUBSCRIBE", "UNSUBSCRIBE", "LINGER", "ROUTER_HANDOVER", "ROUTER_MANDATORY", "PROBE_ROUTER", "XPUB_VERBOSE", "XPUB_VERBOSER", "REQ_CORRELATE", "REQ_RELAXED", "SNDHWM", "RCVHWM"]
+ZEROMQ_POST_OPTS = ["SUBSCRIBE", "UNSUBSCRIBE", "LINGER", "ROUTER_HANDOVER", "ROUTER_MANDATORY", "PROBE_ROUTER",
+                    "XPUB_VERBOSE", "XPUB_VERBOSER", "REQ_CORRELATE", "REQ_RELAXED", "SNDHWM", "RCVHWM"]
+ZEROMQ_PUBSUB_MONITOR_TOPIC = "ZEROMQ/CONNECTIONS"
 
 
 class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
@@ -55,22 +59,83 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_proxy(socket_pub_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556", **kwargs):
-        xpub = zmq.Context.instance().socket(zmq.XPUB)
-        try:
-            xpub.bind(socket_pub_address)
-        except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {socket_pub_address}")
-            return
-        xsub = zmq.Context.instance().socket(zmq.XSUB)
-        try:
-            xsub.bind(socket_sub_address)
-        except zmq.ZMQError as e:
-            logging.error(f"[ZeroMQ] {e} {socket_sub_address}")
-            return
-        # logging.info(f"[ZeroMQ] Intialising PUB/SUB proxy broker")
-        zmq.proxy(xpub, xsub)
+    def proxy_thread(socket_pub_address="tcp://127.0.0.1:5555",
+                     socket_sub_address="tcp://127.0.0.1:5556",
+                     inproc_address="inproc://monitor"):
+        context = zmq.Context.instance()
+        xpub = context.socket(zmq.XPUB)
+        xsub = context.socket(zmq.XSUB)
+        xpub.setsockopt(zmq.XPUB_VERBOSE, 1)
 
+        xpub.bind(socket_pub_address)
+        xsub.bind(socket_sub_address)
+
+        monitor = context.socket(zmq.PUB)
+        monitor.bind(inproc_address)
+
+        zmq.proxy(xpub, xsub, monitor)
+
+    @staticmethod
+    def subscription_monitor(inproc_address="inproc://monitor",
+                             socket_sub_address="tcp://127.0.0.1:5556", verbose=False):
+        context = zmq.Context.instance()
+        subscriber = context.socket(zmq.SUB)
+        subscriber.connect(inproc_address)
+        subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
+
+        # PUB socket to publish subscriber counts.
+        publisher = context.socket(zmq.PUB)
+        publisher.connect(socket_sub_address)
+
+        topic_subscriber_count = defaultdict(int)
+
+        while True:
+            try:
+                message = subscriber.recv()
+                if verbose:
+                    logging.info(f"Raw message: {message}")
+
+                # ensure the message is a subscription/unsubscription message
+                if len(message) > 1 and (message[0] == 1 or message[0] == 0):
+                    event = message[0]
+                    topic = message[1:].decode('utf-8')
+
+                    if verbose:
+                        logging.info(f"Received event: {event}, topic: {topic}")
+
+                    # avoid processing messages on the monitor topic.
+                    if topic == ZEROMQ_PUBSUB_MONITOR_TOPIC:
+                        continue
+
+                    # update the count of subscribers for the topic
+                    if event == 1:  # subscribe
+                        topic_subscriber_count[topic] += 1
+                    elif event == 0:  # unsubscribe
+                        topic_subscriber_count[topic] -= 1
+
+                    if verbose:
+                        logging.info(f"Current topic subscriber count: {dict(topic_subscriber_count)}")
+
+                    # publish the updated counts
+                    publisher.send_multipart(
+                        [ZEROMQ_PUBSUB_MONITOR_TOPIC.encode(), json.dumps(dict(topic_subscriber_count)).encode()]
+                    )
+            except Exception as e:
+                logging.error(f"An error occurred in subscription_monitor: {str(e)}")
+
+    def __init_proxy(self, socket_pub_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556",
+                     **kwargs):
+        inproc_address = "inproc://monitor"
+
+        threading.Thread(target=self.proxy_thread,
+                         kwargs={"socket_pub_address": socket_pub_address,
+                                 "socket_sub_address": socket_sub_address,
+                                 "inproc_address": inproc_address}).start(),
+
+        threading.Thread(target=self.subscription_monitor,
+                         kwargs={"socket_sub_address": socket_sub_address,
+                                 "inproc_address": inproc_address,
+                                 "verbose": kwargs.get("verbose", False)}).start()
 
     @staticmethod
     def deinit():
