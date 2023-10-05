@@ -263,12 +263,13 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 * [x] **YARP**
 * [x] **ROS**
 * [x] **ROS 2**
-* [x] **ZeroMQ** (TODO: proper `should_wait` trigger instead of dummy argument for awaiting connection establishment)
+* [x] **ZeroMQ** (beta feature: `should_wait` trigger introduced with event monitoring)
 
 
 ## Serializers
 * [x] **JSON**
 * [ ] **msgpack**
+* [ ] **protobuf**
 
 ## Data Structures
 
@@ -287,8 +288,8 @@ Supported Objects by the `NativeObject` type include:
 * [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
 * [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)
 * [x] [**Pint Quantity**](https://pint.readthedocs.io/en/stable/)
-* [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 * [ ] [**Pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
+* [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 
 ## Image
 
