@@ -46,9 +46,21 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             with self.lock:
                 self.shared_connections[topic] = data
 
+        def remove_connection(self, topic):
+            with self.lock:
+                if topic in list(self.shared_connections.keys()):
+                    del self.shared_connections[topic]
+
         def get_connections(self):
             with self.lock:
                 return dict(self.shared_connections)
+
+        def is_connected(self, topic):
+            with self.lock:
+                if topic in list(self.shared_connections.keys()):
+                    return True
+                else:
+                    return False
 
     @staticmethod
     def activate(**kwargs):
@@ -81,6 +93,24 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
         # start the pubsub proxy and monitor
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
+            # start the pubsub monitor listener
+            if zeromq_proxy_kwargs.get("pubsub_monitor_listener_spawn", False):
+                if zeromq_proxy_kwargs["pubsub_monitor_listener_spawn"] == "process":
+                    self.shared_monitor_data = self.ZeroMQSharedMonitorData(use_multiprocessing=True)
+                    self.monitor = multiprocessing.Process(name='zeromq_pubsub_monitor_listener',
+                                                           target=self.__init_monitor_listener,
+                                                           kwargs=zeromq_proxy_kwargs)
+                    self.monitor.daemon = True
+                    self.monitor.start()
+                else:  # if threaded
+                    self.shared_monitor_data = self.ZeroMQSharedMonitorData(use_multiprocessing=False)
+                    self.monitor = threading.Thread(name='pubsub_monitor_listener_spawn',
+                                                    target=self.__init_monitor_listener, kwargs=zeromq_proxy_kwargs)
+                    self.monitor.setDaemon(True)
+                    self.monitor.start()
+
+            time.sleep(1)
+
             if zeromq_proxy_kwargs.get("start_proxy_broker", False):
                 if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
                     self.proxy = multiprocessing.Process(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=zeromq_proxy_kwargs)
@@ -91,19 +121,9 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                     self.proxy.setDaemon(True)
                     self.proxy.start()
             pass
-        
-            # start the pubsub monitor listener
-            if zeromq_proxy_kwargs.get("pubsub_monitor_listener_spawn", False):
-                if zeromq_proxy_kwargs["pubsub_monitor_listener_spawn"] == "process":
-                    self.shared_monitor_data = self.ZeroMQSharedMonitorData(use_multiprocessing=True)
-                    self.monitor = multiprocessing.Process(name='zeromq_pubsub_monitor_listener', target=self.__init_monitor_listener, kwargs=zeromq_proxy_kwargs)
-                    self.monitor.daemon = True
-                    self.monitor.start()
-                else:  # if threaded
-                    self.shared_monitor_data = self.ZeroMQSharedMonitorData(use_multiprocessing=False)
-                    self.monitor = threading.Thread(name='pubsub_monitor_listener_spawn', target=self.__init_monitor_listener, kwargs=zeromq_proxy_kwargs)
-                    self.monitor.setDaemon(True)
-                    self.monitor.start()
+
+
+
                 
     @staticmethod
     def proxy_thread(socket_pub_address="tcp://127.0.0.1:5555",
@@ -159,7 +179,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                     if event == 1:  # subscribe
                         topic_subscriber_count[topic] += 1
                     elif event == 0:  # unsubscribe
-                        topic_subscriber_count[topic] -= 1
+                        topic_subscriber_count[topic] = 0
 
                     if verbose:
                         logging.info(f"[ZeroMQ BROKER] Current topic subscriber count: {dict(topic_subscriber_count)}")
@@ -206,7 +226,11 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
                 if topic in self.shared_monitor_data.get_topics():
                     self.shared_monitor_data.update_connection(topic, data)
-                    logging.info(f"[ZeroMQ] {data[topic]} subscribers connected to topic: {topic}")
+                    if data[topic] == 0:
+                        logging.info(f"[ZeroMQ] Subscriber disconnected from topic: {topic}")
+                        self.shared_monitor_data.remove_connection(topic)
+                    else:
+                        logging.info(f"[ZeroMQ] Subscriber connected to topic: {topic}")
 
                 if verbose:
                     for monitored_topic in self.shared_monitor_data.get_topics():

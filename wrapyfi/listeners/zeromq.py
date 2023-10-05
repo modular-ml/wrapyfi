@@ -78,8 +78,7 @@ class ZeroMQListener(Listener):
 
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                # TODO (fabawi): communicate with proxy broker to check whether publisher exists
-                connected = True
+                connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(in_topic)
                 if connected:
                     logging.info(f"[ZeroMQ] Connected to input port: {in_topic}")
                     break
@@ -147,17 +146,17 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
+        self._socket = zmq.Context.instance().socket(zmq.SUB)
+        for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+            if isinstance(socket_property[1], str):
+                self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+            else:
+                self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+        self._socket.connect(self.socket_address)
+        self._topic = self.in_topic.encode("utf-8")
+        self._socket.setsockopt_string(zmq.SUBSCRIBE, self.in_topic)
+
         established = self.await_connection(repeats=repeats)
-        if established:
-            self._socket = zmq.Context.instance().socket(zmq.SUB)
-            for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
-                if isinstance(socket_property[1], str):
-                    self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
-                else:
-                    self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
-            self._socket.connect(self.socket_address)
-            self._topic = self.in_topic.encode("utf-8")
-            self._socket.setsockopt_string(zmq.SUBSCRIBE, self.in_topic)
 
         return self.check_establishment(established)
 

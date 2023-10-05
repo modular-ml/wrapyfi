@@ -64,7 +64,7 @@ class YarpPublisher(Publisher):
                 repeats = 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                connected = port.getOutputCount() < 1
+                connected = port.getOutputCount() > 0
                 if connected:
                     break
                 time.sleep(0.02)

@@ -92,8 +92,7 @@ class ZeroMQPublisher(Publisher):
                 repeats = 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                # TODO (fabawi): actually check connection based on the new Param server
-                connected = True
+                connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(out_topic)
                 # connected = port.getOutputCount() < 1
                 if connected:
                     break
