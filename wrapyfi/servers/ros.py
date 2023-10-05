@@ -58,7 +58,7 @@ class ROSNativeObjectServer(ROSServer):
             [args, kwargs] = json.loads(request.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except rospy.ServiceException as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS] Service call failed: %s" % e)
             return [], {}
 
     @staticmethod
@@ -74,7 +74,7 @@ class ROSNativeObjectServer(ROSServer):
             obj_msg.data = obj_str
             ROSNativeObjectServer.SEND_QUEUE.put(obj_msg, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
 
 
@@ -114,7 +114,7 @@ class ROSImageServer(ROSServer):
             [args, kwargs] = json.loads(request.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except rospy.ServiceException as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS] Service call failed: %s" % e)
             return [], {}
 
     @staticmethod
@@ -138,7 +138,7 @@ class ROSImageServer(ROSServer):
             img_msg.data = img.tobytes()
             ROSImageServer.SEND_QUEUE.put(img_msg, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
 
 
@@ -173,7 +173,7 @@ class ROSAudioChunkServer(ROSServer):
                                         **self._deserializer_kwargs)
             return args, kwargs
         except rospy.ServiceException as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS] Service call failed: %s" % e)
             return [], {}
 
     @staticmethod
@@ -201,5 +201,5 @@ class ROSAudioChunkServer(ROSServer):
             aud_msg.data = aud.tobytes()
             ROSImageServer.SEND_QUEUE.put(aud_msg, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")

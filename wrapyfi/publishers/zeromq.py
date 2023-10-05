@@ -25,15 +25,16 @@ PARAM_POLL_INTERVAL = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL", 1
 START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
 ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC", "ZEROMQ/CONNECTIONS")
-
+ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN", "process")
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQPublisher(Publisher):
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, socket_sub_port: int = SOCKET_SUB_PORT,
-                 start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
+                 start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: str = PROXY_BROKER_SPAWN,
                  pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
+                 pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher and start the proxy broker if necessary
@@ -48,25 +49,28 @@ class ZeroMQPublisher(Publisher):
         :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True
         :param proxy_broker_spawn: str: Whether to spawn the proxy broker as a process or thread. Default is 'process'
         :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
+        :param pubsub_monitor_listener_spawn: str: Whether to spawn the pub/sub monitor listener as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ Pub/Sub middleware
         :param kwargs: Additional kwargs for the publisher
         """
         if carrier != "tcp":
-            logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
 
         # out_topic is equivalent to topic in zeromq
         self.socket_pub_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
-        if start_proxy_broker:
-            ZeroMQMiddlewarePubSub.activate(socket_pub_address=self.socket_pub_address,
-                                            socket_sub_address=self.socket_sub_address,
-                                            proxy_broker_spawn=proxy_broker_spawn,
-                                            proxy_pubsub_monitor_topic=pubsub_monitor_topic,
-                                            **zeromq_kwargs or {})
-        else:
-            ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
+
+        ZeroMQMiddlewarePubSub.activate(socket_pub_address=self.socket_pub_address,
+                                        socket_sub_address=self.socket_sub_address,
+                                        start_proxy_broker=start_proxy_broker,
+                                        proxy_broker_spawn=proxy_broker_spawn,
+                                        pubsub_monitor_topic=pubsub_monitor_topic,
+                                        pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
+                                        **zeromq_kwargs or {})
+
+        ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.out_topic)
 
     def await_connection(self, socket=None, out_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
@@ -80,7 +84,7 @@ class ZeroMQPublisher(Publisher):
         connected = False
         if out_topic is None:
             out_topic = self.out_topic
-        logging.info(f"Waiting for output connection: {out_topic}")
+        logging.info(f"[ZeroMQ] Waiting for output connection: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -94,13 +98,16 @@ class ZeroMQPublisher(Publisher):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"Output connection established: {out_topic}")
+        logging.info(f"[ZeroMQ] Output connection established: {out_topic}")
         return connected
 
     def close(self):
         """
         Close the publisher
         """
+        ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.out_topic)
+        time.sleep(0.2)
+
         if hasattr(self, "_socket") and self._socket:
             if self._socket is not None:
                 self._socket.close()

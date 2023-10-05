@@ -39,7 +39,7 @@ class ROS2Publisher(Publisher, Node):
         """
         carrier = "udp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+            logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
@@ -60,7 +60,7 @@ class ROS2Publisher(Publisher, Node):
         connected = False
         if out_topic is None:
             out_topic = self.out_topic
-        logging.info(f"Waiting for topic subscriber: {out_topic}")
+        logging.info(f"[ROS2] Waiting for topic subscriber: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -72,7 +72,7 @@ class ROS2Publisher(Publisher, Node):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"Topic subscriber connected: {out_topic}")
+        logging.info(f"[ROS2] Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):

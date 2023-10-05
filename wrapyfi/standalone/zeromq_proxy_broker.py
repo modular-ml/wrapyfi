@@ -30,13 +30,11 @@ def main(comm_type, socket_ip, socket_pub_port, socket_sub_port, socket_rep_port
         xpub_addr = f"tcp://{socket_ip}:{socket_pub_port}"
         xsub_addr = f"tcp://{socket_ip}:{socket_sub_port}"
         context = zmq.Context()
-        # create XPUB
         xpub_socket = context.socket(zmq.XPUB)
         xpub_socket.bind(xpub_addr)
-        # create XSUB
         xsub_socket = context.socket(zmq.XSUB)
         xsub_socket.bind(xsub_addr)
-        # create poller
+
         poller = zmq.Poller()
         poller.register(xpub_socket, zmq.POLLIN)
         poller.register(xsub_socket, zmq.POLLIN)

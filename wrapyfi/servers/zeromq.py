@@ -38,7 +38,7 @@ class ZeroMQServer(Server):
         :param kwargs: Additional kwargs for the server
         """
         if carrier != "tcp":
-            logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
 
@@ -127,7 +127,7 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
             args, kwargs = request
             return args, kwargs
         except json.JSONDecodeError as e:
-            logging.error(f"Failed to decode message: {e}")
+            logging.error(f"[ZeroMQ] Failed to decode message: {e}")
             return None, None
 
     def reply(self, obj):

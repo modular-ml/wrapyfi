@@ -59,7 +59,7 @@ class ROSNativeObjectClient(ROSClient):
         try:
             self._request(*args, **kwargs)
         except rospy.ServiceException as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -78,7 +78,7 @@ class ROSNativeObjectClient(ROSClient):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None
 
@@ -120,7 +120,7 @@ class ROSImageClient(ROSClient):
         try:
             self._request(*args, **kwargs)
         except rospy.ServiceException as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -145,7 +145,7 @@ class ROSImageClient(ROSClient):
                 img = img.squeeze(axis=2)
             return img
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None
 
@@ -181,7 +181,7 @@ class ROSAudioChunkClient(ROSClient):
         try:
             self._request(*args, **kwargs)
         except rospy.ServiceException as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -205,7 +205,7 @@ class ROSAudioChunkClient(ROSClient):
                 (chunk, channels))
             return aud, self.rate
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None, self.rate
 

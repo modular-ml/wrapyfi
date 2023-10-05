@@ -37,7 +37,7 @@ class ROSListener(Listener):
         :param kwargs: dict: Additional kwargs for the subscriber
         """
         if carrier != "tcp":
-            logging.warning("ROS does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ROS] ROS does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
@@ -112,7 +112,7 @@ class ROSNativeObjectListener(ROSListener):
         try:
             self._queue.put(msg.data, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("Image", "ros")
@@ -211,7 +211,7 @@ class ROSImageListener(ROSListener):
             else:
                 self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("AudioChunk", "ros")
@@ -276,7 +276,7 @@ class ROSAudioChunkListener(ROSListener):
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("Properties", "ros")
@@ -316,7 +316,7 @@ class ROSPropertiesListener(ROSListener):
         connected = False
         if in_topic is None:
             in_topic = self.in_topic
-        logging.info(f"Waiting for property: {in_topic}")
+        logging.info(f"[ROS] Waiting for property: {in_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -328,7 +328,7 @@ class ROSPropertiesListener(ROSListener):
                 self.previous_property = rospy.get_param(self.in_topic, False)
                 connected = True if self.previous_property else False
                 if connected:
-                    logging.info(f"Found property: {in_topic}")
+                    logging.info(f"[ROS] Found property: {in_topic}")
                     break
                 time.sleep(0.2)
         return connected
@@ -414,5 +414,5 @@ class ROSMessageListener(ROSListener):
         try:
             self._queue.put(msg, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
 

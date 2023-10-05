@@ -15,7 +15,7 @@ def access_nested_dict(d, keys):
 
 
 def parse_prefix(param_full: str, topics: dict):
-    # Split the string by '/' to get the individual components
+    # split the string by '/' to get the individual components
     components = param_full.split('/')
     # If there is only one component in the list, add it to the topics dictionary
     # as a value and return
@@ -33,14 +33,14 @@ def parse_prefix(param_full: str, topics: dict):
     # key in the topics dictionary
     else:
         topics[key] = parse_prefix("/".join(components), topics[key])
-    # Return the updated topics dictionary
+    # return the updated topics dictionary
     return topics
 
 
 def reverse_parse_prefix(topics: dict, prefix: str = ""):
-    # Create an empty list to store the generated strings
+    # create an empty list to store the generated strings
     strings = []
-    # Iterate over the keys in the topics dictionary
+    # iterate over the keys in the topics dictionary
     for key in topics:
         # If the value of the key is a string, add the key and value to the list
         # of strings as a '/' separated string
@@ -53,7 +53,7 @@ def reverse_parse_prefix(topics: dict, prefix: str = ""):
             nested_strings = reverse_parse_prefix(topics[key])
             for string in nested_strings:
                 strings.append(key + '/' + string)
-    # Return the list of strings filtered for repeated /'s
+    # return the list of strings filtered for repeated /'s
     return [prefix + string.replace('//', '/') for string in strings]
 
 
@@ -86,21 +86,21 @@ def main(role, param_ip, param_pub_port, param_sub_port, param_reqrep_port, para
         param_server.setsockopt(zmq.RCVTIMEO, 2000)
 
         while True:
-            # Send a request to the request server starting with write, read, delete, set or get
+            # send a request to the request server starting with write, read, delete, set or get
             new_commands = str(input(f"input command: (default - {default_command})")) or default_command
             default_command = new_commands
-            # Pass a list of commands to the request server e.g. ['set /foo/bar/21', 'set /foo/bar/baz/42', 'get /foo/bar', 'delete /foo/bar/baz', 'read /foo']
+            # pass a list of commands to the request server e.g. ['set /foo/bar/21', 'set /foo/bar/baz/42', 'get /foo/bar', 'delete /foo/bar/baz', 'read /foo']
             if '[' in new_commands:
                 new_commands = new_commands.replace('[\'', '').replace('\']', '')
                 new_commands = new_commands.split('\', \'')
-            # Write supports writing full tree dicts e.g. write {'foo': {'bar': {'': '42', 'car': '43'}}}
+            # write supports writing full tree dicts e.g. write {'foo': {'bar': {'': '42', 'car': '43'}}}
             elif 'write' in new_commands:
                 new_commands = new_commands.replace('write ', '')
                 if new_commands.startswith('{'):
                     new_commands = new_commands.replace('\n', '').replace('\t', '')
                     new_commands = json.loads(new_commands)
                     new_commands = reverse_parse_prefix(new_commands, prefix="set ")
-            # Pass commands directly to the request server e.g. set /foo/bar/42
+            # pass commands directly to the request server e.g. set /foo/bar/42
             else:
                 new_commands = [new_commands]
 
@@ -117,13 +117,13 @@ def main(role, param_ip, param_pub_port, param_sub_port, param_reqrep_port, para
                     prev_params = Counter()
                     param = "!"
                     while True:
-                        # Receive updates from the parameter server
+                        # receive updates from the parameter server
                         try:
                             prefix, param, value = param_server.recv_multipart()
                         except zmq.error.Again:
                             print("No new parameters received. Need atleast one topic to subscribe to.")
                             break
-                        # Construct the full parameter name with the namespace prefix
+                        # construct the full parameter name with the namespace prefix
                         prefix, param, value = prefix.decode('utf-8'), param.decode('utf-8'), value.decode('utf-8')
                         if (param in prev_params or param is None) and prev_params[param] == param_poll_repeat:
                             break
@@ -139,7 +139,7 @@ def main(role, param_ip, param_pub_port, param_sub_port, param_reqrep_port, para
                     print(json.dumps({current_prefix.decode('utf-8'): topic_results}, indent=None, default=str))
                     print("Reverse parse (always in set mode regardless of the transmitted command):")
                     print(reverse_parse_prefix(topic_results, prefix=f"set {current_prefix.decode('utf-8')}/"))
-                    # Close the connection
+                    # close the connection
                     param_server.unsubscribe(current_prefix)
 
 

@@ -15,13 +15,18 @@ from wrapyfi.encoders import JsonDecodeHook
 
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
 SOCKET_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_PUB_PORT", 5555))
+ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC", "ZEROMQ/CONNECTIONS")
+ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN", "process")
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQListener(Listener):
 
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True,
-                 socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
+                 socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT,
+                 pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
+                 pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
+                 zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the subscriber
 
@@ -33,17 +38,24 @@ class ZeroMQListener(Listener):
         :param socket_pub_port: int: Port of the socket for publishing.
                                  Note that the subscriber listens directly to this port which is proxied .
                                  Default is 5555
+        :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
+        :param pubsub_monitor_listener_spawn: str: Whether to spawn the pub/sub monitor listener as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
         if carrier != "tcp":
-            logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
 
         self.socket_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
 
-        ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})
+        ZeroMQMiddlewarePubSub.activate(socket_pub_address=self.socket_address,
+                                        pubsub_monitor_topic=pubsub_monitor_topic,
+                                        pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
+                                        **zeromq_kwargs or {})
+
+        ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.in_topic)
 
     def await_connection(self, socket=None, in_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
@@ -57,7 +69,7 @@ class ZeroMQListener(Listener):
         connected = False
         if in_topic is None:
             in_topic = self.in_topic
-        logging.info(f"Waiting for input port: {in_topic}")
+        logging.info(f"[ZeroMQ] Waiting for input port: {in_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -69,7 +81,7 @@ class ZeroMQListener(Listener):
                 # TODO (fabawi): communicate with proxy broker to check whether publisher exists
                 connected = True
                 if connected:
-                    logging.info(f"Connected to input port: {in_topic}")
+                    logging.info(f"[ZeroMQ] Connected to input port: {in_topic}")
                     break
                 time.sleep(0.2)
         return connected
@@ -93,6 +105,9 @@ class ZeroMQListener(Listener):
         """
         Close the subscriber
         """
+        ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.in_topic)
+        time.sleep(0.2)
+
         if hasattr(self, "_socket") and self._socket:
             if self._socket is not None:
                 self._socket.close()

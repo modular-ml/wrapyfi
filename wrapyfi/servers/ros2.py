@@ -59,7 +59,7 @@ class ROS2NativeObjectServer(ROS2Server):
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
             import wrapyfi
-            logging.error("Could not import ROS2NativeObjectService. "
+            logging.error("[ROS2] Could not import ROS2NativeObjectService. "
                           "Make sure the ros2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -84,7 +84,7 @@ class ROS2NativeObjectServer(ROS2Server):
             [args, kwargs] = json.loads(request.request, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except Exception as e:
-            logging.error("Service call failed %s" % e)
+            logging.error("[ROS2] Service call failed %s" % e)
             return [], {}
 
     @staticmethod
@@ -99,6 +99,6 @@ class ROS2NativeObjectServer(ROS2Server):
             self._rep_msg.response = obj_str
             ROS2NativeObjectServer.SEND_QUEUE.put(self._rep_msg, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
 

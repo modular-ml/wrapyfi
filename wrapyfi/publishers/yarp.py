@@ -56,7 +56,7 @@ class YarpPublisher(Publisher):
         connected = False
         if out_topic is None:
             out_topic = self.out_topic
-        logging.info(f"Waiting for output connection: {out_topic}")
+        logging.info(f"[YARP] Waiting for output connection: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -68,7 +68,7 @@ class YarpPublisher(Publisher):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"Output connection established: {out_topic}")
+        logging.info(f"[YARP] Output connection established: {out_topic}")
         return connected
 
     def close(self):

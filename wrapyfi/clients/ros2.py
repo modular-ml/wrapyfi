@@ -53,7 +53,7 @@ class ROS2NativeObjectClient(ROS2Client):
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
             import wrapyfi
-            logging.error("Could not import ROS2NativeObjectService. "
+            logging.error("[ROS2] Could not import ROS2NativeObjectService. "
                           "Make sure the ros2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -62,7 +62,7 @@ class ROS2NativeObjectClient(ROS2Client):
         self._req_msg = ROS2NativeObjectService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('Service not available, waiting again...')
+            logging.info('[ROS2] Service not available, waiting again...')
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -71,7 +71,7 @@ class ROS2NativeObjectClient(ROS2Client):
         try:
             self._request(*args, **kwargs)
         except Exception as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[ROS2] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -89,7 +89,7 @@ class ROS2NativeObjectClient(ROS2Client):
                     obj = json.loads(msg.response, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
                     self._queue.put(obj, block=False)
                 except Exception as e:
-                    logging.error("Service call failed: %s" % e)
+                    logging.error("[ROS2] Service call failed: %s" % e)
                 break
 
     def _await_reply(self):
@@ -97,6 +97,6 @@ class ROS2NativeObjectClient(ROS2Client):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[ROS2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None

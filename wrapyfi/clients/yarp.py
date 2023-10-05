@@ -47,7 +47,7 @@ class YarpNativeObjectClient(YarpClient):
 
     def establish(self):
         while not yarp.Network.exists(self.in_topic):
-            logging.info(f"Waiting for input port: {self.in_topic}")
+            logging.info(f"[YARP] Waiting for input port: {self.in_topic}")
             time.sleep(0.2)
         self._port = yarp.RpcClient()
         rnd_id = str(np.random.randint(100000, size=1)[0])
@@ -62,7 +62,7 @@ class YarpNativeObjectClient(YarpClient):
         try:
             self._request(*args, **kwargs)
         except Exception as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[YARP] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -84,7 +84,7 @@ class YarpNativeObjectClient(YarpClient):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"Discarding data because queue is full. "
+            logging.warning(f"[YARP] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None
 

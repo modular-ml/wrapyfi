@@ -64,7 +64,7 @@ class YarpNativeObjectServer(YarpServer):
             [args, kwargs] = json.loads(obj_msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except Exception as e:
-            logging.error("Service call failed: %s" % e)
+            logging.error("[YARP] Service call failed: %s" % e)
             return [], {}
 
     def reply(self, obj):

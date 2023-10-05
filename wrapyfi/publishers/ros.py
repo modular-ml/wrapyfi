@@ -39,7 +39,7 @@ class ROSPublisher(Publisher):
         :param kwargs: dict: Additional kwargs for the publisher
         """
         if carrier != "tcp":
-            logging.warning("ROS2 does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ROS] ROS does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
@@ -58,7 +58,7 @@ class ROSPublisher(Publisher):
         connected = False
         if out_topic is None:
             out_topic = self.out_topic
-        logging.info(f"Waiting for topic subscriber: {out_topic}")
+        logging.info(f"[ROS] Waiting for topic subscriber: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -70,7 +70,7 @@ class ROSPublisher(Publisher):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"Topic subscriber connected: {out_topic}")
+        logging.info(f"[ROS] Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):

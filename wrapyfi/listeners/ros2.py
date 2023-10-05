@@ -39,7 +39,7 @@ class ROS2Listener(Listener, Node):
         """
         carrier = "udp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+            logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
 
@@ -118,7 +118,7 @@ class ROS2NativeObjectListener(ROS2Listener):
         try:
             self._queue.put(msg.data, block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("Image", "ros2")
@@ -217,7 +217,7 @@ class ROS2ImageListener(ROS2Listener):
             else:
                 self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("AudioChunk", "ros2")
@@ -284,7 +284,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         try:
             self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
-            logging.warning(f"Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
 
 
@@ -305,7 +305,7 @@ class ROS2PropertiesListener(ROS2Listener):
         connected = False
         if port is None:
             port = self.in_topic
-        logging.info(f"Waiting for property: {port}")
+        logging.info(f"[ROS2] Waiting for property: {port}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -318,7 +318,7 @@ class ROS2PropertiesListener(ROS2Listener):
                                                                alternative_value=Parameter("default", Parameter.Type.BOOL, False))
                 connected = True if bool(self.previous_property) else False
                 if connected:
-                    logging.info(f"Found property: {port}")
+                    logging.info(f"[ROS2] Found property: {port}")
                     break
                 time.sleep(0.2)
         return connected
