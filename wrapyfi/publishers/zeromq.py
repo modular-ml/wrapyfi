@@ -24,6 +24,8 @@ PARAM_REQREP_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_REQREP_PORT", 5659)
 PARAM_POLL_INTERVAL = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL", 1))
 START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
+ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC", "ZEROMQ/CONNECTIONS")
+
 WATCHDOG_POLL_REPEAT = None
 
 
@@ -31,6 +33,7 @@ class ZeroMQPublisher(Publisher):
     def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
                  socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, socket_sub_port: int = SOCKET_SUB_PORT,
                  start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
+                 pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher and start the proxy broker if necessary
@@ -44,6 +47,7 @@ class ZeroMQPublisher(Publisher):
         :param socket_sub_port: int: Port of the socket for subscribing. Default is 5556
         :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True
         :param proxy_broker_spawn: str: Whether to spawn the proxy broker as a process or thread. Default is 'process'
+        :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ Pub/Sub middleware
         :param kwargs: Additional kwargs for the publisher
         """
@@ -59,6 +63,7 @@ class ZeroMQPublisher(Publisher):
             ZeroMQMiddlewarePubSub.activate(socket_pub_address=self.socket_pub_address,
                                             socket_sub_address=self.socket_sub_address,
                                             proxy_broker_spawn=proxy_broker_spawn,
+                                            proxy_pubsub_monitor_topic=pubsub_monitor_topic,
                                             **zeromq_kwargs or {})
         else:
             ZeroMQMiddlewarePubSub.activate(**zeromq_kwargs or {})

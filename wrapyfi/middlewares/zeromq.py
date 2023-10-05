@@ -13,7 +13,6 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 ZEROMQ_POST_OPTS = ["SUBSCRIBE", "UNSUBSCRIBE", "LINGER", "ROUTER_HANDOVER", "ROUTER_MANDATORY", "PROBE_ROUTER",
                     "XPUB_VERBOSE", "XPUB_VERBOSER", "REQ_CORRELATE", "REQ_RELAXED", "SNDHWM", "RCVHWM"]
-ZEROMQ_PUBSUB_MONITOR_TOPIC = "ZEROMQ/CONNECTIONS"
 
 
 class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
@@ -49,10 +48,12 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
+                kwargs["proxy_pubsub_monitor_topic"] = zeromq_proxy_kwargs["proxy_pubsub_monitor_topic"]
                 self.proxy = multiprocessing.Process(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=kwargs)
                 self.proxy.daemon = True
                 self.proxy.start()
             else:  # if threaded
+                kwargs["proxy_pubsub_monitor_topic"] = zeromq_proxy_kwargs["proxy_pubsub_monitor_topic"]
                 self.proxy = threading.Thread(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=kwargs)
                 self.proxy.setDaemon(True)
                 self.proxy.start()
@@ -76,8 +77,8 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         zmq.proxy(xpub, xsub, monitor)
 
     @staticmethod
-    def subscription_monitor(inproc_address="inproc://monitor",
-                             socket_sub_address="tcp://127.0.0.1:5556", verbose=False):
+    def subscription_monitor(inproc_address="inproc://monitor", socket_sub_address="tcp://127.0.0.1:5556",
+                             proxy_pubsub_monitor_topic="ZEROMQ/CONNECTIONS", verbose=False):
         context = zmq.Context.instance()
         subscriber = context.socket(zmq.SUB)
         subscriber.connect(inproc_address)
@@ -104,7 +105,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                         logging.info(f"Received event: {event}, topic: {topic}")
 
                     # avoid processing messages on the monitor topic.
-                    if topic == ZEROMQ_PUBSUB_MONITOR_TOPIC:
+                    if topic == proxy_pubsub_monitor_topic:
                         continue
 
                     # update the count of subscribers for the topic
@@ -118,12 +119,13 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
                     # publish the updated counts
                     publisher.send_multipart(
-                        [ZEROMQ_PUBSUB_MONITOR_TOPIC.encode(), json.dumps(dict(topic_subscriber_count)).encode()]
+                        [proxy_pubsub_monitor_topic.encode(), json.dumps(dict(topic_subscriber_count)).encode()]
                     )
             except Exception as e:
                 logging.error(f"An error occurred in subscription_monitor: {str(e)}")
 
     def __init_proxy(self, socket_pub_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556",
+                     proxy_pubsub_monitor_topic="ZEROMQ/CONNECTIONS",
                      **kwargs):
         inproc_address = "inproc://monitor"
 
@@ -135,6 +137,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         threading.Thread(target=self.subscription_monitor,
                          kwargs={"socket_sub_address": socket_sub_address,
                                  "inproc_address": inproc_address,
+                                 "proxy_pubsub_monitor_topic": proxy_pubsub_monitor_topic,
                                  "verbose": kwargs.get("verbose", False)}).start()
 
     @staticmethod
