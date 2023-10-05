@@ -304,7 +304,7 @@ class YarpAudioChunkListener(YarpImageListener):
         """
         Listen for a message
 
-        :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         return super().listen(), self.rate
 

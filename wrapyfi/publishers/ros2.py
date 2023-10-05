@@ -279,7 +279,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         """
         Publish the audio chunk to the middleware
 
-        :param aud: (np.ndarray, int): Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)

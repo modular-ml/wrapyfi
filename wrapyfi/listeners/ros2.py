@@ -259,7 +259,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         """
         Listen for a message
 
-        :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
             self.establish()

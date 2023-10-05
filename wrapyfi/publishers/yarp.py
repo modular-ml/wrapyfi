@@ -299,7 +299,7 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         """
         Publish the audio chunk to the middleware
 
-        :param aud: (np.ndarray, int): Audio chunk to publish formatted as ((chunk_size, channels), samplerate)
+        :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as ((chunk_size, channels), samplerate)
         """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
@@ -307,7 +307,9 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
                 return
             else:
                 time.sleep(0.2)
-        aud, _ = aud
+        aud, rate = aud
+        if rate != self.rate:
+            raise ValueError("Incorrect audio rate for publisher")
         if aud is not None:
             aud_port = self._port.prepare()
             aud_port.setExternal(aud.data, self.chunk if self.chunk != -1 else aud_port.shape[1], self.channels)

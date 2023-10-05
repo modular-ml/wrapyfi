@@ -260,7 +260,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
         """
         Publish the audio chunk to the middleware
 
-        :param aud: (np.ndarray, int): Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
@@ -268,6 +268,9 @@ class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
                 return
             else:
                 time.sleep(0.2)
+        aud, rate = aud
+        if rate != self.rate:
+            raise ValueError("Incorrect audio rate for publisher")
         if len(aud.shape) > 1:
             chunk, channels = aud.shape[0], aud.shape[1]
         else:

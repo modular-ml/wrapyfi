@@ -3,7 +3,7 @@ import json
 import queue
 import time
 import os
-from typing import Optional
+from typing import Optional, Any
 
 import numpy as np
 import cv2
@@ -89,7 +89,7 @@ class ROSNativeObjectListener(ROSListener):
         self._subscriber = rospy.Subscriber(self.in_topic, std_msgs.msg.String, callback=self._message_callback)
         self.established = True
 
-    def listen(self):
+    def listen(self) -> Any:
         """
         Listen for a message
 
@@ -253,7 +253,7 @@ class ROSAudioChunkListener(ROSListener):
         """
         Listen for a message
 
-        :return: (np.ndarray, int): The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
             self.establish()

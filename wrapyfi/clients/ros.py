@@ -5,6 +5,7 @@ import time
 import os
 import importlib.util
 import queue
+from typing import Optional, Any
 
 import numpy as np
 import rospy
@@ -17,15 +18,29 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROSClient(Client):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
+                 ros_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the client
 
-    def __init__(self, name, in_topic, carrier="", ros_kwargs=None, **kwargs):
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
+        :param ros_kwargs: dict, optional: Additional kwargs for the ROS middleware. Defaults to None
+        :param kwargs: dict: Additional kwargs for the Client
+        """
+        if carrier != "tcp":
+            logging.warning("[ROS] ROS does not support other carriers than TCP for req/rep pattern. Using TCP.")
+            carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
 
     def close(self):
-        if hasattr(self, "_client"):
-            if self._client is not None:
-                self._client.shutdown()
+        """
+        Close the client
+        """
+        if hasattr(self, "_client") and self._client:
+            self._client.shutdown()
 
     def __del__(self):
         self.close()
@@ -34,7 +49,22 @@ class ROSClient(Client):
 @Clients.register("NativeObject", "ros")
 class ROSNativeObjectClient(ROSClient):
 
-    def __init__(self, name, in_topic, carrier="", serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
+                 serializer_kwargs: Optional[dict] = None,
+                 deserializer_kwargs: Optional[dict] = None,
+                 persistent: bool = False, **kwargs):
+        """
+        The NativeObject client using the ROS String message assuming the data is serialized as a JSON string.
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
+        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param deserializer_kwargs: dict, optional: Additional kwargs for the deserializer. Defaults to None
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param kwargs: dict: Additional kwargs
+        """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self._client = None
         self._queue = queue.Queue(maxsize=1)
@@ -48,12 +78,22 @@ class ROSNativeObjectClient(ROSClient):
         self.persistent = persistent
 
     def establish(self):
+        """
+        Establish the client's connection to the ROS service
+        """
         rospy.wait_for_service(self.in_topic)
         self._client = rospy.ServiceProxy(self.in_topic, ROSNativeObjectService, persistent=self.persistent)
         if self.persistent:
             self.established = True
 
-    def request(self, *args, **kwargs):
+    def request(self, *args, **kwargs) -> Any:
+        """
+        Send a request to the ROS service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        :return: Any: The response from the ROS service
+        """
         if not self.established:
             self.establish()
         try:
@@ -63,29 +103,56 @@ class ROSNativeObjectClient(ROSClient):
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
-        # transmit args to server
+        """
+        Internal method to send a request to the ROS service
+
+        :param args: tuple: Positional arguments to send in the request.
+        :param kwargs: dict: Keyword arguments to send in the request.
+        """
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
                               serializer_kwrags=self._serializer_kwargs)
         args_msg = std_msgs.msg.String()
         args_msg.data = args_str
-        # receive message from server
+
         msg = self._client(args_msg)
         obj = json.loads(msg.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
         self._queue.put(obj, block=False)
 
-    def _await_reply(self):
+    def _await_reply(self) -> Any:
+        """
+        Wait for and return the reply from the ROS service
+
+        :return: Any: The response from the ROS service
+        """
         try:
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
             logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+                            f"This happened due to bad synchronization in {self.__class__.__name__}")
             return None
+
 
 @Clients.register("Image", "ros")
 class ROSImageClient(ROSClient):
 
-    def __init__(self, name, in_topic, carrier="", width=-1, height=-1, rgb=True, fp=False, serializer_kwargs=None, persistent=False, **kwargs):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", width: int = -1, height: int = -1,
+                 rgb: bool = True, fp: bool = False, serializer_kwargs: Optional[dict] = None,
+                 persistent: bool = False, **kwargs):
+        """
+        The Image client using the ROS Image message parsed to a numpy array
+
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
+        :param width: int: The width of the image. Default is -1
+        :param height: int: The height of the image. Default is -1
+        :param rgb: bool: Whether the image is RGB. Default is True
+        :param fp: bool: Whether to utilize floating-point precision. Default is False
+        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param kwargs: dict: Additional kwargs.
+        """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
         self.height = height
@@ -109,12 +176,22 @@ class ROSImageClient(ROSClient):
         self.persistent = persistent
 
     def establish(self):
+        """
+        Establish the client's connection to the ROS service
+        """
         rospy.wait_for_service(self.in_topic)
         self._client = rospy.ServiceProxy(self.in_topic, ROSImageService, persistent=self.persistent)
         if self.persistent:
             self.established = True
 
     def request(self, *args, **kwargs):
+        """
+        Send a request to the ROS service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        :return: np.array: The received image from the ROS service
+        """
         if not self.established:
             self.establish()
         try:
@@ -124,16 +201,25 @@ class ROSImageClient(ROSClient):
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
-        # transmit args to server
+        """
+        Internal method to send a request to the ROS service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        """
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
                               serializer_kwrags=self._serializer_kwargs)
         args_msg = std_msgs.msg.String()
         args_msg.data = args_str
-        # receive message from server
         msg = self._client(args_msg)
         self._queue.put((msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data), block=False)
 
     def _await_reply(self):
+        """
+        Wait for and return the reply from the ROS service
+
+        :return: np.array: The received image from the ROS service
+        """
         try:
             height, width, encoding, is_bigendian, data = self._queue.get(block=True)
             if encoding != self._encoding:
@@ -150,11 +236,25 @@ class ROSImageClient(ROSClient):
             return None
 
 
-
 @Clients.register("AudioChunk", "ros")
 class ROSAudioChunkClient(ROSClient):
 
-    def __init__(self, name, in_topic, carrier="", channels=1, rate=44100, chunk=-1, serializer_kwargs=None, persistent=False, **kwargs):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", channels: int = 1, 
+                 rate: int = 44100, chunk: int = -1, serializer_kwargs: Optional[dict] = None, 
+                 persistent: bool = False, **kwargs):
+        """
+        The AudioChunk client using the ROS Image message parsed to a numpy array
+
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
+        :param channels: int: Number of audio channels. Default is 1
+        :param rate: int: Sampling rate of the audio. Default is 44100
+        :param chunk: int: The size of audio chunks. Default is -1
+        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param kwargs: dict: Additional kwargs.
+        """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.channels = channels
         self.rate = rate
@@ -170,12 +270,22 @@ class ROSAudioChunkClient(ROSClient):
         self.persistent = persistent
 
     def establish(self):
+        """
+        Establish the client's connection to the ROS service
+        """
         rospy.wait_for_service(self.in_topic)
         self._client = rospy.ServiceProxy(self.in_topic, ROSImageService, persistent=self.persistent)
         if self.persistent:
             self.established = True
 
     def request(self, *args, **kwargs):
+        """
+        Send a request to the ROS service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        :return: Tuple[np.array, int]: The received audio chunk and rate from the ROS service
+        """
         if not self.established:
             self.establish()
         try:
@@ -185,16 +295,25 @@ class ROSAudioChunkClient(ROSClient):
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
-        # transmit args to server
+        """
+        Internal method to send a request to the ROS service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        """
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
                               serializer_kwrags=self._serializer_kwargs)
         args_msg = std_msgs.msg.String()
         args_msg.data = args_str
-        # receive message from server
         msg = self._client(args_msg)
         self._queue.put((msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data), block=False)
 
     def _await_reply(self):
+        """
+        Wait for and return the reply from the ROS service
+
+        :return: Tuple[np.array, int]: The received audio chunk and rate from the ROS service
+        """
         try:
             chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
             if encoding != '32FC1':

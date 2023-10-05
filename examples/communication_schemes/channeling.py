@@ -26,7 +26,7 @@ class ChannelingCls(MiddlewareCommunicator):
                              aud_rate=44100, aud_chunk=8820, aud_channels=1):
         ros_img = np.random.randint(256, size=(img_height, img_width, 3),
                                      dtype=np.uint8)
-        zeromq_aud = np.random.uniform(-1, 1, aud_chunk)
+        zeromq_aud = (np.random.uniform(-1, 1, aud_chunk), aud_rate,)
         yarp_native = [ros_img, zeromq_aud]
         return yarp_native, ros_img, zeromq_aud
 
