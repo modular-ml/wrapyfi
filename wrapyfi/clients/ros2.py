@@ -19,9 +19,9 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class ROS2Client(Client, Node):
 
-    def __init__(self, name, in_port, carrier="", ros2_kwargs=None, **kwargs):
+    def __init__(self, name, in_topic, carrier="", ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
-        Client.__init__(self, name, in_port, carrier=carrier, **kwargs)
+        Client.__init__(self, name, in_topic, carrier=carrier, **kwargs)
         Node.__init__(self, name + str(hex(id(self))))
 
     def close(self):
@@ -36,8 +36,8 @@ class ROS2Client(Client, Node):
 @Clients.register("NativeObject", "ros2")
 class ROS2NativeObjectClient(ROS2Client):
 
-    def __init__(self, name, in_port, carrier="", serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
 
         self._client = None
         self._queue = queue.Queue(maxsize=1)
@@ -58,7 +58,7 @@ class ROS2NativeObjectClient(ROS2Client):
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
-        self._client = self.create_client(ROS2NativeObjectService, self.in_port)
+        self._client = self.create_client(ROS2NativeObjectService, self.in_topic)
         self._req_msg = ROS2NativeObjectService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):

@@ -26,9 +26,9 @@ class Clients(object):
 
 
 class Client(object):
-    def __init__(self, name, in_port, carrier="", **kwargs):
+    def __init__(self, name, in_topic, carrier="", **kwargs):
         self.__name__ = name
-        self.in_port = in_port
+        self.in_topic = in_topic
         self.carrier = carrier
         self.established = False
 
@@ -48,10 +48,10 @@ class Client(object):
 @Clients.register("MMO", "fallback")
 class FallbackClient(Client):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "", missing_middleware_object: str = "", **kwargs):
+    def __init__(self, name: str, in_topic: str, carrier: str = "", missing_middleware_object: str = "", **kwargs):
         logging.warning(f"Fallback client employed due to missing middleware or object type: "
                         f"{missing_middleware_object}")
-        Client.__init__(self, name, in_port, carrier=carrier, **kwargs)
+        Client.__init__(self, name, in_topic, carrier=carrier, **kwargs)
         self.missing_middleware_object = missing_middleware_object
 
     def establish(self, repeats=-1, **kwargs):

@@ -19,7 +19,7 @@ WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQServer(Server):
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
                  socket_ip: str = SOCKET_IP, socket_rep_port: int = SOCKET_PUB_PORT, socket_req_port: int = SOCKET_SUB_PORT,
                  start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
@@ -27,7 +27,7 @@ class ZeroMQServer(Server):
         Initialize the server and start the device broker if necessary
 
         :param name: str: Name of the server
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param socket_ip: str: IP address of the socket. Default is '127.0.0.1'
         :param socket_rep_port: int: Port of the socket for REP pattern. Default is 5558
@@ -40,9 +40,9 @@ class ZeroMQServer(Server):
         if carrier != "tcp":
             logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
-        super().__init__(name, out_port, carrier=carrier, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, **kwargs)
 
-        # out_port is equivalent to topic in zeromq
+        # out_topic is equivalent to topic in zeromq
         self.socket_rep_address = f"{carrier}://{socket_ip}:{socket_rep_port}"
         self.socket_req_address = f"{carrier}://{socket_ip}:{socket_req_port}"
         if start_proxy_broker:
@@ -84,19 +84,19 @@ class ZeroMQServer(Server):
 
 @Servers.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectServer(ZeroMQServer):
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
                  serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         :param kwargs: Additional kwargs for the ZeroMQServer
         """
-        super().__init__(name, out_port, carrier=carrier, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, **kwargs)
         self._plugin_encoder = JsonEncoder
         self._serializer_kwargs = serializer_kwargs or {}
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
@@ -116,7 +116,7 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
     #         else:
     #             self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
     #     self._socket.connect(self.socket_req_address)
-    #     self._topic = self.out_port.encode()
+    #     self._topic = self.out_topic.encode()
     #     established = self.await_connection(self._socket, repeats=repeats)
     #     return self.check_establishment(established)
 

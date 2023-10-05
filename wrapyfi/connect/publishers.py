@@ -50,9 +50,9 @@ class Publishers(object):
 # TODO (fabawi): Support multiple instance publishing of the same class,
 #  currently only an issue with the output port naming convention
 class Publisher(object):
-    def __init__(self, name, out_port, carrier="", should_wait=True, **kwargs):
+    def __init__(self, name, out_topic, carrier="", should_wait=True, **kwargs):
         self.__name__ = name
-        self.out_port = out_port
+        self.out_topic = out_topic
         self.carrier = carrier
         self.should_wait = should_wait
         self.established = False
@@ -80,11 +80,11 @@ class Publisher(object):
 @Publishers.register("MMO", "fallback")
 class FallbackPublisher(Publisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "",
+    def __init__(self, name: str, out_topic: str, carrier: str = "",
                  should_wait: bool = True, missing_middleware_object: str = "", **kwargs):
         logging.warning(f"Fallback publisher employed due to missing middleware or object type: "
                         f"{missing_middleware_object}")
-        Publisher.__init__(self, name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        Publisher.__init__(self, name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         self.missing_middleware_object = missing_middleware_object
 
     def establish(self, repeats=-1, **kwargs):

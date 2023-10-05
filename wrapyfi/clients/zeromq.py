@@ -15,12 +15,12 @@ WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQClient(Client):
-    def __init__(self, name, in_port, carrier="tcp",
+    def __init__(self, name, in_topic, carrier="tcp",
                  socket_ip: str = SOCKET_IP, socket_rep_port: int = SOCKET_REP_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
         if carrier != "tcp":
             logging.warning("ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
             carrier = "tcp"
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
 
         self.socket_address = f"{carrier}://{socket_ip}:{socket_rep_port}"
 
@@ -41,8 +41,8 @@ class ZeroMQClient(Client):
 
 @Clients.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectClient(ZeroMQClient):
-    def __init__(self, name, in_port, carrier="tcp", serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="tcp", serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
 
         self._plugin_encoder = JsonEncoder
         self._serializer_kwargs = serializer_kwargs or {}

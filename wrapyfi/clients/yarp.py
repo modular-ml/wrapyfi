@@ -16,8 +16,8 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class YarpClient(Client):
 
-    def __init__(self, name, in_port, carrier="", ros_kwargs=None, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", ros_kwargs=None, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         YarpMiddleware.activate(**ros_kwargs or {})
 
     def close(self):
@@ -32,8 +32,8 @@ class YarpClient(Client):
 @Clients.register("NativeObject", "yarp")
 class YarpNativeObjectClient(YarpClient):
 
-    def __init__(self, name, in_port, carrier="", serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self._port = None
         self._queue = queue.Queue(maxsize=1)
 
@@ -46,13 +46,13 @@ class YarpNativeObjectClient(YarpClient):
         self.persistent = persistent
 
     def establish(self):
-        while not yarp.Network.exists(self.in_port):
-            logging.info(f"Waiting for input port: {self.in_port}")
+        while not yarp.Network.exists(self.in_topic):
+            logging.info(f"Waiting for input port: {self.in_topic}")
             time.sleep(0.2)
         self._port = yarp.RpcClient()
         rnd_id = str(np.random.randint(100000, size=1)[0])
-        self._port.open(self.in_port + ":in" + rnd_id)
-        self._port.addOutput(self.in_port, self.carrier)
+        self._port.open(self.in_topic + ":in" + rnd_id)
+        self._port.addOutput(self.in_topic, self.carrier)
         if self.persistent:
             self.established = True
 
@@ -93,8 +93,8 @@ class YarpNativeObjectClient(YarpClient):
 @Clients.register("Image", "yarp")
 class YarpImageClient(YarpNativeObjectClient):
 
-    def __init__(self, name, in_port, carrier="",  width=-1, height=-1, rgb=True, fp=False, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="",  width=-1, height=-1, rgb=True, fp=False, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb

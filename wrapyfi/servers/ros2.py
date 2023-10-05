@@ -20,9 +20,9 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class ROS2Server(Server, Node):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, ros2_kwargs=None, **kwargs):
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, ros2_kwargs=None, **kwargs):
         ROS2Middleware.activate(**ros2_kwargs or {})
-        Server.__init__(self, name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        Server.__init__(self, name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         Node.__init__(self, name + str(hex(id(self))))
 
     def close(self):
@@ -43,8 +43,8 @@ class ROS2NativeObjectServer(ROS2Server):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
 
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
@@ -65,7 +65,7 @@ class ROS2NativeObjectServer(ROS2Server):
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
 
-        self._server = self.create_service(ROS2NativeObjectService, self.out_port, self._service_callback)
+        self._server = self.create_service(ROS2NativeObjectService, self.out_topic, self._service_callback)
 
         self._req_msg = ROS2NativeObjectService.Request()
         self._rep_msg = ROS2NativeObjectService.Response()

@@ -16,8 +16,8 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class YarpServer(Server):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, yarp_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, yarp_kwargs=None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         YarpMiddleware.activate(**yarp_kwargs or {})
 
     def close(self):
@@ -32,8 +32,8 @@ class YarpServer(Server):
 @Servers.register("NativeObject", "yarp")
 class YarpNativeObjectServer(YarpServer):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
 
         self._port = self._netconnect = None
 
@@ -47,8 +47,8 @@ class YarpNativeObjectServer(YarpServer):
 
     def establish(self):
         self._port = yarp.RpcServer()
-        self._port.open(self.out_port)
-        self._netconnect = yarp.Network.connect(self.out_port, self.out_port_connect, self.carrier)
+        self._port.open(self.out_topic)
+        self._netconnect = yarp.Network.connect(self.out_topic, self.out_topic_connect, self.carrier)
         if self.persistent:
             self.established = True
 
@@ -82,8 +82,8 @@ class YarpNativeObjectServer(YarpServer):
 @Servers.register("Image", "yarp")
 class YarpImageServer(YarpNativeObjectServer):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -99,8 +99,8 @@ class YarpImageServer(YarpNativeObjectServer):
 @Servers.register("Image", "yarp")
 class YarpImageServer(YarpNativeObjectServer):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb

@@ -18,8 +18,8 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class ROSClient(Client):
 
-    def __init__(self, name, in_port, carrier="", ros_kwargs=None, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", ros_kwargs=None, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
 
     def close(self):
@@ -34,8 +34,8 @@ class ROSClient(Client):
 @Clients.register("NativeObject", "ros")
 class ROSNativeObjectClient(ROSClient):
 
-    def __init__(self, name, in_port, carrier="", serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", serializer_kwargs=None, deserializer_kwargs=None, persistent=False, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self._client = None
         self._queue = queue.Queue(maxsize=1)
 
@@ -48,8 +48,8 @@ class ROSNativeObjectClient(ROSClient):
         self.persistent = persistent
 
     def establish(self):
-        rospy.wait_for_service(self.in_port)
-        self._client = rospy.ServiceProxy(self.in_port, ROSNativeObjectService, persistent=self.persistent)
+        rospy.wait_for_service(self.in_topic)
+        self._client = rospy.ServiceProxy(self.in_topic, ROSNativeObjectService, persistent=self.persistent)
         if self.persistent:
             self.established = True
 
@@ -85,8 +85,8 @@ class ROSNativeObjectClient(ROSClient):
 @Clients.register("Image", "ros")
 class ROSImageClient(ROSClient):
 
-    def __init__(self, name, in_port, carrier="", width=-1, height=-1, rgb=True, fp=False, serializer_kwargs=None, persistent=False, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", width=-1, height=-1, rgb=True, fp=False, serializer_kwargs=None, persistent=False, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -109,8 +109,8 @@ class ROSImageClient(ROSClient):
         self.persistent = persistent
 
     def establish(self):
-        rospy.wait_for_service(self.in_port)
-        self._client = rospy.ServiceProxy(self.in_port, ROSImageService, persistent=self.persistent)
+        rospy.wait_for_service(self.in_topic)
+        self._client = rospy.ServiceProxy(self.in_topic, ROSImageService, persistent=self.persistent)
         if self.persistent:
             self.established = True
 
@@ -154,8 +154,8 @@ class ROSImageClient(ROSClient):
 @Clients.register("AudioChunk", "ros")
 class ROSAudioChunkClient(ROSClient):
 
-    def __init__(self, name, in_port, carrier="", channels=1, rate=44100, chunk=-1, serializer_kwargs=None, persistent=False, **kwargs):
-        super().__init__(name, in_port, carrier=carrier, **kwargs)
+    def __init__(self, name, in_topic, carrier="", channels=1, rate=44100, chunk=-1, serializer_kwargs=None, persistent=False, **kwargs):
+        super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -170,8 +170,8 @@ class ROSAudioChunkClient(ROSClient):
         self.persistent = persistent
 
     def establish(self):
-        rospy.wait_for_service(self.in_port)
-        self._client = rospy.ServiceProxy(self.in_port, ROSImageService, persistent=self.persistent)
+        rospy.wait_for_service(self.in_topic)
+        self._client = rospy.ServiceProxy(self.in_topic, ROSImageService, persistent=self.persistent)
         if self.persistent:
             self.established = True
 

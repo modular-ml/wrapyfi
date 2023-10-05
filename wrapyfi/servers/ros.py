@@ -18,8 +18,8 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class ROSServer(Server):
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, ros_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, ros_kwargs=None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
 
     def close(self):
@@ -35,8 +35,8 @@ class ROSNativeObjectServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
 
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
@@ -47,7 +47,7 @@ class ROSNativeObjectServer(ROSServer):
         self._server = None
 
     def establish(self):
-        self._server = rospy.Service(self.out_port, ROSNativeObjectService, self._service_callback)
+        self._server = rospy.Service(self.out_topic, ROSNativeObjectService, self._service_callback)
         self.established = True
 
     def await_request(self, *args, **kwargs):
@@ -83,8 +83,8 @@ class ROSImageServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, width=-1, height=-1, rgb=True, fp=False, deserializer_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, width=-1, height=-1, rgb=True, fp=False, deserializer_kwargs=None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -103,7 +103,7 @@ class ROSImageServer(ROSServer):
         self._server = None
 
     def establish(self):
-        self._server = rospy.Service(self.out_port, ROSImageService, self._service_callback)
+        self._server = rospy.Service(self.out_topic, ROSImageService, self._service_callback)
         self.established = True
 
     def await_request(self, *args, **kwargs):
@@ -147,9 +147,9 @@ class ROSAudioChunkServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, channels=1, rate=44100, chunk=-1,
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, channels=1, rate=44100, chunk=-1,
                  deserializer_kwargs=None, **kwargs):
-        super().__init__(name, out_port, carrier=carrier, out_port_connect=out_port_connect, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -161,7 +161,7 @@ class ROSAudioChunkServer(ROSServer):
         self._server = None
 
     def establish(self):
-        self._server = rospy.Service(self.out_port, ROSImageService, self._service_callback)
+        self._server = rospy.Service(self.out_topic, ROSImageService, self._service_callback)
         self.established = True
 
     def await_request(self, *args, **kwargs):

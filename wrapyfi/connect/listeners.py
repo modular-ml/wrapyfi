@@ -48,10 +48,10 @@ class Listeners(object):
 
 
 class Listener(object):
-    def __init__(self, name, in_port, carrier="", should_wait=True, **kwargs):
+    def __init__(self, name, in_topic, carrier="", should_wait=True, **kwargs):
 
         self.__name__ = name
-        self.in_port = in_port
+        self.in_topic = in_topic
         self.carrier = carrier
         self.should_wait = should_wait
         self.established = False
@@ -79,11 +79,11 @@ class Listener(object):
 @Listeners.register("MMO", "fallback")
 class FallbackListener(Listener):
 
-    def __init__(self, name: str, in_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
                  should_wait: bool = True, missing_middleware_object: str = "", **kwargs):
         logging.warning(f"Fallback listener employed due to missing middleware or object type: "
                         f"{missing_middleware_object}")
-        Listener.__init__(self, name, in_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        Listener.__init__(self, name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         self.missing_middleware_object = missing_middleware_object
 
     def establish(self, repeats=-1, **kwargs):

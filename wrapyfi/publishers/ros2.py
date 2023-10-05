@@ -25,13 +25,13 @@ WATCHDOG_POLL_REPEAT = None
 
 class ROS2Publisher(Publisher, Node):
 
-    def __init__(self, name: str, out_port: str, should_wait: bool = True,
+    def __init__(self, name: str, out_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
@@ -43,24 +43,24 @@ class ROS2Publisher(Publisher, Node):
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
-        Publisher.__init__(self, name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        Publisher.__init__(self, name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         Node.__init__(self, name + str(hex(id(self))))
 
         self.queue_size = queue_size
 
-    def await_connection(self, publisher, out_port: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(self, publisher, out_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
         Wait for at least one subscriber to connect to the publisher
 
         :param publisher: rclpy.publisher.Publisher: Publisher to await connection to
-        :param out_port: str: Name of the output topic
+        :param out_topic: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
         connected = False
-        if out_port is None:
-            out_port = self.out_port
-        logging.info(f"Waiting for topic subscriber: {out_port}")
+        if out_topic is None:
+            out_topic = self.out_topic
+        logging.info(f"Waiting for topic subscriber: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -72,7 +72,7 @@ class ROS2Publisher(Publisher, Node):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"Topic subscriber connected: {out_port}")
+        logging.info(f"Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):
@@ -90,19 +90,19 @@ class ROS2Publisher(Publisher, Node):
 @Publishers.register("NativeObject", "ros2")
 class ROS2NativeObjectPublisher(ROS2Publisher):
 
-    def __init__(self, name, out_port: str, should_wait: bool = True,
+    def __init__(self, name, out_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the ROS2 String message assuming a combination of python native objects
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, out_port, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self._publisher = None
 
         self._plugin_encoder = JsonEncoder
@@ -119,7 +119,7 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        self._publisher = self.create_publisher(std_msgs.msg.String, self.out_port, qos_profile=self.queue_size)
+        self._publisher = self.create_publisher(std_msgs.msg.String, self.out_topic, qos_profile=self.queue_size)
         established = self.await_connection(self._publisher, repeats=repeats)
         return self.check_establishment(established)
 
@@ -145,13 +145,13 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
 @Publishers.register("Image", "ros2")
 class ROS2ImagePublisher(ROS2Publisher):
 
-    def __init__(self, name: str, out_port: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+    def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The ImagePublisher using the ROS2 Image message assuming a numpy array as input
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
@@ -160,7 +160,7 @@ class ROS2ImagePublisher(ROS2Publisher):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
-        super().__init__(name, out_port, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.width = width
         self.height = height
@@ -191,9 +191,9 @@ class ROS2ImagePublisher(ROS2Publisher):
         :return: bool: True if connection established, False otherwise
         """
         if self.jpg:
-            self._publisher = self.create_publisher(sensor_msgs.msg.CompressedImage, self.out_port, qos_profile=self.queue_size)
+            self._publisher = self.create_publisher(sensor_msgs.msg.CompressedImage, self.out_topic, qos_profile=self.queue_size)
         else:
-            self._publisher = self.create_publisher(sensor_msgs.msg.Image, self.out_port, qos_profile=self.queue_size)
+            self._publisher = self.create_publisher(sensor_msgs.msg.Image, self.out_topic, qos_profile=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -238,20 +238,20 @@ class ROS2ImagePublisher(ROS2Publisher):
 @Publishers.register("AudioChunk", "ros2")
 class ROS2AudioChunkPublisher(ROS2Publisher):
 
-    def __init__(self, name: str, out_port: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+    def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunkPublisher using the ROS2 Image message assuming a numpy array as input
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param channels: int: Number of channels. Default is 1
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_port, should_wait=should_wait, queue_size=queue_size,
+        super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
@@ -270,8 +270,8 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        # self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
-        self._publisher = self.create_publisher(sensor_msgs.msg.Image, self.out_port, qos_profile=self.queue_size)
+        # self._publisher = rospy.Publisher(self.out_topic, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        self._publisher = self.create_publisher(sensor_msgs.msg.Image, self.out_topic, qos_profile=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -309,6 +309,6 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
 
 @Publishers.register("Properties", "ros2")
 class ROS2PropertiesPublisher(ROS2Publisher):
-    def __init__(self, name, out_port, **kwargs):
-        super().__init__(name, out_port, **kwargs)
+    def __init__(self, name, out_topic, **kwargs):
+        super().__init__(name, out_topic, **kwargs)
         raise NotImplementedError
