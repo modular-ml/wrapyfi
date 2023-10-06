@@ -27,7 +27,7 @@ class ROSClient(Client):
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
         :param ros_kwargs: dict, optional: Additional kwargs for the ROS middleware. Defaults to None
-        :param kwargs: dict: Additional kwargs for the Client
+        :param kwargs: dict: Additional kwargs for the client
         """
         if carrier != "tcp":
             logging.warning("[ROS] ROS does not support other carriers than TCP for req/rep pattern. Using TCP.")
@@ -151,7 +151,7 @@ class ROSImageClient(ROSClient):
         :param fp: bool: Whether to utilize floating-point precision. Default is False
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
-        :param kwargs: dict: Additional kwargs.
+        :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
@@ -253,7 +253,7 @@ class ROSAudioChunkClient(ROSClient):
         :param chunk: int: The size of audio chunks. Default is -1
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
-        :param kwargs: dict: Additional kwargs.
+        :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.channels = channels

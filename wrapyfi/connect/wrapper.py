@@ -419,7 +419,7 @@ class MiddlewareCommunicator(object):
 
     @staticmethod
     def get_communicators():
-        return pub.Publishers.mwares | lsn.Listeners.mwares
+        return (pub.Publishers.mwares | lsn.Listeners.mwares) - {"fallback"}
 
     @classmethod
     def close_all_instances(cls):

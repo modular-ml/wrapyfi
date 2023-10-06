@@ -37,7 +37,7 @@ class ROS2Listener(Listener, Node):
         :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
-        carrier = "udp"
+        carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
         if "carrier" in kwargs:

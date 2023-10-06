@@ -5,6 +5,7 @@ import time
 import os
 import importlib.util
 import queue
+from typing import Optional, Any
 
 import numpy as np
 import rclpy
@@ -18,13 +19,29 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROS2Client(Client, Node):
+    def __init__(self, name: str, in_topic: str, ros2_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialize the client
 
-    def __init__(self, name, in_topic, carrier="", ros2_kwargs=None, **kwargs):
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param ros2_kwargs: dict, optional: Additional kwargs for the ROS2 middleware. Defaults to None
+        :param kwargs: dict: Additional kwargs for the client
+        """
+        carrier = "tcp"
+        if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
+            logging.warning(
+                "[ROS2] ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+        if "carrier" in kwargs:
+            del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
         Client.__init__(self, name, in_topic, carrier=carrier, **kwargs)
         Node.__init__(self, name + str(hex(id(self))))
 
     def close(self):
+        """
+        Close the client
+        """
         if hasattr(self, "_client"):
             if self._client is not None:
                 self.destroy_node()
@@ -35,10 +52,19 @@ class ROS2Client(Client, Node):
 
 @Clients.register("NativeObject", "ros2")
 class ROS2NativeObjectClient(ROS2Client):
+    def __init__(self, name: str, in_topic: str,
+                 serializer_kwargs: Optional[dict] = None,
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+        """
+        The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object
 
-    def __init__(self, name, in_topic, carrier="", serializer_kwargs=None, deserializer_kwargs=None, **kwargs):
-        super().__init__(name, in_topic, carrier=carrier, **kwargs)
-
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
+        """
+        super().__init__(name, in_topic, **kwargs)
         self._client = None
         self._queue = queue.Queue(maxsize=1)
 
@@ -49,6 +75,9 @@ class ROS2NativeObjectClient(ROS2Client):
         self._deserializer_kwargs = deserializer_kwargs or {}
 
     def establish(self):
+        """
+        Establish the client's connection to the ROS2 service
+        """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
@@ -66,6 +95,13 @@ class ROS2NativeObjectClient(ROS2Client):
         self.established = True
 
     def request(self, *args, **kwargs):
+        """
+        Send a request to the ROS2 service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        :return: Any: The response from the ROS2 service
+        """
         if not self.established:
             self.establish()
         try:
@@ -75,6 +111,12 @@ class ROS2NativeObjectClient(ROS2Client):
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
+        """
+        Internal method to send a request to the ROS2 service
+
+        :param args: tuple: Positional arguments to send in the request
+        :param kwargs: dict: Keyword arguments to send in the request
+        """
         # transmit args to server
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
                               serializer_kwrags=self._serializer_kwargs)
@@ -92,7 +134,12 @@ class ROS2NativeObjectClient(ROS2Client):
                     logging.error("[ROS2] Service call failed: %s" % e)
                 break
 
-    def _await_reply(self):
+    def _await_reply(self) -> Any:
+        """
+        Wait for and return the reply from the ROS2 service
+
+        :return: Any: The response from the ROS2 service
+        """
         try:
             reply = self._queue.get(block=True)
             return reply
