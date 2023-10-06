@@ -38,11 +38,10 @@ class ZeroMQServer(Server):
         :param kwargs: Additional kwargs for the server
         """
         if carrier != "tcp":
-            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for req/rep pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
 
-        # out_topic is equivalent to topic in zeromq
         self.socket_rep_address = f"{carrier}://{socket_ip}:{socket_rep_port}"
         self.socket_req_address = f"{carrier}://{socket_ip}:{socket_req_port}"
         if start_proxy_broker:
@@ -94,31 +93,13 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
-        :param kwargs: Additional kwargs for the ZeroMQServer
+        :param kwargs: Additional kwargs for the server
         """
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
         self._plugin_encoder = JsonEncoder
         self._serializer_kwargs = serializer_kwargs or {}
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
-
-    # def establish(self, repeats: Optional[int] = None, **kwargs):
-    #     """
-    #     Establish the connection to the server
-    #
-    #     :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
-    #     :return: bool: True if connection established, False otherwise
-    #     """
-    #     self._socket = zmq.Context.instance().socket(zmq.REP)
-    #     for socket_property in ZeroMQMiddlewareReqRep().zeromq_kwargs.items():
-    #         if isinstance(socket_property[1], str):
-    #             self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
-    #         else:
-    #             self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
-    #     self._socket.connect(self.socket_req_address)
-    #     self._topic = self.out_topic.encode()
-    #     established = self.await_connection(self._socket, repeats=repeats)
-    #     return self.check_establishment(established)
 
     def await_request(self, *args, **kwargs):
         message = super().await_request(*args, **kwargs)
@@ -128,7 +109,7 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
             return args, kwargs
         except json.JSONDecodeError as e:
             logging.error(f"[ZeroMQ] Failed to decode message: {e}")
-            return None, None
+            return [], {}
 
     def reply(self, obj):
         obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._serializer_kwargs)

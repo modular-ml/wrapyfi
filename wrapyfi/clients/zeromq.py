@@ -18,7 +18,7 @@ class ZeroMQClient(Client):
     def __init__(self, name, in_topic, carrier="tcp",
                  socket_ip: str = SOCKET_IP, socket_rep_port: int = SOCKET_REP_PORT, zeromq_kwargs: Optional[dict] = None, **kwargs):
         if carrier != "tcp":
-            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for req/rep pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
 

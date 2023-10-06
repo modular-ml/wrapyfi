@@ -36,7 +36,7 @@ class Server(object):
     def establish(self):
         raise NotImplementedError
 
-    def await_request(self, msg):
+    def await_request(self, *args, **kwargs):
         raise NotImplementedError
 
     def reply(self, obj):
@@ -55,8 +55,8 @@ class FallbackServer(Server):
     def establish(self, repeats=-1, **kwargs):
         return None
 
-    def await_request(self, msg):
-        return msg
+    def await_request(self, *args, **kwargs):
+        return args, kwargs
 
     def reply(self, obj):
         return obj
