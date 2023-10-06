@@ -121,9 +121,6 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                     self.proxy.setDaemon(True)
                     self.proxy.start()
             pass
-
-
-
                 
     @staticmethod
     def proxy_thread(socket_pub_address="tcp://127.0.0.1:5555",
@@ -266,7 +263,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, *args, **kwargs):
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
-        logging.info("Initialising ZeroMQ REP/REQ middleware")
+        logging.info("Initialising ZeroMQ REQ/REP middleware")
         self.ctx = zmq.Context.instance()
         for socket_property in kwargs.items():
             if isinstance(socket_property[1], str):
@@ -301,7 +298,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
         except zmq.ZMQError as e:
             logging.error(f"[ZeroMQ] {e} {socket_req_address}")
             return
-        # logging.info(f"[ZeroMQ] Intialising REP/REQ device broker")
+        # logging.info(f"[ZeroMQ] Intialising REQ/REP device broker")
         zmq.proxy(xrep, xreq)
 
     @staticmethod

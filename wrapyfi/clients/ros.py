@@ -29,8 +29,8 @@ class ROSClient(Client):
         :param ros_kwargs: dict, optional: Additional kwargs for the ROS middleware. Defaults to None
         :param kwargs: dict: Additional kwargs for the client
         """
-        if carrier != "tcp":
-            logging.warning("[ROS] ROS does not support other carriers than TCP for req/rep pattern. Using TCP.")
+        if carrier or carrier != "tcp":
+            logging.warning("[ROS] ROS does not support other carriers than TCP for REQ/REP pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})

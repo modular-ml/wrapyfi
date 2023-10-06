@@ -31,7 +31,7 @@ class ROS2Client(Client, Node):
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning(
-                "[ROS2] ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+                "[ROS2] ROS2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})

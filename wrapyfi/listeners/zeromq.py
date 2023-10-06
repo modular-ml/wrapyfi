@@ -32,19 +32,19 @@ class ZeroMQListener(Listener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param socket_ip: str: IP address of the socket. Default is '127.0.0.1
         :param socket_pub_port: int: Port of the socket for publishing.
                                  Note that the subscriber listens directly to this port which is proxied .
                                  Default is 5555
         :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
-        :param pubsub_monitor_listener_spawn: str: Whether to spawn the pub/sub monitor listener as a process or thread. Default is 'process'
+        :param pubsub_monitor_listener_spawn: str: Whether to spawn the PUB/SUB monitor listener as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
-        if carrier != "tcp":
-            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+        if carrier or carrier != "tcp":
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
 
@@ -122,11 +122,11 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ZeroMQ message construct assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        Deserializes the data (including plugins) using the decoder and parses it to a native object
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
@@ -247,7 +247,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param channels: int: Number of channels in the audio. Default is 1

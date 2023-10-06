@@ -30,14 +30,14 @@ class ROSListener(Listener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param ros_kwargs: dict: Additional kwargs for the ROS middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
-        if carrier != "tcp":
-            logging.warning("[ROS] ROS does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+        if carrier or carrier != "tcp":
+            logging.warning("[ROS] ROS does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
@@ -67,7 +67,7 @@ class ROSNativeObjectListener(ROSListener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
@@ -125,7 +125,7 @@ class ROSImageListener(ROSListener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param width: int: Width of the image. Default is -1 (use the width of the received image)
@@ -224,7 +224,7 @@ class ROSAudioChunkListener(ROSListener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param channels: int: Number of channels in the audio. Default is 1
@@ -294,7 +294,7 @@ class ROSPropertiesListener(ROSListener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for a parameter to be set. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         """
@@ -369,7 +369,7 @@ class ROSMessageListener(ROSListener):
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether the subscriber should wait for a message to be published. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         """

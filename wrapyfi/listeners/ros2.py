@@ -39,7 +39,7 @@ class ROS2Listener(Listener, Node):
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for pub/sub pattern. Using TCP.")
+            logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
 
@@ -68,7 +68,7 @@ class ROS2NativeObjectListener(ROS2Listener):
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        Deserializes the data (including plugins) using the decoder and parses it to a native object
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -90,7 +90,6 @@ class ROS2NativeObjectListener(ROS2Listener):
         Establish the subscriber
         """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        # self._subscriber = rospy.Subscriber(self.in_topic, std_msgs.msg.String, callback=self._message_callback)
         self._subscriber = self.create_subscription(std_msgs.msg.String, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 

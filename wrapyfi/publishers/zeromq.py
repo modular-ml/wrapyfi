@@ -41,7 +41,7 @@ class ZeroMQPublisher(Publisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param socket_ip: str: IP address of the socket. Default is '127.0.0.1'
         :param socket_pub_port: int: Port of the socket for publishing. Default is 5555
@@ -49,12 +49,12 @@ class ZeroMQPublisher(Publisher):
         :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True
         :param proxy_broker_spawn: str: Whether to spawn the proxy broker as a process or thread. Default is 'process'
         :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
-        :param pubsub_monitor_listener_spawn: str: Whether to spawn the pub/sub monitor listener as a process or thread. Default is 'process'
+        :param pubsub_monitor_listener_spawn: str: Whether to spawn the PUB/SUB monitor listener as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ Pub/Sub middleware
         :param kwargs: Additional kwargs for the publisher
         """
-        if carrier != "tcp":
-            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+        if carrier or carrier != "tcp":
+            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
 
@@ -72,11 +72,10 @@ class ZeroMQPublisher(Publisher):
 
         ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.out_topic)
 
-    def await_connection(self, socket=None, out_topic: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(self, out_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
         Wait for the connection to be established
 
-        :param socket: zmq.Socket: Socket to await connection to
         :param out_topic: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -93,7 +92,6 @@ class ZeroMQPublisher(Publisher):
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
                 connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(out_topic)
-                # connected = port.getOutputCount() < 1
                 if connected:
                     break
                 time.sleep(0.02)
@@ -126,7 +124,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param kwargs: Additional kwargs for the Publisher
@@ -156,7 +154,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
                 self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
         self._socket.connect(self.socket_sub_address)
         self._topic = self.out_topic.encode()
-        established = self.await_connection(self._socket, repeats=repeats)
+        established = self.await_connection(repeats=repeats)
         return self.check_establishment(established)
 
     def publish(self, obj):
@@ -186,7 +184,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
@@ -243,7 +241,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param channels: int: Number of channels. Default is 1
         :param rate: int: Sampling rate. Default is 44100

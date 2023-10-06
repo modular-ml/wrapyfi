@@ -95,5 +95,5 @@ To run the Wrapyfi ROS2 interfaces, you need to compile the ROS2 interfaces. To 
     
     ```
    
-     Run your Wrapyfi enabled script from the same terminal. Now you can use the REP/REQ pattern (server/client) in Wrapyfi
+     Run your Wrapyfi enabled script from the same terminal. Now you can use the REQ/REP pattern (server/client) in Wrapyfi
      

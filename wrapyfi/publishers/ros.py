@@ -32,14 +32,14 @@ class ROSPublisher(Publisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param ros_kwargs: dict: Additional kwargs for the ROS middleware
         :param kwargs: dict: Additional kwargs for the publisher
         """
-        if carrier != "tcp":
-            logging.warning("[ROS] ROS does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+        if carrier or carrier != "tcp":
+            logging.warning("[ROS] ROS does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
@@ -96,7 +96,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param serializer_kwargs: dict: Additional kwargs for the serializer
@@ -149,7 +149,7 @@ class ROSImagePublisher(ROSPublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
@@ -243,7 +243,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param channels: int: Number of channels. Default is 1
@@ -319,7 +319,7 @@ class ROSPropertiesPublisher(ROSPublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param persistent: bool: True if the parameter should be kept on closing node, False if it should be deleted or
                                     reset to its state before the node was started. Default is True
         """
@@ -365,7 +365,7 @@ class ROSMessagePublisher(ROSPublisher):
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         """
