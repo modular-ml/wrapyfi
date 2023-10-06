@@ -90,6 +90,8 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
 
+        self.establish()
+
     def establish(self, **kwargs):
         """
         Establish the connection to the publisher
@@ -112,8 +114,6 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
                  - A list of arguments extracted from the received message
                  - A dictionary of keyword arguments extracted from the received message
         """
-        if not self.established:
-            self.establish()
         message = self._socket.recv_string()
         try:
             request = json.loads(message, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
@@ -165,10 +165,6 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
         if img is None:
             logging.warning("[ZeroMQ] Image is None. Skipping reply.")
             return
-
-        if not self.established:
-            self.establish()
-            time.sleep(0.2)  # To ensure the connection setup is complete before sending
 
         if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):

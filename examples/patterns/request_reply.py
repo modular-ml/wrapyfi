@@ -15,17 +15,23 @@ class ReqRep(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", args.mware, "ReqRep", "/req_rep/my_message",
                                      carrier="tcp", persistent=True)
-    @MiddlewareCommunicator.register("NativeObject", args.mware, "ReqRep", "/req_rep/my_image_message",
-                                     carrier="", width="$img_width", height="$img_height", rgb=True, queue_size=10,
+    @MiddlewareCommunicator.register("Image", args.mware, "ReqRep", "/req_rep/my_image_message",
+                                     carrier="", width="$img_width", height="$img_height", rgb=True, jpg=True,
                                      persistent=True)
-    def send_message(self, img_width=320, img_height=240, *args, **kwargs):
-        msg = input("Type your message: ")
+    def send_message(self, msg=None, img_width=320, img_height=240, *args, **kwargs):
+
         obj = {"message": msg,
                "args": args,
                "kwargs": kwargs}
 
         img = cv2.imread("../../resources/wrapyfi.png")
         img = cv2.resize(img, (img_width, img_height), interpolation = cv2.INTER_AREA)
+        # adding text to the image and displaying it
+        cv2.putText(img, msg,
+                    ((img.shape[1] - cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][0]) // 2,
+                     (img.shape[0] + cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][1]) // 2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
         return obj, img
 
 
@@ -34,8 +40,11 @@ req_rep.activate_communication(ReqRep.send_message, mode=args.mode)
 
 counter = 0
 while True:
+    # We separate the request and reply to show that messages are passed from the requester,
+    # but this separation is NOT necessary for the method to work
     if args.mode == "request":
-        my_message, my_image = req_rep.send_message(counter=counter)
+        msg = input("Type your message: ")
+        my_message, my_image = req_rep.send_message(msg, counter=counter)
         counter += 1
         if my_message is not None:
             print("Request: counter:", counter)
@@ -51,6 +60,8 @@ while True:
                         break  # esc to quit
                 cv2.destroyAllWindows()
     if args.mode == "reply":
+        # The send_message() only executes in "reply" mode,
+        # meaning, the method is only accessible from this code block
         my_message, my_image = req_rep.send_message()
         if my_message is not None:
             print("Reply: received reply:", my_message)

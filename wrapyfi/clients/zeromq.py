@@ -186,7 +186,7 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
             # Receive and deserialize JSON to ndarray
             reply_str = self._socket.recv_string()
             reply_img_list = json.loads(reply_str)
-            reply_img = np.array(reply_img_list, dtype=self._type)
+            reply_img = np.array(reply_img_list['img'], dtype=self._type)
 
         # Optionally, you may want to check the image dimensions here too.
 
