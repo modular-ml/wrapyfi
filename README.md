@@ -15,8 +15,7 @@ a number of helper functions to make middleware integration possible without the
 multiple machines. 
 Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
 
-To integrate Wrapyfi with your scripts, simply add the decorators describing the publisher and listener parameters. Wrapyfi imposes an object-oriented
-requirement on your coding style: All Wrapyfi-compatible functions need to be defined within a class. 
+To integrate Wrapyfi with your scripts, simply add the decorators describing the transmitting and listening method parameters.
 
 # Attribution
 
