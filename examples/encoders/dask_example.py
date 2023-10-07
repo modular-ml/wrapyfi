@@ -1,17 +1,14 @@
-import argparse
-import dask.array as da
-import dask.dataframe as dd
-import pandas as pd
-import numpy as np
-
-from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
-
 """
-A message publisher and listener for native python objects and Dask DataFrames or Arrays.
+A message publisher and listener for native python objects and Dask DataFrames or Arrays
 
 Here we demonstrate:
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and Dask DataFrames or Arrays.
+2. Transmitting a nested dummy python object with native objects and Dask DataFrames or Arrays
+3. Applying the PUB/SUB pattern with mirroring
+
+Requirements:
+1. Install the dask package: pip install dask[complete]
+2. Install the pandas (v1) package: pip install pandas<2.0
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
@@ -19,6 +16,14 @@ Run:
     # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
     python3 example_dask.py --mode listen
 """
+
+import argparse
+import dask.array as da
+import dask.dataframe as dd
+import pandas as pd
+import numpy as np
+
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 
 def parse_args():

@@ -18,7 +18,7 @@ class AstropyData(Plugin):
 
     def encode(self, obj, *args, **kwargs):
         memfile = io.BytesIO()
-        obj.write(memfile, format='fits')  # using a binary format
+        obj.write(memfile, format='fits')
         memfile.seek(0)
         obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
         memfile.close()
@@ -26,9 +26,9 @@ class AstropyData(Plugin):
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
         encoded_str = obj_full[1]
-        if isinstance(encoded_str, str):  # Ensure the string is encoded to bytes before decoding it
+        if isinstance(encoded_str, str):
             encoded_str = encoded_str.encode('ascii')
         with io.BytesIO(base64.b64decode(encoded_str)) as memfile:
-            memfile.seek(0)  # Ensure cursor is at the beginning of the BytesIO object
-            obj = Table.read(memfile, format='fits')  # Corrected to 'fits' to match the encoding format
+            memfile.seek(0)
+            obj = Table.read(memfile, format='fits')
         return True, obj

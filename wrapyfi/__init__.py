@@ -3,17 +3,20 @@ import re
 
 
 def get_project_info_from_setup():
-    curr_dir = os.path.dirname(__file__)
-    setup_path = os.path.join(curr_dir, '..', 'setup.py')
-    with open(setup_path, 'r') as f:
-        content = f.read()
-    
+    try:
+        curr_dir = os.path.dirname(__file__)
+        setup_path = os.path.join(curr_dir, '..', 'setup.py')
+        with open(setup_path, 'r') as f:
+            content = f.read()
+    except FileNotFoundError:
+        return {}
     name_match = re.search(r"name\s*=\s*['\"]([^'\"]*)['\"]", content)
     version_match = re.search(r"version\s*=\s*['\"]([^'\"]*)['\"]", content)
     url_match = re.search(r"url\s*=\s*['\"]([^'\"]*)['\"]", content)
     
     if not name_match or not version_match or not url_match:
-        raise RuntimeError("Unable to find name, version, or url string.")
+        # raise RuntimeError("Unable to find name, version, or url string.")
+        return {}
         
     return {
         'name': name_match.group(1),
@@ -21,25 +24,30 @@ def get_project_info_from_setup():
         'url': url_match.group(1)
     }
 
-# Extract project info
+
+# extract project info
 project_info = get_project_info_from_setup()
 
-__version__ = project_info['version']
-__url__ = project_info['url']
-name = project_info['name']
+__version__ = project_info.get('version', None)
+__url__ = project_info.get('url', None)
+name = project_info.get('name', 'wrapyfi')
 
-try:
-    from importlib import metadata
-    __version__ = metadata.version(__name__)
-    __url__ = metadata.metadata(__name__)["Home-page"]
-except ImportError:
+if __version__ is None or __url__ is None:
     try:
-        import pkg_resources
-        __version__ = pkg_resources.require(name)[0].version
-    except pkg_resources.DistributionNotFound:
-        pass
-except Exception:
-    pass
+        from importlib import metadata
+        __version__ = metadata.version(__name__)
+        __url__ = metadata.metadata(__name__)["Home-page"]
+    except ImportError:
+        try:
+            import pkg_resources
+            __version__ = pkg_resources.require(name)[0].version
+            __url__ = pkg_resources.get_distribution(__name__).metadata["Home-page"]
+        except pkg_resources.DistributionNotFound:
+            __version__ = "unknown_version"
+            __url__ = "unknown_url"
+    except Exception:
+        __version__ = "unknown_version"
+        __url__ = "unknown_url"
 
 from wrapyfi.utils import PluginRegistrar
 

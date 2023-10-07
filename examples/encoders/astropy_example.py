@@ -1,3 +1,21 @@
+"""
+A message publisher and listener for native python objects and Astropy Tables
+
+Here we demonstrate:
+1. Using the NativeObject message
+2. Transmitting a nested dummy python object with native objects and Astropy Tables
+3. Applying the PUB/SUB pattern with mirroring
+
+Requirements:
+1. Install the astropy package: pip install astropy
+
+Run:
+    # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
+    python3 astropy_example.py --mode publish
+    # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
+    python3 astropy_example.py --mode listen
+"""
+
 import os
 script_dir = os.path.dirname(os.path.realpath(__file__))
 # modify the WRAPYFI_PLUGINS_PATH environment variable
@@ -11,21 +29,6 @@ from astropy.table import Table
 import numpy as np
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
-
-"""
-A message publisher and listener for native python objects and Astropy Tables.
-
-Here we demonstrate:
-1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and Astropy Tables
-3. Use a plugin that is not installed by default (astropy)
-
-Run:
-    # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 astropy_example.py --mode publish
-    # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 astropy_example.py --mode listen
-"""
 
 
 def parse_args():

@@ -1,7 +1,8 @@
 import sys
 import os
 import re
-
+import pkgutil
+import importlib
 
 def get_project_info_from_setup():
     curr_dir = os.path.dirname(__file__)
@@ -23,8 +24,19 @@ def get_project_info_from_setup():
     }
 
 
+def get_imported_modules(package_name):
+    package = importlib.import_module(package_name)
+    imported_modules = []
+    for _, module_name, _ in pkgutil.walk_packages(path=package.__path__,
+                                                    prefix=package.__name__ + '.',
+                                                    onerror=lambda x: None):
+        imported_modules.append(module_name)
+    return imported_modules
+
+
 def setup(app):
     app.add_css_file('wide_theme.css')
+
 
 autodoc_default_options = {
     'members': True,
@@ -39,10 +51,16 @@ html_static_path = ['_static']
 html_css_files = ['wide_theme.css'] 
 
 extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'myst_parser', 'link_modifier']
-# run from within an environment that has all requirements installed besides ROS2
-autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
 source_suffix = ['.rst', '.md']
 exclude_patterns = ["_build"]
+
+# mock all libraries except for the ones that are installed
+all_imported_modules = get_imported_modules('wrapyfi')
+mock_imports = [mod for mod in all_imported_modules if 'wrapyfi' not in mod]
+autodoc_mock_imports = mock_imports
+# run from within an environment that has all requirements installed besides ROS2
+# autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
+# run from within an environment that has all requirements installed besides ROS
 # autodoc_mock_imports = ["rclpy", "rospy", "yarp", "cv2", "numpy", "yaml",
 #                         "torch", "pandas", "tensorflow", "jax", "jaxlib", "mxnet", "paddle"]
 # extract project info

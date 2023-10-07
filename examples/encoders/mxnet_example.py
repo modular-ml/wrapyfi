@@ -1,15 +1,15 @@
-import argparse
-import mxnet_example
-
-from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
-
 """
 A message publisher and listener for MXNet tensors
 
-Here we demonstrate
+Here we demonstrate:
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim MXNet tensors
+2. Transmitting a nested dummy python object with native objects and multidim MXNet tensors
 3. Flipping of devices by mapping CPU to GPU and vice versa
+4. Applying the PUB/SUB pattern with mirroring
+
+Requirements:
+1. Install the mxnet package: pip install mxnet-cu112
+   (depending on your machine specs, installing MXNet may be different. Refer to https://mxnet.apache.org/get_started)
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
@@ -18,6 +18,12 @@ Run:
     python3 mxnet_tensor.py --mode listen
 
 """
+
+import argparse
+
+import mxnet
+
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 
 def parse_args():

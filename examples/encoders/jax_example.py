@@ -1,14 +1,13 @@
-import argparse
-import jax_example.numpy as jnp
-
-from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
-
 """
 A message publisher and listener for Google JAX tensors
 
-Here we demonstrate
+Here we demonstrate:
 1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim torch tensors
+2. Transmitting a nested dummy python object with native objects and multidim JAX tensors
+3. Applying the PUB/SUB pattern with mirroring
+
+Requirements:
+1. Install the jax package: pip install jax
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
@@ -17,6 +16,11 @@ Run:
     python3 jax_tensor.py --mode listen
 
 """
+
+import argparse
+import jax_example.numpy as jnp
+
+from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 
 def parse_args():
