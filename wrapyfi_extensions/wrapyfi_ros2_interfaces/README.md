@@ -1,7 +1,7 @@
 # Compiling ROS2 interfaces
 
 **WARNING**: These instructions are located in 
-https://github.com/fabawi/wrapify/wrapyfi_extensions/wrapyfi_ros2_interfaces
+https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros2_interfaces
 
 To run the Wrapyfi ROS2 interfaces, you need to compile the ROS2 interfaces. To do so, you need to have ROS2 installed on your system. You can find the installation instructions [here](https://docs.ros.org/en/humble/Installation.html).
 
@@ -17,7 +17,7 @@ To run the Wrapyfi ROS2 interfaces, you need to compile the ROS2 interfaces. To 
     ```bash
     # from the current directory 
     cd ../
-    mv wrapyfi_ros2_interfaces ~/ros2_ws/src
+    cp -r wrapyfi_ros2_interfaces ~/ros2_ws/src
     
     ```
 

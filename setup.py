@@ -35,7 +35,7 @@ setuptools.setup(
     name             = 'wrapyfi',
     version          = '0.4.16',
     description      = 'Wrapyfi is a wrapper for simplifying Middleware communication',
-    url              = 'https://github.com/fabawi/wrapyfi/',
+    url              = 'https://github.com/fabawi/wrapyfi/blob/master/',
     project_urls={
         'Documentation': 'https://wrapyfi.readthedocs.io/en/latest/',
         'Source':        'https://github.com/fabawi/wrapyfi/',
