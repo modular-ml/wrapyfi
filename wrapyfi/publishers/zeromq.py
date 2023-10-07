@@ -266,17 +266,19 @@ class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
                 return
             else:
                 time.sleep(0.2)
+
         aud, rate = aud
-        if rate != self.rate:
+        if aud is None:
+            return
+        if self.rate != -1 and rate != self.rate:
             raise ValueError("Incorrect audio rate for publisher")
-        if len(aud.shape) > 1:
-            chunk, channels = aud.shape[0], aud.shape[1]
-        else:
-            chunk, channels = aud.shape[0], 1
-        if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels:
+        chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
+        self.chunk = chunk if self.chunk == -1 else self.chunk
+        self.channels = channels if self.channels == -1 else self.channels
+        if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
             raise ValueError("Incorrect audio shape for publisher")
-        if not aud.flags['C_CONTIGUOUS']:
-            aud = np.ascontiguousarray(aud)
+        aud = np.require(aud, dtype=np.float32, requirements='C')
+
         aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs).encode()
         aud_header = '{timestamp:' + str(time.time()) + '}'

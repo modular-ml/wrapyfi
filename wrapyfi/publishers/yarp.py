@@ -307,13 +307,22 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
                 return
             else:
                 time.sleep(0.2)
+
         aud, rate = aud
-        if rate != self.rate:
+        if aud is None:
+            return
+        if self.rate != -1 and rate != self.rate:
             raise ValueError("Incorrect audio rate for publisher")
-        if aud is not None:
-            aud_port = self._port.prepare()
-            aud_port.setExternal(aud.data, self.chunk if self.chunk != -1 else aud_port.shape[1], self.channels)
-            self._port.write()
+        chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
+        self.chunk = chunk if self.chunk == -1 else self.chunk
+        self.channels = channels if self.channels == -1 else self.channels
+        if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
+            raise ValueError("Incorrect audio shape for publisher")
+        aud = np.require(aud, dtype=np.float32, requirements='C')
+
+        aud_port = self._port.prepare()
+        aud_port.setExternal(aud.data, chunk, channels)
+        self._port.write()
 
     def close(self):
         """

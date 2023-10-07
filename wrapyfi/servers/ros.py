@@ -184,17 +184,21 @@ class ROSAudioChunkServer(ROSServer):
     def reply(self, aud):
         try:
             aud, rate = aud
-            if rate != self.rate:
-                raise ValueError("Incorrect audio rate for publisher")
             if aud is None:
                 return
-            if 0 < self.chunk != aud.shape[0] or aud.shape[1] != self.channels:
+            if self.rate != -1 and rate != self.rate:
+                raise ValueError("Incorrect audio rate for publisher")
+            chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
+            self.chunk = chunk if self.chunk == -1 else self.chunk
+            self.channels = channels if self.channels == -1 else self.channels
+            if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
                 raise ValueError("Incorrect audio shape for publisher")
             aud = np.require(aud, dtype=np.float32, requirements='C')
+
             aud_msg = sensor_msgs.msg.Image()
             aud_msg.header.stamp = rospy.Time.now()
-            aud_msg.height = aud.shape[0]
-            aud_msg.width = aud.shape[1]
+            aud_msg.height = chunk
+            aud_msg.width = channels
             aud_msg.encoding = '32FC1'
             aud_msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
             aud_msg.step = aud.strides[0]
