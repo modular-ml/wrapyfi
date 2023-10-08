@@ -175,8 +175,8 @@ The publishers and listeners of the same message type should have identical cons
 All messages are transmitted using the yarp python bindings
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`. 
-             When JPG conversion is specified, use a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
+             When JPG conversion is specified, it uses a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk with the sound properties using `yarp.Port` transporting `yarp.Sound`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-structure-types) using `yarp.BufferedPortBottle`
 * **Properties**: Transmits properties [*coming soon*]
 
@@ -254,7 +254,7 @@ All messages are transmitted using the rclpy python bindings as services.
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image` [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image` [*coming soon*]
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 
@@ -264,7 +264,7 @@ All messages are transmitted using the zmq python bindings. Transmission follows
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `zmq context.socket(zmq.REQ).send_multipart`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct [*coming soon*]
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using 
                     `zmq context.socket(zmq.REP)` for replying and `zmq context.socket(zmq.REQ)` for receiving messages

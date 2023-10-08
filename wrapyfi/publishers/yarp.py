@@ -245,13 +245,13 @@ class YarpImagePublisher(YarpPublisher):
 
 
 @Publishers.register("AudioChunk", "yarp")
-class YarpAudioChunkPublisher(YarpImagePublisher):
+class YarpAudioChunkPublisher(YarpPublisher):
 
     def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
                  persistent: bool = True, out_topic_connect: Optional[str] = None,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-         The AudioChunk publisher using the BufferedPortImage construct assuming a numpy array as input
+         The AudioChunk publisher using the Sound construct assuming a numpy array as input
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -265,12 +265,12 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, out_topic_connect=out_topic_connect,
-                         persistent=persistent, width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+                         persistent=persistent, **kwargs)
 
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
-        self._dummy_sound = self._dummy_port = self._dummy_netconnect = None
+        self._sound = self._port = self._netconnect = None
 
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
@@ -283,17 +283,15 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :return: bool: True if connection established, False otherwise
         """
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
-        # self._dummy_port = yarp.Port()
-        # self._dummy_port.open(self.out_topic + "_SND")
-        # self._dummy_netconnect = yarp.Network.connect(self.out_topic + "_SND", self.out_topic_connect + "_SND", self.carrier)
-        # self._dummy_sound = yarp.Sound()
-        # self._dummy_sound.setFrequency(self.rate)
-        # self._dummy_sound.resize(self.chunk, self.channels)
-        # established = self.await_connection(self._dummy_port, out_topic=self.out_topic + "_SND")
-        # if established:
-        #     super(YarpAudioChunkPublisher, self).establish(repeats=repeats)
-        #     self._dummy_port.write(self._dummy_sound)
-        established = super(YarpAudioChunkPublisher, self).establish(repeats=repeats)
+        self._port = yarp.Port()
+        self._port.open(self.out_topic)
+        self._netconnect = yarp.Network.connect(self.out_topic, self.out_topic_connect, self.carrier)
+        self._sound = yarp.Sound()
+        self._sound.setFrequency(self.rate)
+        self._sound.resize(self.chunk, self.channels)
+        established = self.await_connection(self._port, out_topic=self.out_topic)
+        if established:
+            self._port.write(self._sound)
 
         return self.check_establishment(established)
 
@@ -322,17 +320,10 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
 
-        aud_port = self._port.prepare()
-        aud_port.setExternal(aud.data, chunk, channels)
-        self._port.write()
+        for i in range(aud.size):
+            self._sound.set(int(aud.data[i] * 32767), i)  # Convert float samples to 16-bit int
 
-    def close(self):
-        """
-        Close the publisher connection to the yarp Sound port. This is not used at the moment, but left for future impl.
-        """
-        super().close()
-        if self._dummy_port is not None:
-            self._dummy_port.close()
+        self._port.write(self._sound)
 
 
 @Publishers.register("Properties", "yarp")
