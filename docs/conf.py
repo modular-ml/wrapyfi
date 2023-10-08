@@ -1,7 +1,10 @@
 import sys
 import os
 import re
-
+import pkgutil
+import importlib
+import ast
+import json
 
 def get_project_info_from_setup():
     curr_dir = os.path.dirname(__file__)
@@ -23,8 +26,44 @@ def get_project_info_from_setup():
     }
 
 
+def get_imported_modules(package_name):
+    package = importlib.import_module(package_name)
+    imported_modules = []
+    for _, module_name, _ in pkgutil.walk_packages(path=package.__path__,
+                                                    prefix=package.__name__ + '.',
+                                                    onerror=lambda x: None):
+        imported_modules.append(module_name)
+    return imported_modules
+
+
+def get_all_imports_in_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        tree = ast.parse(file.read(), filename=file_path)
+
+    imports = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                imports.add(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            imports.add(node.module)
+
+    return imports
+
+
+def get_all_imports_in_package(package_path):
+    all_imports = set()
+    for root, dirs, files in os.walk(package_path):
+        for file in files:
+            if file.endswith('.py'):
+                file_path = os.path.join(root, file)
+                all_imports.update(get_all_imports_in_file(file_path))
+
+    return all_imports
+
 def setup(app):
     app.add_css_file('wide_theme.css')
+
 
 autodoc_default_options = {
     'members': True,
@@ -39,12 +78,20 @@ html_static_path = ['_static']
 html_css_files = ['wide_theme.css'] 
 
 extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'myst_parser', 'link_modifier']
-# run from within an environment that has all requirements installed besides ROS2
-autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
 source_suffix = ['.rst', '.md']
 exclude_patterns = ["_build"]
-# autodoc_mock_imports = ["rclpy", "rospy", "yarp", "cv2", "numpy", "yaml",
-#                         "torch", "pandas", "tensorflow", "jax", "jaxlib", "mxnet", "paddle"]
+
+# mock all libraries except for the ones that are installed
+with open('exclude_packages.json', 'r') as f:
+    all_imported_modules_pre = set(x for x in json.load(f) if x is not None)
+    print(all_imported_modules_pre)
+# all_imported_modules = get_all_imports_in_package("wrapyfi")
+all_imported_modules = all_imported_modules_pre
+mock_imports = [mod for mod in all_imported_modules if 'wrapyfi.' not in mod]
+autodoc_mock_imports = mock_imports
+# run from within an environment that has all requirements installed besides ROS2
+# autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
+
 # extract project info
 project_info = get_project_info_from_setup()
 

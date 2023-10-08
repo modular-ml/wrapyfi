@@ -25,40 +25,40 @@ WATCHDOG_POLL_REPEAT = None
 
 class ROSPublisher(Publisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the publisher
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param ros_kwargs: dict: Additional kwargs for the ROS middleware
         :param kwargs: dict: Additional kwargs for the publisher
         """
-        if carrier != "tcp":
-            logging.warning("ROS2 does not support other carriers than TCP for pub/sub pattern. Using TCP.")
+        if carrier or carrier != "tcp":
+            logging.warning("[ROS] ROS does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
             carrier = "tcp"
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
 
         self.queue_size = queue_size
 
-    def await_connection(self, publisher, out_port: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(self, publisher, out_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
         Wait for at least one subscriber to connect to the publisher
 
         :param publisher: rospy.Publisher: Publisher to await connection to
-        :param out_port: str: Name of the output topic
+        :param out_topic: str: Name of the output topic
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
         connected = False
-        if out_port is None:
-            out_port = self.out_port
-        logging.info(f"Waiting for topic subscriber: {out_port}")
+        if out_topic is None:
+            out_topic = self.out_topic
+        logging.info(f"[ROS] Waiting for topic subscriber: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -70,7 +70,7 @@ class ROSPublisher(Publisher):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"Topic subscriber connected: {out_port}")
+        logging.info(f"[ROS] Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):
@@ -88,20 +88,20 @@ class ROSPublisher(Publisher):
 @Publishers.register("NativeObject", "ros")
 class ROSNativeObjectPublisher(ROSPublisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True,
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the ROS String message assuming a combination of python native objects
 
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self._publisher = None
 
         self._plugin_encoder = JsonEncoder
@@ -118,7 +118,7 @@ class ROSNativeObjectPublisher(ROSPublisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        self._publisher = rospy.Publisher(self.out_port, std_msgs.msg.String, queue_size=self.queue_size)
+        self._publisher = rospy.Publisher(self.out_topic, std_msgs.msg.String, queue_size=self.queue_size)
         established = self.await_connection(self._publisher, repeats=repeats)
         return self.check_establishment(established)
 
@@ -142,14 +142,14 @@ class ROSNativeObjectPublisher(ROSPublisher):
 @Publishers.register("Image", "ros")
 class ROSImagePublisher(ROSPublisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",  should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",  should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
         The ImagePublisher using the ROS Image message assuming a numpy array as input
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
@@ -158,7 +158,7 @@ class ROSImagePublisher(ROSPublisher):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.width = width
         self.height = height
@@ -189,9 +189,9 @@ class ROSImagePublisher(ROSPublisher):
         :return: bool: True if connection established, False otherwise
         """
         if self.jpg:
-            self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.CompressedImage, queue_size=self.queue_size)
+            self._publisher = rospy.Publisher(self.out_topic, sensor_msgs.msg.CompressedImage, queue_size=self.queue_size)
         else:
-            self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+            self._publisher = rospy.Publisher(self.out_topic, sensor_msgs.msg.Image, queue_size=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -236,21 +236,21 @@ class ROSImagePublisher(ROSPublisher):
 @Publishers.register("AudioChunk", "ros")
 class ROSAudioChunkPublisher(ROSPublisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
         The AudioChunkPublisher using the ROS Image message assuming a numpy array as input
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         :param channels: int: Number of channels. Default is 1
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
+        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
 
         self.channels = channels
@@ -268,7 +268,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        self._publisher = rospy.Publisher(self.out_port, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        self._publisher = rospy.Publisher(self.out_topic, sensor_msgs.msg.Image, queue_size=self.queue_size)
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -276,7 +276,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
         """
         Publish the audio chunk to the middleware
 
-        :param aud: (np.ndarray, int): Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         if not self.established:
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
@@ -284,19 +284,23 @@ class ROSAudioChunkPublisher(ROSPublisher):
                 return
             else:
                 time.sleep(0.2)
+
         aud, rate = aud
-        if rate != self.rate:
-            raise ValueError("Incorrect audio rate for publisher")
         if aud is None:
             return
-        if 0 < self.chunk != aud.shape[0] or aud.shape[1] != self.channels:
+        if self.rate != -1 and rate != self.rate:
+            raise ValueError("Incorrect audio rate for publisher")
+        chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
+        self.chunk = chunk if self.chunk == -1 else self.chunk
+        self.channels = channels if self.channels == -1 else self.channels
+        if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
 
         aud_msg = sensor_msgs.msg.Image()
         aud_msg.header.stamp = rospy.Time.now()
-        aud_msg.height = aud.shape[0]
-        aud_msg.width = aud.shape[1]
+        aud_msg.height = chunk
+        aud_msg.width = channels
         aud_msg.encoding = '32FC1'
         aud_msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
         aud_msg.step = aud.strides[0]
@@ -313,17 +317,17 @@ class ROSPropertiesPublisher(ROSPublisher):
     but care should be taken when using dictionaries, since they are analogous with node namespaces:
     http://wiki.ros.org/rospy/Overview/Parameter%20Server
     """
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp", persistent: bool = True, **kwargs):
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", persistent: bool = True, **kwargs):
         """
         The PropertiesPublisher using the ROS parameter server
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param persistent: bool: True if the parameter should be kept on closing node, False if it should be deleted or
                                     reset to its state before the node was started. Default is True
         """
-        super().__init__(name, out_port, carrier=carrier, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, **kwargs)
         self.persistent = persistent
 
         self.previous_property = False
@@ -332,7 +336,7 @@ class ROSPropertiesPublisher(ROSPublisher):
         """
         Store the original property value in case it needs to be reset
         """
-        self.previous_property = rospy.get_param(self.out_port, False)
+        self.previous_property = rospy.get_param(self.out_topic, False)
 
     def publish(self, obj):
         """
@@ -340,16 +344,16 @@ class ROSPropertiesPublisher(ROSPublisher):
 
         :param obj: object: Property to publish. If dict, will be set as a namespace
         """
-        rospy.set_param(self.out_port, obj)
+        rospy.set_param(self.out_topic, obj)
 
     def close(self):
         """
         Close the publisher and reset the property to its original value if not persistent
         """
-        if hasattr(self, "out_port") and not self.persistent:
-            rospy.delete_param(self.out_port)
+        if hasattr(self, "out_topic") and not self.persistent:
+            rospy.delete_param(self.out_topic)
             if self.previous_property:
-                rospy.set_param(self.out_port, self.previous_property)
+                rospy.set_param(self.out_topic, self.previous_property)
 
     def __del__(self):
         self.close()
@@ -358,18 +362,18 @@ class ROSPropertiesPublisher(ROSPublisher):
 @Publishers.register("ROSMessage", "ros")
 class ROSMessagePublisher(ROSPublisher):
 
-    def __init__(self, name: str, out_port: str, carrier: str = "tcp",
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
                  should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
         The ROSMessagePublisher using the ROS message type inferred from the message type. Supports standard ROS msgs
 
         :param name: str: Name of the publisher
-        :param out_port: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param carrier: str: Carrier protocol. ROS currently only supports TCP for pub/sub pattern. Default is 'tcp'
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param carrier: str: Carrier protocol. ROS currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
         """
-        super().__init__(name, out_port, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self._publisher = None
         if not self.should_wait:
@@ -388,7 +392,7 @@ class ROSMessagePublisher(ROSPublisher):
         obj_type = obj._type.split("/")
         import_msg = importlib.import_module(f"{obj_type[0]}.msg")
         msg_type = getattr(import_msg, obj_type[1])
-        self._publisher = rospy.Publisher(self.out_port, msg_type, queue_size=self.queue_size)
+        self._publisher = rospy.Publisher(self.out_topic, msg_type, queue_size=self.queue_size)
         established = self.await_connection(self._publisher, repeats=repeats)
         return self.check_establishment(established)
 

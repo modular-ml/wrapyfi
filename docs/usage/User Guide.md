@@ -29,7 +29,7 @@ while True:
 
 The primary component for facilitating communication is the `MiddlewareCommunicator`. To register the 
 methods for a given class, the class should inherit the `MiddlewareCommunicator`. Any method decorated with
-`@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Port name>)` is automatically registered by Wrapyfi. 
+`@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Topic name>)` is automatically registered by Wrapyfi. 
 
 The `<Data structure type>` is the publisher/listener type for a given method's return. The supported data
 types are listed [here](<User Guide/Plugins.md#data-structure-types>) section.
@@ -44,8 +44,8 @@ The `<Class name>` serves no purpose in the current Wrapyfi version, but has bee
 where the methods don't belong to a class, and must therefore have a unique identifier for declaration in the 
 [configuration files](<User Guide/Configuration.md#configuration>).
 
-The `<Port name>` is the name used for the connected port and is dependent on the middleware platform. The listener and publisher receive 
-the same port name.
+The `<Topic name>` is the name used for the connected topic and is dependent on the middleware platform. The listener and publisher receive 
+the same topic name.
 
 The `@MiddlewareCommunicator.register` decorator is defined for each of the method's returns in the 
 same order. As shown in the example above, the first decorator defines the properties of `encapsulated_a`'s 

@@ -30,6 +30,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ROS2NativeObjectService.srv"
   "srv/ROS2ImageService.srv"
+  "srv/ROS2CompressedImageService.srv"
   DEPENDENCIES sensor_msgs std_msgs builtin_interfaces
   LIBRARY_NAME ${PROJECT_NAME}
 )

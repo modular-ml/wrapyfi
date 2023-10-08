@@ -12,7 +12,7 @@ args = parser.parse_args()
 class HelloWorld(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register("NativeObject", args.mware, "HelloWorld", "/hello/my_message",
-                                     carrier="tcp", should_wait=False)
+                                     carrier="tcp", should_wait=True)
     def send_message(self):
         msg = input("Type your message: ")
         obj = {"message": msg}

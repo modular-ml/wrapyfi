@@ -26,40 +26,18 @@ class Servers(object):
 
 
 class Server(object):
-    def __init__(self, name, out_port, carrier="", out_port_connect=None, **kwargs):
+    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, **kwargs):
         self.__name__ = name
-        self.out_port = out_port
+        self.out_topic = out_topic
         self.carrier = carrier
-        self.out_port_connect = out_port + ":out" if out_port_connect is None else out_port_connect
+        self.out_topic_connect = out_topic + ":out" if out_topic_connect is None else out_topic_connect
         self.established = False
 
     def establish(self):
         raise NotImplementedError
 
-    def await_request(self, msg):
+    def await_request(self, *args, **kwargs):
         raise NotImplementedError
 
     def reply(self, obj):
         raise NotImplementedError
-
-
-@Servers.register("MMO", "fallback")
-class FallbackServer(Server):
-
-    def __init__(self, name: str, out_port: str, carrier: str = "", missing_middleware_object: str = "", **kwargs):
-        logging.warning(f"Fallback server employed due to missing middleware or object type: "
-                        f"{missing_middleware_object}")
-        Server.__init__(self, name, out_port, carrier=carrier, **kwargs)
-        self.missing_middleware_object = missing_middleware_object
-
-    def establish(self, repeats=-1, **kwargs):
-        return None
-
-    def await_request(self, msg):
-        return msg
-
-    def reply(self, obj):
-        return obj
-
-    def close(self):
-        return None

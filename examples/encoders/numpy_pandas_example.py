@@ -1,58 +1,85 @@
+"""
+A message publisher and listener for native Python objects, NumPy arrays, and Pandas series/dataframes.
+
+This script demonstrates the capability to transmit native Python objects, NumPy arrays, and Pandas series/dataframes using
+the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
+allowing message publishing and listening functionalities between processes or machines.
+
+Demonstrations:
+    - Using the NativeObject message
+    - Transmitting a nested dummy Python object with native objects, NumPy arrays, and Pandas series/dataframes
+    - Applying the PUB/SUB pattern with mirroring
+
+Requirements:
+    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - NumPy: Used for creating arrays (Installed with Wrapyfi)
+    - pandas: Used for creating and handling series and dataframes
+
+    Install using pip:
+        ``pip install "pandas<2.0"``
+
+Run:
+    # On machine 1 (or process 1): Publisher waits for keyboard input and transmits message
+        ``python3 numpy_pandas_example.py --mode publish``
+
+    # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
+        ``python3 numpy_pandas_example.py --mode listen``
+"""
+
 import argparse
+
 import numpy as np
 import pandas as pd
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
-"""
-A message publisher and listener for native python objects, numpy arrays and pandas dataframes
 
-Here we demonstrate 
-1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and multidim numpy arrays
+class Notifier(MiddlewareCommunicator):
+    @MiddlewareCommunicator.register(
+        "NativeObject", "$mware", "Notifier", "/notify/test_native_exchange",
+        carrier="tcp", should_wait=True
+    )
+    def exchange_object(self, mware=None):
+        """Exchange messages with NumPy arrays, Pandas series/dataframes, and other native Python objects."""
+        msg = input("Type your message: ")
 
-Run:
-    # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 numpy_pandas_arrays.py --mode publish
-    # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 numpy_pandas_arrays.py --mode listen
-
-"""
+        ret = {
+            "message": msg,
+            "numpy_array": np.ones((2, 4)),
+            "pandas_series": pd.Series([1, 3, 5, np.nan, 6, 8]),
+            "pandas_dataframe": pd.DataFrame(np.random.randn(6, 4), index=pd.date_range("20130101", periods=6),
+                                             columns=list("ABCD")),
+        }
+        return ret,
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
-    parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(),
-                        help="The middleware to use for transmission")
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects, NumPy arrays, and Pandas series/dataframes.")
+    parser.add_argument(
+        "--mode", type=str, default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode"
+    )
+    parser.add_argument(
+        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        choices=MiddlewareCommunicator.get_communicators(),
+        help="The middleware to use for transmission"
+    )
     return parser.parse_args()
+
+
+def main(args):
+    """Main function to initiate Notifier class and communication."""
+    notifier = Notifier()
+    notifier.activate_communication(Notifier.exchange_object, mode=args.mode)
+
+    while True:
+        msg_object, = notifier.exchange_object(mware=args.mware)
+        print("Method result:", msg_object)
 
 
 if __name__ == "__main__":
     args = parse_args()
-
-    class Notify(MiddlewareCommunicator):
-
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_native_exchange",
-                                         carrier="tcp", should_wait=True)
-        def exchange_object(self):
-            msg = input("Type your message: ")
-            ret = [{"message": msg,
-                    "numpy_array": np.ones((2, 4)),
-                    "pandas_series": pd.Series([1, 3, 5, np.nan, 6, 8]),
-                    "pandas_dataframe": pd.DataFrame(np.random.randn(6, 4), index=pd.date_range("20130101", periods=6),
-                                                     columns=list("ABCD")),
-                    "set": {'a', 1, None},
-                    "list": [[[3, [4], 5.677890, 1.2]]]},
-                   "string",
-                   "string2",
-                   0.4344,
-                   {"other": (1, 2, 3, 4.32, )}]
-            return ret,
-
-    notify = Notify()
-
-    notify.activate_communication(Notify.exchange_object, mode=args.mode)
-    while True:
-        msg_object, = notify.exchange_object()
-        print("Method result:", msg_object)
+    main(args)

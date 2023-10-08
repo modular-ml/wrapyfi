@@ -29,7 +29,7 @@ while True:
 
 The primary component for facilitating communication is the `MiddlewareCommunicator`. To register the 
 methods for a given class, the class should inherit the `MiddlewareCommunicator`. Any method decorated with
-`@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Port name>)` is automatically registered by Wrapyfi. 
+`@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Topic name>)` is automatically registered by Wrapyfi. 
 
 The `<Data structure type>` is the publisher/listener type for a given method's return. The supported data
 types are listed [here](#data-structure-types) section.
@@ -44,8 +44,8 @@ The `<Class name>` serves no purpose in the current Wrapyfi version, but has bee
 where the methods don't belong to a class, and must therefore have a unique identifier for declaration in the 
 [configuration files](#configuration).
 
-The `<Port name>` is the name used for the connected port and is dependent on the middleware platform. The listener and publisher receive 
-the same port name.
+The `<Topic name>` is the name used for the connected topic and is dependent on the middleware platform. The listener and publisher receive 
+the same topic name.
 
 The `@MiddlewareCommunicator.register` decorator is defined for each of the method's returns in the 
 same order. As shown in the example above, the first decorator defines the properties of `encapsulated_a`'s 
@@ -398,12 +398,16 @@ Wrapyfi reserves specific environment variable names for the functionality of it
 * `WRAPYFI_PLUGINS_PATH`: Path/s to [plugin](#plugins) extension directories 
 * `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided): Name of default [<Communicator>](#usage) when non is provided as the second argument to the Wrapyfi decorator. 
 
-ZeroMQ requires socket configurations that can be passed as arguments to the respective middleware constructor (through the Wrapyfi decorator) or using environment variables. Note that these configurations are needed both by the proxy and the message publisher and listener. The downside to such an approach is that all messages share the same configs. This can be achieved by setting:
+ZeroMQ requires socket configurations that can be passed as arguments to the respective middleware constructor (through the Wrapyfi decorator) or using environment variables. Note that these configurations are needed both by the proxy and the message publisher and listener. 
+The downside to such an approach is that all messages share the same configs. Since the proxy broker spawns once on first trigger (if enabled) as well as a singleton subscriber monitoring instance, using environment variables is the recommended approach to avoid unintended behavior. 
+This can be achieved by setting:
         
 * `WRAPYFI_ZEROMQ_SOCKET_IP`: IP address of the socket. Defaults to "127.0.0.1"
 * `WRAPYFI_ZEROMQ_SOCKET_PUB_PORT`: The publishing socket port. Defaults to 5555
 * `WRAPYFI_ZEROMQ_SOCKET_SUB_PORT`: The sub-socket port (listening port for the broker). Defaults to 5556
-* `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](../wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
+* `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC`: The topic name for the pub-sub monitor. Defaults to "ZEROMQ/CONNECTIONS"
+* `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN`: Either spawn the pub-sub monitor listener as a "process" or "thread". Defaults to "process"
+* `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](../../../wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
 * `WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL`: Polling interval in milliseconds for the parameter server. Defaults to 1 (**currently not supported**)
 * `WRAPYFI_ZEROMQ_PARAM_REQREP_PORT`: The parameter server request-reply port. Defaults to 5659 (**currently not supported**)
