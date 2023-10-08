@@ -286,7 +286,7 @@ class YarpAudioChunkListener(YarpListener):
         if established:
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port = yarp.Port()
-            self._port.open(self.in_topic + "_SND:in" + rnd_id)
+            self._port.open(self.in_topic + ":in" + rnd_id)
             self._dummy_netconnect = yarp.Network.connect(self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier)
 
             self._sound = yarp.Sound()
