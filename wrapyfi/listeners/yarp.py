@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import yarp
 
-from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
+from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.yarp import YarpMiddleware
 from wrapyfi.encoders import JsonDecodeHook
 
@@ -283,22 +283,23 @@ class YarpAudioChunkListener(YarpImageListener):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        established = self.await_connection(in_topic=self.in_topic + "_SND", repeats=repeats)
-        if established:
-            # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
-            rnd_id = str(np.random.randint(100000, size=1)[0])
-            self._dummy_port = yarp.Port()
-            self._dummy_port.open(self.in_topic + "_SND:in" + rnd_id)
-            self._dummy_netconnect = yarp.Network.connect(self.in_topic + "_SND", self.in_topic + "_SND:in" + rnd_id, self.carrier)
-        established = self.check_establishment(established)
+        # established = self.await_connection(in_topic=self.in_topic + "_SND", repeats=repeats)
+        # if established:
+        #     # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
+        #     rnd_id = str(np.random.randint(100000, size=1)[0])
+        #     self._dummy_port = yarp.Port()
+        #     self._dummy_port.open(self.in_topic + "_SND:in" + rnd_id)
+        #     self._dummy_netconnect = yarp.Network.connect(self.in_topic + "_SND", self.in_topic + "_SND:in" + rnd_id, self.carrier)
+        # established = self.check_establishment(established)
         established_parent = super(YarpAudioChunkListener, self).establish(repeats=repeats)
         if established_parent:
-            self._dummy_sound = yarp.Sound()
+            # self._dummy_sound = yarp.Sound()
             # self._dummy_port.read(self._dummy_sound)
             # self.rate = self._dummy_sound.getFrequency()
             # self.width = self.chunk = self._dummy_sound.getSamples()
             # self.height = self.channels = self._dummy_sound.getChannels()
-        return established
+            pass
+        return established_parent
 
     def listen(self):
         """

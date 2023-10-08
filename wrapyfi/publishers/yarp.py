@@ -283,16 +283,18 @@ class YarpAudioChunkPublisher(YarpImagePublisher):
         :return: bool: True if connection established, False otherwise
         """
         # create a dummy sound object for transmitting the sound props. This could be cleaner but left for future impl.
-        self._dummy_port = yarp.Port()
-        self._dummy_port.open(self.out_topic + "_SND")
-        self._dummy_netconnect = yarp.Network.connect(self.out_topic + "_SND", self.out_topic_connect + "_SND", self.carrier)
-        self._dummy_sound = yarp.Sound()
-        self._dummy_sound.setFrequency(self.rate)
-        self._dummy_sound.resize(self.chunk, self.channels)
-        established = self.await_connection(self._dummy_port, out_topic=self.out_topic + "_SND")
-        if established:
-            super(YarpAudioChunkPublisher, self).establish(repeats=repeats)
-            self._dummy_port.write(self._dummy_sound)
+        # self._dummy_port = yarp.Port()
+        # self._dummy_port.open(self.out_topic + "_SND")
+        # self._dummy_netconnect = yarp.Network.connect(self.out_topic + "_SND", self.out_topic_connect + "_SND", self.carrier)
+        # self._dummy_sound = yarp.Sound()
+        # self._dummy_sound.setFrequency(self.rate)
+        # self._dummy_sound.resize(self.chunk, self.channels)
+        # established = self.await_connection(self._dummy_port, out_topic=self.out_topic + "_SND")
+        # if established:
+        #     super(YarpAudioChunkPublisher, self).establish(repeats=repeats)
+        #     self._dummy_port.write(self._dummy_sound)
+        established = super(YarpAudioChunkPublisher, self).establish(repeats=repeats)
+
         return self.check_establishment(established)
 
     def publish(self, aud: Tuple[np.ndarray, int]):
