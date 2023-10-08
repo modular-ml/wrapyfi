@@ -1,57 +1,87 @@
+"""
+A message publisher and listener for native Python objects and Pint Quantities.
+
+This script demonstrates the capability to transmit native Python objects and Pint Quantities using
+the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
+allowing message publishing and listening functionalities between processes or machines.
+
+Demonstrations:
+    - Using the NativeObject message
+    - Transmitting a nested dummy Python object with native objects and Pint Quantities
+    - Applying the PUB/SUB pattern with mirroring
+
+Requirements:
+    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - pint: Used for handling physical quantities with units
+
+    Install using pip:
+        ``pip install pint``
+
+Run:
+    # On machine 1 (or process 1): Publisher waits for keyboard input and transmits message
+        ``python3 pint_example.py --mode publish``
+
+    # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
+        ``python3 pint_example.py --mode listen``
+"""
+
 import argparse
+
 import pint
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
-"""
-A message publisher and listener for native python objects and Pint Quantities.
 
-Here we demonstrate:
-1. Using the NativeObject message
-2. Transmit a nested dummy python object with native objects and Pint Quantities.
+class Notifier(MiddlewareCommunicator):
+    @MiddlewareCommunicator.register(
+        "NativeObject", "$mware", "Notifier", "/notify/test_pint_exchange",
+        carrier="tcp", should_wait=True
+    )
+    def exchange_object(self, mware=None):
+        """Exchange messages with Pint Quantities and other native Python objects."""
+        msg = input("Type your message: ")
 
-Run:
-    # On machine 1 (or process 1): Publisher waits for keyboard and transmits message
-    python3 example_pint.py --mode publish
-    # On machine 2 (or process 2): Listener waits for message and prints the entire dummy object
-    python3 example_pint.py --mode listen
-"""
+        # Creating a Pint Quantity
+        ureg = pint.UnitRegistry()
+        quantity = 42 * ureg.parse_expression('meter')
+
+        # Constructing the message object to be transmitted
+        ret = [{"message": msg,
+                "pint_quantity": quantity,
+                "list": [1, 2, 3]},
+               "string",
+               0.4344,
+               {"other": (1, 2, 3, 4.32,)}]
+        return ret,
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"},
-                        help="The transmission mode")
-    parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR,
-                        choices=MiddlewareCommunicator.get_communicators(),
-                        help="The middleware to use for transmission")
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects and Pint Quantities.")
+    parser.add_argument(
+        "--mode", type=str, default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode"
+    )
+    parser.add_argument(
+        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        choices=MiddlewareCommunicator.get_communicators(),
+        help="The middleware to use for transmission"
+    )
     return parser.parse_args()
+
+
+def main(args):
+    """Main function to initiate Notifier class and communication."""
+    notifier = Notifier()
+    notifier.activate_communication(Notifier.exchange_object, mode=args.mode)
+
+    while True:
+        msg_object, = notifier.exchange_object(mware=args.mware)
+        print("Method result:", msg_object)
 
 
 if __name__ == "__main__":
     args = parse_args()
-
-    class Notify(MiddlewareCommunicator):
-
-        @MiddlewareCommunicator.register("NativeObject", args.mware, "Notify", "/notify/test_pint_exchange",
-                                         carrier="tcp", should_wait=True)
-        def exchange_object(self):
-            msg = input("Type your message: ")
-
-            ureg = pint.UnitRegistry()
-            quantity = 42 * ureg.parse_expression('meter')  # or quantity = 42 * ureg('meter')
-
-            ret = [{"message": msg,
-                    "pint_quantity": quantity,
-                    "list": [1, 2, 3]},
-                   "string",
-                   0.4344,
-                   {"other": (1, 2, 3, 4.32,)}]
-            return ret,
-
-    notify = Notify()
-
-    notify.activate_communication(Notify.exchange_object, mode=args.mode)
-    while True:
-        msg_object, = notify.exchange_object()
-        print("Method result:", msg_object)
+    main(args)

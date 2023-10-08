@@ -13,7 +13,7 @@ from rclpy.node import Node
 import std_msgs.msg
 import sensor_msgs.msg
 
-from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
+from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.ros2 import ROS2Middleware
 from wrapyfi.encoders import JsonDecodeHook
 

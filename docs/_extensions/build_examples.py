@@ -24,11 +24,11 @@ def remove_undesired_rsts(rst_dir, files_with_docstrings):
             os.remove(os.path.join(rst_dir, rst))
 
 # identify files with docstrings
-examples_path = "../examples"
+examples_path = "../../examples"
 files_with_docstrings = get_files_with_docstrings(examples_path)
 
 # generate .rst files
-output_path = "examples_docs"
+output_path = "../examples_docs"
 result = subprocess.run(["sphinx-apidoc", "-o", output_path, examples_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 print("STDOUT:", result.stdout.decode())
 print("STDERR:", result.stderr.decode())

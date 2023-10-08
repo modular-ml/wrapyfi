@@ -8,7 +8,7 @@ import numpy as np
 import cv2
 import zmq
 
-from wrapyfi.connect.listeners import Listener, ListenerWatchDog, Listeners
+from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSub
 from wrapyfi.encoders import JsonDecodeHook
 
@@ -74,15 +74,15 @@ class ZeroMQListener(Listener):
             if self.should_wait:
                 repeats = -1
             else:
-                repeats = 1
+                return True
 
-            while repeats > 0 or repeats <= -1:
-                repeats -= 1
-                connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(in_topic)
-                if connected:
-                    logging.info(f"[ZeroMQ] Connected to input port: {in_topic}")
-                    break
-                time.sleep(0.2)
+        while repeats > 0 or repeats <= -1:
+            repeats -= 1
+            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(in_topic)
+            if connected:
+                logging.info(f"[ZeroMQ] Connected to input port: {in_topic}")
+                break
+            time.sleep(0.2)
         return connected
 
     def read_socket(self, socket):

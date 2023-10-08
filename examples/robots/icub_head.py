@@ -1,3 +1,71 @@
+"""
+iCub Head Controller and Camera Viewer using Wrapyfi for Communication
+
+This script demonstrates the capability to control the iCub robot's head and view its camera feed using
+the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern,
+allowing for message publishing and listening functionalities between processes or machines.
+
+Demonstrations:
+    - Using Image messages for camera feed transmission.
+    - Running publishers and listeners concurrently with the yarp.RFModule.
+    - Using Wrapyfi for creating a port listener only.
+
+Requirements:
+    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - iCub Robot and Simulator: Ensure the robot and its simulator are installed and configured.
+        When running in simulation mode, the `iCub_SIM` must be running in a standalone terminal
+        (Refer to the Wrapyfi documentation for installation instructions)
+    - NumPy: Used for creating arrays (Installed with Wrapyfi)
+    - SciPy: For applying smoothing filters to the facial expressions (Refer to https://www.scipy.org/install.html for installation instructions)
+    - Pexpect: To control the facial expressions using RPC
+
+    Install using pip:
+    ``pip install scipy pexpect``
+
+Run:
+    # For the list of keyboard controls, refer to the comments in Keyboard Controls.
+
+    # Alternative 1: Simulation Mode
+        # Ensure that the `iCub_SIM` is running in a standalone terminal.
+
+        # The listener displays images, and coordinates are published without utilizing Wrapyfi's utilities.
+
+        ``python3 icub_head.py --simulation --get_cam_feed --control_head --control_expressions``
+
+    # Alternative 2: Physical Robot
+        # The listener displays images, and coordinates are published without utilizing Wrapyfi's utilities.
+
+        ``python3 icub_head.py --get_cam_feed --control_head --control_expressions``
+
+Keyboard Controls:
+    - Head Control:
+        - Up/Down: Control the head pitch
+        - Right/Left: Control the head yaw
+        - A/D: Control the head roll (right/left)
+        - R: Reset the head to the initial position
+        - Esc: Quit the application
+    - Eye Control:
+        - W/S: Control the eye pitch (up/down)
+        - C/Z: Control the eye yaw (right/left)
+        - R: Reset the eye to the initial position
+        - Esc: Quit the application
+    - Facial Expressions:
+        - 0: Neutral
+        - 1: Happy
+        - 2: Sad
+        - 3: Surprise
+        - 4: Fear
+        - 5: Disgust
+        - 6: Anger
+        - 7: Contempt
+        - 8: Cunning
+        - 9: Shy
+        - Esc: Quit the application
+    - Camera Feed:
+        - Esc: Quit the application
+"""
+
 import os
 import time
 import argparse
@@ -35,35 +103,6 @@ EMOTION_LOOKUP = {
     "Shy": [("LIGHTS", "shy")],
     "Evil": [("LIGHTS", "evi")]
 }
-
-
-"""
-ICub head controller and camera viewer
-
-Here we demonstrate:
-1. Using the Image messages
-2. Running publishers and listeners in concurrence with the yarp.RFModule
-3. Utilizing Wrapyfi for creating a port listener only
-
-Requirements:
-1. Install the iCub robot and simulator
-2. Install the yarp package
-3. Install the scipy package: pip install scipy
-4. Install the peexpect package: pip install pexpect
-
-Run:
-    # For the list of keyboard controls, refer to the comments in acquire_... prefixed methods [# the keyboard commands for controlling the robot]
-
-    # Alternative 1 (simulation)
-    # Ensure that the `iCub_SIM` is running in a standalone terminal
-    # Listener shows images and coordinates are published without Wrapyfi's utilities
-    python3 icub_head.py --simulation --get_cam_feed --control_head --control_expressions
-
-    # Alternative 2 (physical robot)
-    # Listener shows images and coordinates are published without Wrapyfi's utilities
-    python3 icub_head.py --get_cam_feed --control_head --control_expressions
-
-"""
 
 
 def cartesian_to_spherical(xyz=None, x=None, y=None, z=None, expand_return=None):
