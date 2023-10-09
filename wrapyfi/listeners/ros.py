@@ -1,4 +1,5 @@
 import logging
+import sys
 import json
 import queue
 import time
@@ -245,8 +246,17 @@ class ROSAudioChunkListener(ROSListener):
         """
         Establish the subscriber
         """
+        try:
+            from wrapyfi_ros_interfaces.msg import ROSAudioMessage
+        except ImportError:
+            import wrapyfi
+            logging.error("[ROS] Could not import ROSAudioMessage. "
+                          "Make sure the ROS messages in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+            sys.exit(1)
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_topic, sensor_msgs.msg.Image, callback=self._message_callback)
+        self._subscriber = rospy.Subscriber(self.in_topic, ROSAudioMessage, callback=self._message_callback)
         self.established = True
 
     def listen(self):
@@ -258,12 +268,17 @@ class ROSAudioChunkListener(ROSListener):
         if not self.established:
             self.establish()
         try:
-            chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            if encoding != '32FC1':
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+            if self.rate != -1 and rate != self.rate:
+                raise ValueError("Incorrect audio rate for publisher")
+            if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for listener")
             elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
                 raise ValueError("Incorrect audio shape for listener")
             aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape((chunk, channels))
+            # aud = aud / 32767.0
+            if aud.shape[1] == 1:
+                aud = np.squeeze(aud)
             return aud, self.rate
         except queue.Empty:
             return None, self.rate
@@ -271,10 +286,10 @@ class ROSAudioChunkListener(ROSListener):
     def _message_callback(self, data):
         """
         Callback for the subscriber
-        :param data: sensor_msgs.msg.Image: The received message
+        :param data: wrapyfi_ros_interfaces.msg.ROSAudioMessage: The received message
         """
         try:
-            self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+            self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
             logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
 

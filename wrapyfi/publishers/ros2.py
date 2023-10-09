@@ -257,7 +257,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         self.rate = rate
         self.chunk = chunk
 
-        self._publisher = None
+        self._publisher = self._sound_msg = None
 
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)

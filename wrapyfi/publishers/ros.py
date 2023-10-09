@@ -239,7 +239,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunkPublisher using the ROS Image message assuming a numpy array as input
+        The AudioChunkPublisher using the ROS Audio message assuming a numpy array as input
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -250,14 +250,13 @@ class ROSAudioChunkPublisher(ROSPublisher):
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
-                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
 
-        self._publisher = None
+        self._publisher = self._sound_msg = None
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
@@ -268,7 +267,17 @@ class ROSAudioChunkPublisher(ROSPublisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        self._publisher = rospy.Publisher(self.out_topic, sensor_msgs.msg.Image, queue_size=self.queue_size)
+        try:
+            from wrapyfi_ros_interfaces.msg import ROSAudioMessage
+        except ImportError:
+            import wrapyfi
+            logging.error("[ROS] Could not import ROSAudioMessage. "
+                          "Make sure the ROS messages in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+            sys.exit(1)
+        self._publisher = rospy.Publisher(self.out_topic, ROSAudioMessage, queue_size=self.queue_size)
+        self._sound_msg = ROSAudioMessage()
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
@@ -297,14 +306,15 @@ class ROSAudioChunkPublisher(ROSPublisher):
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
 
-        aud_msg = sensor_msgs.msg.Image()
+        aud_msg = self._sound_msg
         aud_msg.header.stamp = rospy.Time.now()
-        aud_msg.height = chunk
-        aud_msg.width = channels
-        aud_msg.encoding = '32FC1'
+        aud_msg.chunk_size = chunk
+        aud_msg.channels = channels
+        aud_msg.sample_rate = rate
         aud_msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
+        aud_msg.encoding = 'S16BE' if aud_msg.is_bigendian else 'S16LE'
         aud_msg.step = aud.strides[0]
-        aud_msg.data = aud.tobytes()
+        aud_msg.data = aud.tobytes()  # (aud * 32767.0).tobytes()
         self._publisher.publish(aud_msg)
 
 
