@@ -12,6 +12,7 @@ examples.sensors.cam\_mic module
    :undoc-members:
    :show-inheritance:
 
+
 Module contents
 ---------------
 

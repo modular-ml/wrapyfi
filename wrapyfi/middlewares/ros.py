@@ -40,4 +40,3 @@ class ROSImageService(object):
   _md5sum         = 'f720f2021b4bbbe86b0f93b08906381c'  # AddTwoInts '6a2e34150c00229791cc89ff309fff21'
   _request_class  = std_msgs.msg.String
   _response_class = sensor_msgs.msg.Image
-

@@ -5,12 +5,11 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
 
+   examples.communication_patterns
    examples.communication_schemes
    examples.custom_msgs
    examples.encoders
-   examples.patterns
    examples.robots
    examples.sensors
 
@@ -32,6 +31,7 @@ examples.hello\_world module
    :members:
    :undoc-members:
    :show-inheritance:
+
 
 Module contents
 ---------------
