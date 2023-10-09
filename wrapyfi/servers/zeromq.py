@@ -27,7 +27,7 @@ class ZeroMQServer(Server):
                  start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the server and start the device broker if necessary
+        Initialize the server and start the device broker if necessary.
 
         :param name: str: Name of the server
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
@@ -75,7 +75,7 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
                  serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        Specific server handling native Python objects, serializing them to JSON strings for transmission
+        Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
@@ -109,7 +109,7 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
         """
         Await and deserialize the client's request, returning the extracted arguments and keyword arguments.
         The method blocks until a message is received, then attempts to deserialize it using the configured JSON decoder
-        hook, returning the extracted arguments and keyword arguments
+        hook, returning the extracted arguments and keyword arguments.
 
         :return: Tuple[list, dict]: A tuple containing two items:
                  - A list of arguments extracted from the received message
@@ -142,7 +142,7 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
                  serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission
+        Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored

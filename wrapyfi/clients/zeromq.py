@@ -22,7 +22,7 @@ class ZeroMQClient(Client):
                  socket_ip: str = SOCKET_IP, socket_rep_port: int = SOCKET_REP_PORT,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the client
+        Initialize the client.
 
         :param name: str: Name of the client
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
@@ -44,7 +44,7 @@ class ZeroMQClient(Client):
 
     def close(self):
         """
-        Close the subscriber
+        Close the subscriber.
         """
         if hasattr(self, "_socket") and self._socket:
             if self._socket is not None:
@@ -144,7 +144,7 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
                  width: int = -1, height: int = -1, rgb: bool = True,
                  fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image client using the ZeroMQ message construct parsed to a numpy array
+        The Image client using the ZeroMQ message construct parsed to a numpy array.
 
         :param name: str: Name of the client
         :param in_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored

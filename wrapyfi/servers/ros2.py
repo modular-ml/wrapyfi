@@ -24,7 +24,7 @@ class ROS2Server(Server, Node):
 
     def __init__(self, name: str, out_topic: str, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the server
+        Initialize the server.
 
         :param name: str: Name of the server
         :param out_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -44,7 +44,7 @@ class ROS2Server(Server, Node):
 
     def close(self):
         """
-        Close the server
+        Close the server.
         """
         if hasattr(self, "_server") and self._server:
             if self._server is not None:
@@ -65,7 +65,7 @@ class ROS2NativeObjectServer(ROS2Server):
     def __init__(self, name: str, out_topic: str,
                  serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        Specific server handling native Python objects, serializing them to JSON strings for transmission
+        Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
         :param out_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -106,7 +106,7 @@ class ROS2NativeObjectServer(ROS2Server):
         """
         Await and deserialize the client's request, returning the extracted arguments and keyword arguments.
         The method blocks until a message is received, then attempts to deserialize it using the configured JSON decoder
-        hook, returning the extracted arguments and keyword arguments
+        hook, returning the extracted arguments and keyword arguments.
 
         :return: Tuple[list, dict]: A tuple containing two items:
                  - A list of arguments extracted from the received message
@@ -130,7 +130,7 @@ class ROS2NativeObjectServer(ROS2Server):
     @staticmethod
     def _service_callback(request, _response):
         """
-        Callback for the ROS2 service
+        Callback for the ROS2 service.
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message
@@ -141,7 +141,7 @@ class ROS2NativeObjectServer(ROS2Server):
     def reply(self, obj):
         """
         Serialize the provided Python object to a JSON string and send it as a reply to the client.
-        The method uses the configured JSON encoder for serialization before sending the resultant string to the client
+        The method uses the configured JSON encoder for serialization before sending the resultant string to the client.
 
         :param obj: Any: The Python object to be serialized and sent
         """
@@ -164,7 +164,7 @@ class ROS2ImageServer(ROS2Server):
                  deserializer_kwargs: Optional[dict] = None,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        Specific server handling native Python objects, serializing them to JSON strings for transmission
+        Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
         :param out_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -202,7 +202,7 @@ class ROS2ImageServer(ROS2Server):
 
     def establish(self):
         """
-        Establish the connection to the server
+        Establish the connection to the server.
         """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2ImageService, ROS2CompressedImageService
@@ -227,7 +227,7 @@ class ROS2ImageServer(ROS2Server):
         """
         Await and deserialize the client's request, returning the extracted arguments and keyword arguments.
         The method blocks until a message is received, then attempts to deserialize it using the configured JSON decoder
-        hook, returning the extracted arguments and keyword arguments
+        hook, returning the extracted arguments and keyword arguments.
 
         :return: Tuple[list, dict]: A tuple containing two items:
                  - A list of arguments extracted from the received message
@@ -251,7 +251,7 @@ class ROS2ImageServer(ROS2Server):
     @staticmethod
     def _service_callback(request, _response):
         """
-        Callback for the ROS2 service
+        Callback for the ROS2 service.
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message

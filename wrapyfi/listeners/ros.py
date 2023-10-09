@@ -27,7 +27,7 @@ class ROSListener(Listener):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the subscriber
+        Initialize the subscriber.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -64,7 +64,7 @@ class ROSNativeObjectListener(ROSListener):
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ROS String message assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -84,7 +84,7 @@ class ROSNativeObjectListener(ROSListener):
 
     def establish(self):
         """
-        Establish the subscriber
+        Establish the subscriber.
         """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = rospy.Subscriber(self.in_topic, std_msgs.msg.String, callback=self._message_callback)
@@ -92,7 +92,7 @@ class ROSNativeObjectListener(ROSListener):
 
     def listen(self) -> Any:
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Any: The received message as a native python object
         """
@@ -106,7 +106,7 @@ class ROSNativeObjectListener(ROSListener):
 
     def _message_callback(self, msg):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
 
         :param msg: std_msgs.msg.String: The received message
         """
@@ -122,7 +122,7 @@ class ROSImageListener(ROSListener):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image listener using the ROS Image message parsed to a numpy array
+        The Image listener using the ROS Image message parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -161,7 +161,7 @@ class ROSImageListener(ROSListener):
 
     def establish(self):
         """
-        Establish the subscriber
+        Establish the subscriber.
         """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         if self.jpg:
@@ -172,7 +172,7 @@ class ROSImageListener(ROSListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
@@ -202,7 +202,7 @@ class ROSImageListener(ROSListener):
 
     def _message_callback(self, data):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
 
         :param data: sensor_msgs.msg.Image: The received message
         """
@@ -221,7 +221,7 @@ class ROSAudioChunkListener(ROSListener):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunk listener using the ROS Image message parsed to a numpy array
+        The AudioChunk listener using the ROS Image message parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -244,7 +244,7 @@ class ROSAudioChunkListener(ROSListener):
 
     def establish(self):
         """
-        Establish the subscriber
+        Establish the subscriber.
         """
         try:
             from wrapyfi_ros_interfaces.msg import ROSAudioMessage
@@ -261,7 +261,7 @@ class ROSAudioChunkListener(ROSListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
@@ -269,7 +269,7 @@ class ROSAudioChunkListener(ROSListener):
             self.establish()
         try:
             chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            if self.rate != -1 and rate != self.rate:
+            if 0 < self.rate != rate:
                 raise ValueError("Incorrect audio rate for listener")
             if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for listener")
@@ -285,7 +285,8 @@ class ROSAudioChunkListener(ROSListener):
 
     def _message_callback(self, data):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
+
         :param data: wrapyfi_ros_interfaces.msg.ROSAudioMessage: The received message
         """
         try:
@@ -305,7 +306,7 @@ class ROSPropertiesListener(ROSListener):
     """
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
-        The PropertiesListener using the ROS Parameter Server
+        The PropertiesListener using the ROS Parameter Server.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -323,7 +324,7 @@ class ROSPropertiesListener(ROSListener):
 
     def await_connection(self, in_topic: Optional[int] = None, repeats: Optional[int] = None):
         """
-        Wait for a parameter to be set
+        Wait for a parameter to be set.
 
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param repeats: int: Number of times to check for the parameter. None for infinite. Default is None
@@ -350,7 +351,7 @@ class ROSPropertiesListener(ROSListener):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the subscriber
+        Establish the subscriber.
 
         :param repeats: int: Number of times to check for the parameter. None for infinite. Default is None
         """
@@ -359,7 +360,7 @@ class ROSPropertiesListener(ROSListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Any: The received message as a native python object
         """
@@ -380,7 +381,7 @@ class ROSMessageListener(ROSListener):
 
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
-        The ROSMessageListener using the ROS message type inferred from the message type. Supports standard ROS msgs
+        The ROSMessageListener using the ROS message type inferred from the message type. Supports standard ROS msgs.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -407,7 +408,7 @@ class ROSMessageListener(ROSListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: rospy.msg: The received message as a ROS message object
         """
@@ -422,7 +423,7 @@ class ROSMessageListener(ROSListener):
 
     def _message_callback(self, msg):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
 
         :param msg: rospy.msg: The received message as a ROS message object
         """

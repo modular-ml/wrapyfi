@@ -28,7 +28,7 @@ class ROS2Publisher(Publisher, Node):
     def __init__(self, name: str, out_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the publisher
+        Initialize the publisher.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -50,7 +50,7 @@ class ROS2Publisher(Publisher, Node):
 
     def await_connection(self, publisher, out_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
-        Wait for at least one subscriber to connect to the publisher
+        Wait for at least one subscriber to connect to the publisher.
 
         :param publisher: rclpy.publisher.Publisher: Publisher to await connection to
         :param out_topic: str: Name of the output topic
@@ -94,7 +94,7 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
                  queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the ROS2 String message assuming a combination of python native objects
-        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -114,7 +114,7 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection
+        Establish the connection.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -148,7 +148,7 @@ class ROS2ImagePublisher(ROS2Publisher):
     def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The ImagePublisher using the ROS2 Image message assuming a numpy array as input
+        The ImagePublisher using the ROS2 Image message assuming a numpy array as input.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -185,7 +185,7 @@ class ROS2ImagePublisher(ROS2Publisher):
 
     def establish(self, repeats=None, **kwargs):
         """
-        Establish the connection
+        Establish the connection.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -199,7 +199,7 @@ class ROS2ImagePublisher(ROS2Publisher):
 
     def publish(self, img):
         """
-        Publish the image to the middleware
+        Publish the image to the middleware.
 
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
@@ -241,7 +241,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
     def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunkPublisher using the ROS2 Audio message assuming a numpy array as input
+        The AudioChunkPublisher using the ROS2 Audio message assuming a numpy array as input.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -264,7 +264,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
 
     def establish(self, repeats=None, **kwargs):
         """
-        Establish the connection
+        Establish the connection.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -285,7 +285,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
 
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
-        Publish the audio chunk to the middleware
+        Publish the audio chunk to the middleware.
 
         :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
@@ -299,12 +299,12 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         aud, rate = aud
         if aud is None:
             return
-        if self.rate != -1 and rate != self.rate:
+        if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for publisher")
         chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
         self.chunk = chunk if self.chunk == -1 else self.chunk
         self.channels = channels if self.channels == -1 else self.channels
-        if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
+        if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
 

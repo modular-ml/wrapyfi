@@ -22,7 +22,7 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 class ROS2Client(Client, Node):
     def __init__(self, name: str, in_topic: str, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the client
+        Initialize the client.
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -41,9 +41,9 @@ class ROS2Client(Client, Node):
 
     def close(self):
         """
-        Close the client
+        Close the client.
         """
-        if hasattr(self, "_client"):
+        if hasattr(self, "_client") and self._client:
             if self._client is not None:
                 self.destroy_node()
 
@@ -58,7 +58,7 @@ class ROS2NativeObjectClient(ROS2Client):
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object.
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -77,7 +77,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def establish(self):
         """
-        Establish the client's connection to the ROS2 service
+        Establish the client's connection to the ROS2 service.
         """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
@@ -97,7 +97,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def request(self, *args, **kwargs):
         """
-        Send a request to the ROS2 service
+        Send a request to the ROS2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -113,7 +113,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def _request(self, *args, **kwargs):
         """
-        Internal method to send a request to the ROS2 service
+        Internal method to send a request to the ROS2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -137,7 +137,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def _await_reply(self) -> Any:
         """
-        Wait for and return the reply from the ROS2 service
+        Wait for and return the reply from the ROS2 service.
 
         :return: Any: The response from the ROS2 service
         """
@@ -155,8 +155,10 @@ class ROS2ImageClient(ROS2Client):
     def __init__(self, name: str, in_topic: str, width: int = -1, height: int = -1,
                  rgb: bool = True, fp: bool = False, jpg: bool = False, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The Image client using the ROS2 Image message parsed to a numpy array
+        The Image client using the ROS2 Image message parsed to a numpy array.
 
+        :param name: str: Name of the client
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param width: int: The width of the image. Default is -1
         :param height: int: The height of the image. Default is -1
         :param rgb: bool: Whether the image is RGB. Default is True
@@ -192,7 +194,7 @@ class ROS2ImageClient(ROS2Client):
 
     def establish(self):
         """
-        Establish the client's connection to the ROS2 service
+        Establish the client's connection to the ROS2 service.
         """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2ImageService, ROS2CompressedImageService
@@ -216,7 +218,7 @@ class ROS2ImageClient(ROS2Client):
 
     def request(self, *args, **kwargs):
         """
-        Send a request to the ROS2 service
+        Send a request to the ROS2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -232,7 +234,7 @@ class ROS2ImageClient(ROS2Client):
 
     def _request(self, *args, **kwargs):
         """
-        Internal method to send a request to the ROS2 service
+        Internal method to send a request to the ROS2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -260,7 +262,7 @@ class ROS2ImageClient(ROS2Client):
 
     def _await_reply(self):
         """
-        Wait for and return the reply from the ROS2 service
+        Wait for and return the reply from the ROS2 service.
 
         :return: np.array: The received image from the ROS2 service
         """

@@ -22,7 +22,7 @@ class YarpListener(Listener):
     def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
                  persistent: bool = True, yarp_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the subscriber
+        Initialize the subscriber.
 
         :param name: str: Name of the publisher
         :param in_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -33,7 +33,6 @@ class YarpListener(Listener):
         :param kwargs: dict: Additional kwargs for the subscriber
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
-
         self.style = yarp.ContactStyle()
         self.style.persistent = persistent
         self.style.carrier = self.carrier
@@ -42,7 +41,7 @@ class YarpListener(Listener):
 
     def await_connection(self, in_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
-        Wait for the publisher to connect to the subscriber
+        Wait for the publisher to connect to the subscriber.
 
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param repeats: int: Number of times to check for the parameter. None for infinite. Default is None
@@ -69,7 +68,7 @@ class YarpListener(Listener):
 
     def read_port(self, port):
         """
-        Read the port
+        Read the port.
 
         :param port: yarp.Port: Port to read from
         :return: yarp.Value: Value read from the port
@@ -100,7 +99,7 @@ class YarpNativeObjectListener(YarpListener):
                  persistent: bool = True, deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the BufferedPortBottle string construct assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a Python object
+        Deserializes the data (including plugins) using the decoder and parses it to a Python object.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -109,7 +108,7 @@ class YarpNativeObjectListener(YarpListener):
         :param persistent: bool: Whether the subscriber port should remain connected after closure. Default is True
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=True, **kwargs)
+        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
 
         self._port = self._netconnect = None
 
@@ -121,7 +120,7 @@ class YarpNativeObjectListener(YarpListener):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection to the publisher
+        Establish the connection to the publisher.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -139,7 +138,7 @@ class YarpNativeObjectListener(YarpListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Any: The received message as a native python object
         """
@@ -160,7 +159,7 @@ class YarpImageListener(YarpListener):
     def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
                  persistent: bool = True, width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image listener using the BufferedPortImage construct parsed to a numpy array
+        The Image listener using the BufferedPortImage construct parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -188,7 +187,7 @@ class YarpImageListener(YarpListener):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection to the publisher
+        Establish the connection to the publisher.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -212,7 +211,7 @@ class YarpImageListener(YarpListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
@@ -253,7 +252,7 @@ class YarpAudioChunkListener(YarpListener):
     def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
                  persistent: bool = True, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunk listener using the Sound construct parsed as a numpy array
+        The AudioChunk listener using the Sound construct parsed as a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -277,7 +276,7 @@ class YarpAudioChunkListener(YarpListener):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection to the publisher
+        Establish the connection to the publisher.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -302,7 +301,7 @@ class YarpAudioChunkListener(YarpListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
@@ -314,13 +313,6 @@ class YarpAudioChunkListener(YarpListener):
         aud = np.array([self._sound_msg.get(i) for i in range(self._sound_msg.getSamples())], dtype=np.int16)
         aud = aud.astype(np.float32) / 32767.0
         return aud, self.rate
-
-    def close(self):
-        """
-        Close the subscriber connection to the yarp Sound port. This is not used at the moment, but left for future impl.
-        """
-        if self._port:
-            self._port.close()
 
 
 @Listeners.register("Properties", "yarp")

@@ -22,7 +22,7 @@ class YarpPublisher(Publisher):
     def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
                  persistent: bool = True, out_topic_connect: Optional[str] = None, yarp_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the publisher
+        Initialize the publisher.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -46,7 +46,7 @@ class YarpPublisher(Publisher):
 
     def await_connection(self, port, out_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
-        Wait for at least one subscriber to connect to the publisher
+        Wait for at least one subscriber to connect to the publisher.
 
         :param port: yarp.Port: Port to await connection to
         :param out_topic: str: Name of the output topic
@@ -90,7 +90,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
                  persistent: bool = True, out_topic_connect: str = None, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject publisher using the BufferedPortBottle string construct assuming a combination of python native objects
-        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string
+        and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -131,7 +131,7 @@ class YarpNativeObjectPublisher(YarpPublisher):
 
     def publish(self, obj):
         """
-        Publish the object to the middleware
+        Publish the object to the middleware.
 
         :param obj: object: Object to publish
         """
@@ -156,7 +156,7 @@ class YarpImagePublisher(YarpPublisher):
                  persistent: bool = True, out_topic_connect: Optional[str] = None, width: int = -1, height: int = -1,
                  rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image publisher using the BufferedPortImage construct assuming a numpy array as input
+        The Image publisher using the BufferedPortImage construct assuming a numpy array as input.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -187,7 +187,7 @@ class YarpImagePublisher(YarpPublisher):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection
+        Establish the connection.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -209,7 +209,8 @@ class YarpImagePublisher(YarpPublisher):
 
     def publish(self, img: np.ndarray):
         """
-        Publish the image to the middleware
+        Publish the image to the middleware.
+
         :param img: np.ndarray: Image to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels] to publish
         """
         if img is None:
@@ -251,7 +252,7 @@ class YarpAudioChunkPublisher(YarpPublisher):
                  persistent: bool = True, out_topic_connect: Optional[str] = None,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-         The AudioChunk publisher using the Sound construct assuming a numpy array as input
+         The AudioChunk publisher using the Sound construct assuming a numpy array as input.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -277,7 +278,7 @@ class YarpAudioChunkPublisher(YarpPublisher):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection
+        Establish the connection.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -297,7 +298,7 @@ class YarpAudioChunkPublisher(YarpPublisher):
 
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
-        Publish the audio chunk to the middleware
+        Publish the audio chunk to the middleware.
 
         :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as ((chunk_size, channels), samplerate)
         """
@@ -311,12 +312,12 @@ class YarpAudioChunkPublisher(YarpPublisher):
         aud, rate = aud
         if aud is None:
             return
-        if self.rate != -1 and rate != self.rate:
+        if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for publisher")
         chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
         self.chunk = chunk if self.chunk == -1 else self.chunk
         self.channels = channels if self.channels == -1 else self.channels
-        if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
+        if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
 

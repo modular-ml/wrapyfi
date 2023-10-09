@@ -196,12 +196,12 @@ class ROSAudioChunkServer(ROSServer):
             aud, rate = aud
             if aud is None:
                 return
-            if self.rate != -1 and rate != self.rate:
+            if 0 < self.rate != rate:
                 raise ValueError("Incorrect audio rate for publisher")
             chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
             self.chunk = chunk if self.chunk == -1 else self.chunk
             self.channels = channels if self.channels == -1 else self.channels
-            if (self.chunk != -1 and self.chunk != chunk) or (self.channels != -1 and self.channels != channels):
+            if 0 < self.chunk != chunk or 0 < self.channels != channels:
                 raise ValueError("Incorrect audio shape for publisher")
             aud = np.require(aud, dtype=np.float32, requirements='C')
 

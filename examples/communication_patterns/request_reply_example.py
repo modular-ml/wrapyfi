@@ -6,19 +6,20 @@ the MiddlewareCommunicator within the Wrapyfi library. The communication follows
 allowing message requesting and replying functionalities between processes or machines.
 
 Demonstrations:
-    - Using the NativeObject and Image messages
-    - Transmitting a Python object and an image using OpenCV
+    - Using the NativeObject, Image and AudioChunk messages
+    - Transmitting a Python object, an image, and audio chunk
     - Applying the REQ/REP pattern with persistence
-    - Loading, resizing, and displaying images with text
+    - Transmitting OpenCV image which can be loaded, resized, and displayed on the client and server ends
+    - Transmitting a sounddevice (PortAudio with NumPy) audio chunk which can be played back on the client and server ends
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
     - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
     - OpenCV: Used for handling and creating images (Installed with Wrapyfi)
-    - sounddevice: Used for handling audio
+    - sounddevice, soundfile: Used for handling audio
 
     Install using pip:
-        ``pip install sounddevice``
+        ``pip install sounddevice soundfile``
 
 Run:
     # On machine 1 (or process 1): Requester sends a message and awaits a reply
