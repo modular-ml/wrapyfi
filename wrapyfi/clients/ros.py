@@ -48,7 +48,7 @@ class ROSNativeObjectClient(ROSClient):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
                  serializer_kwargs: Optional[dict] = None,
                  deserializer_kwargs: Optional[dict] = None,
-                 persistent: bool = False, **kwargs):
+                 persistent: bool = True, **kwargs):
         """
         The NativeObject client using the ROS String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -58,7 +58,7 @@ class ROSNativeObjectClient(ROSClient):
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
         :param deserializer_kwargs: dict, optional: Additional kwargs for the deserializer. Defaults to None
-        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
@@ -134,7 +134,7 @@ class ROSImageClient(ROSClient):
 
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", width: int = -1, height: int = -1,
                  rgb: bool = True, fp: bool = False, serializer_kwargs: Optional[dict] = None,
-                 persistent: bool = False, **kwargs):
+                 persistent: bool = True, **kwargs):
         """
         The Image client using the ROS Image message parsed to a numpy array.
 
@@ -146,7 +146,7 @@ class ROSImageClient(ROSClient):
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
-        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
@@ -237,7 +237,7 @@ class ROSAudioChunkClient(ROSClient):
 
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
                  channels: int = 1, rate: int = 44100, chunk: int = -1, serializer_kwargs: Optional[dict] = None,
-                 persistent: bool = False, **kwargs):
+                 persistent: bool = True, **kwargs):
         """
         The AudioChunk client using the ROS Audio message parsed to a numpy array.
 
@@ -248,7 +248,7 @@ class ROSAudioChunkClient(ROSClient):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: The size of audio chunks. Default is -1
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
-        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)

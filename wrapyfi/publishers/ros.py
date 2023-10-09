@@ -195,7 +195,7 @@ class ROSImagePublisher(ROSPublisher):
         established = self.await_connection(self._publisher)
         return self.check_establishment(established)
 
-    def publish(self, img):
+    def publish(self, img: np.ndarray):
         """
         Publish the image to the middleware.
 

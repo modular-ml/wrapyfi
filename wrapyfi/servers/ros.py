@@ -122,7 +122,7 @@ class ROSImageServer(ROSServer):
        ROSImageServer.RECEIVE_QUEUE.put(msg)
        return ROSImageServer.SEND_QUEUE.get(block=True)
 
-    def reply(self, img):
+    def reply(self, img: np.ndarray):
         try:
             if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                     not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):

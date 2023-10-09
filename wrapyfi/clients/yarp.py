@@ -15,19 +15,21 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 class YarpClient(Client):
 
     def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 yarp_kwargs: Optional[dict] = None, **kwargs):
+                 persistent: bool = True, yarp_kwargs: Optional[dict] = None, **kwargs):
         """
         Initialize the client.
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param yarp_kwargs: dict: Additional kwargs for  the Yarp middleware
         :param kwargs: dict: Additional kwargs for the client
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         YarpMiddleware.activate(**yarp_kwargs or {})
 
+        self.persistent = persistent
     def close(self):
         """
         Close the client.
@@ -44,8 +46,7 @@ class YarpClient(Client):
 class YarpNativeObjectClient(YarpClient):
     def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
                  persistent: bool = True,
-                 serializer_kwargs: Optional[dict] = None,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the YARP Bottle construct assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -55,9 +56,9 @@ class YarpNativeObjectClient(YarpClient):
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
-        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         """
-        super().__init__(name, in_topic, carrier=carrier, **kwargs)
+        super().__init__(name, in_topic, carrier=carrier, persistent=persistent, **kwargs)
         self._port = None
         self._queue = queue.Queue(maxsize=1)
 
@@ -66,8 +67,6 @@ class YarpNativeObjectClient(YarpClient):
         self._serializer_kwargs = serializer_kwargs or {}
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
-
-        self.persistent = persistent
 
     def establish(self):
         """
@@ -149,7 +148,7 @@ class YarpImageClient(YarpNativeObjectClient):
         :param height: int: The height of the image. Default is -1
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
-        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
         :param kwargs: dict: Additional kwargs
         """
@@ -195,7 +194,7 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
         :param channels: int: Number of audio channels. Default is 1
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: The size of audio chunks. Default is -1
-        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is False
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
         :param kwargs: dict: Additional kwargs
         """

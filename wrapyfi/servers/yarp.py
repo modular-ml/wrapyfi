@@ -12,7 +12,9 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class YarpServer(Server):
 
-    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, yarp_kwargs=None, persistent=True, **kwargs):
+    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+                 out_topic_connect: Optional[str] = None, persistent: bool = True,
+                 yarp_kwargs: Optional[dict] = None, **kwargs):
         super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
         YarpMiddleware.activate(**yarp_kwargs or {})
         self.style = yarp.ContactStyle()
@@ -33,7 +35,9 @@ class YarpServer(Server):
 @Servers.register("NativeObject", "yarp")
 class YarpNativeObjectServer(YarpServer):
 
-    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, serializer_kwargs=None, deserializer_kwargs=None, persistent=True, **kwargs):
+    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+                 out_topic_connect: Optional[str] = None, persistent: bool = True,
+                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
         super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, **kwargs)
 
         self._port = self._netconnect = None
@@ -83,31 +87,33 @@ class YarpNativeObjectServer(YarpServer):
             self._port.replyAndDrop(obj_msg)
 
 
-
 @Servers.register("Image", "yarp")
 class YarpImageServer(YarpNativeObjectServer):
-
-    def __init__(self, name, out_topic, carrier="", out_topic_connect=None, width=-1, height=-1, rgb=True, fp=False, **kwargs):
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
+    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+                 out_topic_connect: Optional[str] = None, persistent: bool = True,
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False,
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
 
-    def reply(self, img):
+    def reply(self, img: np.ndarray):
         if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
                 not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
             raise ValueError("Incorrect image shape for publisher")
         # img = np.require(img, dtype=self._type, requirements='C')
         super().reply(img)
 
+
 @Servers.register("AudioChunk", "yarp")
 class YarpAudioChunkServer(YarpNativeObjectServer):
-
     def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 out_topic_connect=None,
-                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
+                 out_topic_connect: Optional[str] = None, persistent: bool = True,
+                 channels: int = 1, rate: int = 44100, chunk: int = -1,
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
