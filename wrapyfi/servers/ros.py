@@ -158,18 +158,28 @@ class ROSAudioChunkServer(ROSServer):
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
 
-        self._server = None
+        self._server = self._sound_msg = None
 
     def establish(self):
-        self._server = rospy.Service(self.out_topic, ROSImageService, self._service_callback)
+        try:
+            from wrapyfi_ros_interfaces.srv import ROSAudioService
+        except ImportError:
+            import wrapyfi
+            logging.error("[ROS] Could not import ROSAudioService. "
+                          "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+            sys.exit(1)
+        self._server = rospy.Service(self.out_topic, ROSAudioService, self._service_callback)
+        self._sound_msg = ROSAudioService._response_class().response
         self.established = True
 
     def await_request(self, *args, **kwargs):
         if not self.established:
             self.establish()
         try:
-            request = ROSImageServer.RECEIVE_QUEUE.get(block=True)
-            [args, kwargs] = json.loads(request.data, object_hook=self._plugin_decoder_hook,
+            request = ROSAudioChunkServer.RECEIVE_QUEUE.get(block=True)
+            [args, kwargs] = json.loads(request.request, object_hook=self._plugin_decoder_hook,
                                         **self._deserializer_kwargs)
             return args, kwargs
         except rospy.ServiceException as e:
@@ -178,8 +188,8 @@ class ROSAudioChunkServer(ROSServer):
 
     @staticmethod
     def _service_callback(msg):
-        ROSImageServer.RECEIVE_QUEUE.put(msg)
-        return ROSImageServer.SEND_QUEUE.get(block=True)
+        ROSAudioChunkServer.RECEIVE_QUEUE.put(msg)
+        return ROSAudioChunkServer.SEND_QUEUE.get(block=True)
 
     def reply(self, aud):
         try:
@@ -195,15 +205,16 @@ class ROSAudioChunkServer(ROSServer):
                 raise ValueError("Incorrect audio shape for publisher")
             aud = np.require(aud, dtype=np.float32, requirements='C')
 
-            aud_msg = sensor_msgs.msg.Image()
+            aud_msg = self._sound_msg
             aud_msg.header.stamp = rospy.Time.now()
-            aud_msg.height = chunk
-            aud_msg.width = channels
-            aud_msg.encoding = '32FC1'
+            aud_msg.chunk_size = chunk
+            aud_msg.channels = channels
+            aud_msg.sample_rate = rate
             aud_msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
+            aud_msg.encoding = 'S16BE' if aud_msg.is_bigendian else 'S16LE'
             aud_msg.step = aud.strides[0]
-            aud_msg.data = aud.tobytes()
-            ROSImageServer.SEND_QUEUE.put(aud_msg, block=False)
+            aud_msg.data = aud.tobytes()  # (aud * 32767.0).tobytes()
+            ROSAudioChunkServer.SEND_QUEUE.put(aud_msg, block=False)
         except queue.Full:
             logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")

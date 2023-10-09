@@ -87,12 +87,17 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 *(ROS)*:
 
+```{warning}
+ROS requires a custom service to deal with audio. This service must be compiled first before using Wrapyfi with ROS Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+```
+
 All messages are transmitted using the rospy python bindings as services.
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros_interfaces.msg.ROSAudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 
 *(ROS2)*:

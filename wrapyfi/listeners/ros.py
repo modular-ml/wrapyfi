@@ -270,7 +270,7 @@ class ROSAudioChunkListener(ROSListener):
         try:
             chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
             if self.rate != -1 and rate != self.rate:
-                raise ValueError("Incorrect audio rate for publisher")
+                raise ValueError("Incorrect audio rate for listener")
             if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for listener")
             elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
@@ -279,7 +279,7 @@ class ROSAudioChunkListener(ROSListener):
             # aud = aud / 32767.0
             if aud.shape[1] == 1:
                 aud = np.squeeze(aud)
-            return aud, self.rate
+            return aud, rate
         except queue.Empty:
             return None, self.rate
 

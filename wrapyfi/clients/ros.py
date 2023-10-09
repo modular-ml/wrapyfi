@@ -40,7 +40,7 @@ class ROSClient(Client):
         Close the client
         """
         if hasattr(self, "_client") and self._client:
-            self._client.shutdown()
+            self._client.close()
 
     def __del__(self):
         self.close()
@@ -243,7 +243,7 @@ class ROSAudioChunkClient(ROSClient):
                  rate: int = 44100, chunk: int = -1, serializer_kwargs: Optional[dict] = None, 
                  persistent: bool = False, **kwargs):
         """
-        The AudioChunk client using the ROS Image message parsed to a numpy array
+        The AudioChunk client using the ROS Audio message parsed to a numpy array
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -260,7 +260,7 @@ class ROSAudioChunkClient(ROSClient):
         self.rate = rate
         self.chunk = chunk
 
-        self._client = None
+        self._client = self._req_msg = None
         self._queue = queue.Queue(maxsize=1)
 
         self._plugin_encoder = JsonEncoder
@@ -273,8 +273,17 @@ class ROSAudioChunkClient(ROSClient):
         """
         Establish the client's connection to the ROS service
         """
-        rospy.wait_for_service(self.in_topic)
-        self._client = rospy.ServiceProxy(self.in_topic, ROSImageService, persistent=self.persistent)
+        try:
+            from wrapyfi_ros_interfaces.srv import ROSAudioService
+        except ImportError:
+            import wrapyfi
+            logging.error("[ROS] Could not import ROSAudioService. "
+                          "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+            sys.exit(1)
+        self._client = rospy.ServiceProxy(self.in_topic, ROSAudioService, persistent=self.persistent)
+        self._req_msg = ROSAudioService._request_class()
         if self.persistent:
             self.established = True
 
@@ -303,10 +312,10 @@ class ROSAudioChunkClient(ROSClient):
         """
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
                               serializer_kwrags=self._serializer_kwargs)
-        args_msg = std_msgs.msg.String()
-        args_msg.data = args_str
-        msg = self._client(args_msg)
-        self._queue.put((msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data), block=False)
+        args_msg = self._req_msg
+        args_msg.request = args_str
+        msg = self._client(args_msg).response
+        self._queue.put((msg.chunk_size, msg.channels, msg.sample_rate, msg.encoding, msg.is_bigendian, msg.data), block=False)
 
     def _await_reply(self):
         """
@@ -315,14 +324,19 @@ class ROSAudioChunkClient(ROSClient):
         :return: Tuple[np.array, int]: The received audio chunk and rate from the ROS service
         """
         try:
-            chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            if encoding != '32FC1':
-                raise ValueError("Incorrect encoding for listener")
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=True)
+            if self.rate != -1 and rate != self.rate:
+                raise ValueError("Incorrect audio rate for client")
+            if encoding not in ['S16LE', 'S16BE']:
+                raise ValueError("Incorrect encoding for client")
             elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
-                raise ValueError("Incorrect audio shape for listener")
+                raise ValueError("Incorrect audio shape for client")
             aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape(
                 (chunk, channels))
-            return aud, self.rate
+            # aud = aud / 32767.0
+            if aud.shape[1] == 1:
+                aud = np.squeeze(aud)
+            return aud, rate
         except queue.Full:
             logging.warning(f"[ROS] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
