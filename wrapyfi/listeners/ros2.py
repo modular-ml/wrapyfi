@@ -4,6 +4,7 @@ import queue
 import time
 import os
 from typing import Optional
+import sys
 
 import numpy as np
 import cv2
@@ -225,7 +226,7 @@ class ROS2AudioChunkListener(ROS2Listener):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunk listener using the ROS2 Image message parsed to a numpy array
+        The AudioChunk listener using the ROS2 Audio message parsed to a numpy array
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -235,8 +236,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size,
-                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+        super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
 
         self.channels = channels
         self.rate = rate
@@ -250,8 +250,17 @@ class ROS2AudioChunkListener(ROS2Listener):
         """
         Establish the subscriber
         """
+        try:
+            from wrapyfi_ros2_interfaces.msg import ROS2AudioMessage
+        except ImportError:
+            import wrapyfi
+            logging.error("[ROS2] Could not import ROS2AudioMessage. "
+                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+            sys.exit(1)
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = self.create_subscription(sensor_msgs.msg.Image, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
+        self._subscriber = self.create_subscription(ROS2AudioMessage, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
@@ -264,12 +273,17 @@ class ROS2AudioChunkListener(ROS2Listener):
             self.establish()
         try:
             rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
-            chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            if encoding != '32FC1':
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+            if self.rate != -1 and rate != self.rate:
+                raise ValueError("Incorrect audio rate for publisher")
+            if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for listener")
             elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
                 raise ValueError("Incorrect audio shape for listener")
             aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape((chunk, channels))
+            # aud = aud / 32767.0
+            if aud.shape[1] == 1:
+                aud = np.squeeze(aud)
             return aud, self.rate
         except queue.Empty:
             return None, self.rate
@@ -278,64 +292,18 @@ class ROS2AudioChunkListener(ROS2Listener):
         """
         Callback for the subscriber
 
-        :param data: sensor_msgs.msg.Image: The received message
+        :param data: wrapyfi_ros2_interfaces.msg.ROS2AudioMessage: The received message
         """
         try:
-            self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+            self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
             logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
 
-
-# TODO (fabawi): WIP - Support for ROS2
 @Listeners.register("Properties", "ros2")
 class ROS2PropertiesListener(ROS2Listener):
-
-    def __init__(self, name, in_topic, should_wait=True, **kwargs):
-        super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
-        self._subscriber = self._queue = None
-
-        if not self.should_wait:
-            ListenerWatchDog().add_listener(self)
-
-        self.previous_property = False
-
-    def await_connection(self, port=None, repeats=None):
-        connected = False
-        if port is None:
-            port = self.in_topic
-        logging.info(f"[ROS2] Waiting for property: {port}")
-        if repeats is None:
-            if self.should_wait:
-                repeats = -1
-            else:
-                repeats = 1
-
-            while repeats > 0 or repeats <= -1:
-                repeats -= 1
-                self.previous_property = self.get_parameter_or(self.in_topic,
-                                                               alternative_value=Parameter("default", Parameter.Type.BOOL, False))
-                connected = True if bool(self.previous_property) else False
-                if connected:
-                    logging.info(f"[ROS2] Found property: {port}")
-                    break
-                time.sleep(0.2)
-        return connected
-
-    def establish(self, repeats=None, **kwargs):
-        established = self.await_connection(repeats=repeats)
-        return self.check_establishment(established)
-
-    def listen(self):
-        if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
-            if not established:
-                obj = None
-            else:
-                obj = self.previous_property
-            return obj
-        else:
-            obj = self.get_parameter_or(self.in_topic, alternative_value=Parameter("default", Parameter.Type.BOOL, False))
-            return obj
+    def __init__(self, name, in_topic, **kwargs):
+        super().__init__(name, in_topic, **kwargs)
+        raise NotImplementedError
 
 

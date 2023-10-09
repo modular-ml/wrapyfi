@@ -28,9 +28,11 @@ find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/ROS2AudioMessage.msg"
   "srv/ROS2NativeObjectService.srv"
   "srv/ROS2ImageService.srv"
   "srv/ROS2CompressedImageService.srv"
+  "srv/ROS2AudioService.srv"
   DEPENDENCIES sensor_msgs std_msgs builtin_interfaces
   LIBRARY_NAME ${PROJECT_NAME}
 )

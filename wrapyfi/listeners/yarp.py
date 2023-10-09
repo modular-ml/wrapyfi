@@ -270,7 +270,7 @@ class YarpAudioChunkListener(YarpListener):
         self.rate = rate
         self.chunk = chunk
 
-        self._sound = self._port = self._dummy_netconnect = None
+        self._sound_msg = self._port = self._netconnect = None
 
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
@@ -287,16 +287,16 @@ class YarpAudioChunkListener(YarpListener):
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port = yarp.Port()
             self._port.open(self.in_topic + ":in" + rnd_id)
-            self._dummy_netconnect = yarp.Network.connect(self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier)
+            self._netconnect = yarp.Network.connect(self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier)
 
-            self._sound = yarp.Sound()
-            self._port.read(self._sound)
+            self._sound_msg = yarp.Sound()
+            self._port.read(self._sound_msg)
             if self.rate == -1:
-                self.rate = self._sound.getFrequency()
+                self.rate = self._sound_msg.getFrequency()
             if self.chunk == -1:
-                self.chunk = self._sound.getSamples()
+                self.chunk = self._sound_msg.getSamples()
             if self.channels == -1:
-                self.channels = self._sound.getChannels()
+                self.channels = self._sound_msg.getChannels()
         established = self.check_establishment(established)
         return established
 
@@ -310,8 +310,8 @@ class YarpAudioChunkListener(YarpListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        self._port.read(self._sound)
-        aud = np.array([self._sound.get(i) for i in range(self._sound.getSamples())], dtype=np.int16)
+        self._port.read(self._sound_msg)
+        aud = np.array([self._sound_msg.get(i) for i in range(self._sound_msg.getSamples())], dtype=np.int16)
         aud = aud.astype(np.float32) / 32767.0
         return aud, self.rate
 

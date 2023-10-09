@@ -3,7 +3,9 @@
 **WARNING**: These instructions are located in 
 https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros2_interfaces
 
-To run the Wrapyfi ROS2 interfaces, you need to compile the ROS2 interfaces. To do so, you need to have ROS2 installed on your system. You can find the installation instructions [here](https://docs.ros.org/en/humble/Installation.html).
+To run the Wrapyfi ROS2 services and transmit audio messages, you need to compile the ROS2 interfaces. 
+ROS2 must already be installed on your system, with all its build dependencies. 
+You can find the installation instructions [here](https://docs.ros.org/en/humble/Installation.html).
 
 ## Prerequisites
 
@@ -94,6 +96,35 @@ To run the Wrapyfi ROS2 interfaces, you need to compile the ROS2 interfaces. To 
         uint8[] data
     
     ```
+
+6. Verify that the ROS2 Audio service interface is compiled:
+        
+    ```bash
+    ros2 interface show wrapyfi_ros2_interfaces/srv/ROS2AudioService
+    ```
+    
+    Which should output:
+    
+    ```bash
+   string request
+   ---
+   wrapyfi_ros2_interfaces/ROS2AudioMessage response
+       std_msgs/Header header
+           builtin_interfaces/Time stamp
+               int32 sec
+               uint32 nanosec
+           string frame_id
+       uint32 chunk_size
+       uint8 channels
+       uint32 sample_rate
+       string encoding
+       uint8 is_bigendian
+       uint32 bitrate
+       string coding_format
+       uint32 step
+       uint8[] data
+    
+    ```
    
-     Run your Wrapyfi enabled script from the same terminal. Now you can use the REQ/REP pattern (server/client) in Wrapyfi
+     Run your Wrapyfi enabled script from the same terminal. Now you can use the REQ/REP pattern (server/client) in Wrapyfi, and transmit ROS2 audio messages.
      

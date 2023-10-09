@@ -193,12 +193,17 @@ All messages are transmitted using the rospy python bindings as topic messages
                   [geometry_msgs](http://wiki.ros.org/geometry_msgs), and [sensor_msgs](http://wiki.ros.org/sensor_msgs) can be directly 
                   returned by the method do not need to be converted to native types
 
-*(ROS 2)*: 
+*(ROS2)*: 
+
+```{warning}
+ROS2 requires a custom message to deal with audio. This message must be compiled first before using Wrapyfi with ROS2 Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+```
 
 All messages are transmitted using the rclpy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 * **Properties**: Transmits properties [*coming soon*]
 * **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*coming soon*]
@@ -278,6 +283,62 @@ Differences are expected between the returns of publishers and listeners, someti
 
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.
 Since the transmitting and receiving arguments should generally be the same regardless of the communication pattern, `publisher_kwargs` and `listener_kwargs` also apply to the servers and clients respectively.
+
+## Communication Schemes
+
+We introduce three communication schemes: **Mirroring**, **Channeling**, and **Forwarding**. 
+These schemes are communication forms that can be useful in different scenarios.
+
+
+### Mirroring
+
+For the REQ/REP pattern, mirroring is a communication scheme that allows a client to send arguments to a server, 
+and receive the method returns back from the server. As for the PUB/SUB pattern, mirroring allows a publisher to
+send the returns of a method to a subscriber based on the publisher's method arguments. Following both patterns, 
+the returns of a method are mirrored on the receiver and the sender side. This is useful when the pipeline for each
+receiver is identical, but we would like to delegate the processing to different publishers when processing requires 
+more resources than a single publisher can provide. 
+
+#### Mirroring Example
+
+In the [mirroring_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/mirroring_example.py), 
+the module transmits a user input message from the publisher to a listener (PUB/SUB pattern), and displays the message along with other native 
+objects on the listener and publisher side. Similarly, we transmit a user input message from the server to a client (REQ/REP pattern),
+when the client requests the message from the server. The example can be run from the 
+[examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+
+
+### Forwarding
+
+Forwarding is a communication scheme that allows a server or publisher to forward the method arguments to another server or publisher (acting as a client or listener),
+and in return, forwards the received messages to another client or listener. This is useful when the server or publisher is not able to communicate with the client or listener
+directly due to limited middleware support on the client or listener side. The middle server or publisher can then act as a bridge between the two, and forward the messages
+between them, effectively chaining the communication. The chain can be extended and is not limited to two servers or publishers.
+
+#### Forwarding Example
+
+In the [forwarding_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/forwarding_example.py),
+the module constantly publishes a string from `chain_A` to a listener on `chain_A`. The `chain_A` listener then forwards the message by publishing to `chain_B`. 
+The string is then forwarded to a third instances which listens exclusively to `chain_B`, without needing to support the middleware used by `chain_A`.
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+
+
+### Channeling
+
+Channeling differs from mirroring, in that there are multiple returns from a method. Disabling one or more of these returns
+is possible, allowing the server or publisher to transmit the message to multiple channels, each with a different topic, and
+potentially, a different middleware. This is useful for transmitting messages using the same method, but to different receivers
+based on what they choose to receive. Not all clients or subscribers require all the messages from a method, and can therefore
+selectively filter out what is needed and operate on that partial return.
+
+#### Channeling Example
+
+In the [channeling_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/channeling_example.py),
+the module constantly publishes three data types (**NativeObject**, **Image**, and **AudioChunk**) over one or more middlware. The listeners 
+can then choose to receive one or more of these data types, depending on the middleware they support. When `--mware_...` for one of the
+channels is not provided, it automatically disables the topic for that channel/s and returns a `None` type value. 
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+
 
 ## Plugins
 

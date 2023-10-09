@@ -270,7 +270,7 @@ class YarpAudioChunkPublisher(YarpPublisher):
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
-        self._sound = self._port = self._netconnect = None
+        self._sound_msg = self._port = self._netconnect = None
 
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
@@ -286,12 +286,12 @@ class YarpAudioChunkPublisher(YarpPublisher):
         self._port = yarp.Port()
         self._port.open(self.out_topic)
         self._netconnect = yarp.Network.connect(self.out_topic, self.out_topic_connect, self.carrier)
-        self._sound = yarp.Sound()
-        self._sound.setFrequency(self.rate)
-        self._sound.resize(self.chunk, self.channels)
+        self._sound_msg = yarp.Sound()
+        self._sound_msg.setFrequency(self.rate)
+        self._sound_msg.resize(self.chunk, self.channels)
         established = self.await_connection(self._port, out_topic=self.out_topic)
         if established:
-            self._port.write(self._sound)
+            self._port.write(self._sound_msg)
 
         return self.check_establishment(established)
 
@@ -321,9 +321,9 @@ class YarpAudioChunkPublisher(YarpPublisher):
         aud = np.require(aud, dtype=np.float32, requirements='C')
 
         for i in range(aud.size):
-            self._sound.set(int(aud.data[i] * 32767), i)  # Convert float samples to 16-bit int
+            self._sound_msg.set(int(aud.data[i] * 32767), i)  # Convert float samples to 16-bit int
 
-        self._port.write(self._sound)
+        self._port.write(self._sound_msg)
 
 
 @Publishers.register("Properties", "yarp")
