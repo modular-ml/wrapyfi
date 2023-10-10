@@ -11,8 +11,8 @@ Demonstrations:
     - Applying the PUB/SUB pattern with forwarding through two communication methods
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
 
 Run:
     # On machine 1 (or process 1): Mode Chain A: Publisher [ZeroMQ], Chain B: Disabled (chain A & B can have different middleware

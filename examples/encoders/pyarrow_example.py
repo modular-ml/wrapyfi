@@ -11,8 +11,8 @@ Demonstrations:
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - pyarrow: Used for handling Apache Arrow arrays
 
     Install using pip:

@@ -11,9 +11,9 @@ Demonstrations:
     - Applying the PUB/SUB pattern with channeling
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - NumPy: Used for creating arrays (Installed with Wrapyfi)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - NumPy: Used for creating arrays (installed with Wrapyfi)
 
     Install using pip:
         ``pip install numpy``

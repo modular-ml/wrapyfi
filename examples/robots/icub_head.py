@@ -11,13 +11,13 @@ Demonstrations:
     - Using Wrapyfi for creating a port listener only.
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - iCub Robot and Simulator: Ensure the robot and its simulator are installed and configured.
         When running in simulation mode, the `iCub_SIM` must be running in a standalone terminal
-        (Refer to the Wrapyfi documentation for installation instructions)
-    - NumPy: Used for creating arrays (Installed with Wrapyfi)
-    - SciPy: For applying smoothing filters to the facial expressions (Refer to https://www.scipy.org/install.html for installation instructions)
+        (refer to the Wrapyfi documentation for installation instructions)
+    - NumPy: Used for creating arrays (installed with Wrapyfi)
+    - SciPy: For applying smoothing filters to the facial expressions (refer to https://www.scipy.org/install.html for installation instructions)
     - Pexpect: To control the facial expressions using RPC
 
     Install using pip:

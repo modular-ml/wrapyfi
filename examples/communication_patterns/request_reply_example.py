@@ -13,9 +13,9 @@ Demonstrations:
     - Transmitting a sounddevice (PortAudio with NumPy) audio chunk which can be played back on the client and server ends
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - OpenCV: Used for handling and creating images (Installed with Wrapyfi)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - OpenCV: Used for handling and creating images (installed with Wrapyfi)
     - sounddevice, soundfile: Used for handling audio
 
     Install using pip:
@@ -89,7 +89,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--sound_device", type=int, default=1,
+        "--sound_device", type=int, default=0,
         help="The sound device to use for audio playback"
     )
 

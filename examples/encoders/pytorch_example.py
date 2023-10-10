@@ -13,9 +13,9 @@ Demonstrations:
     - Flipping of devices by mapping CPU to GPU and vice versa
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - PyTorch: Used for handling and creating tensors (Refer to https://pytorch.org/get-started/locally/ for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - PyTorch: Used for handling and creating tensors (refer to https://pytorch.org/get-started/locally/ for installation instructions)
 
     Install using pip:
         ``pip install "torch>=1.12.1"``  # Basic installation of PyTorch
