@@ -452,7 +452,7 @@ class MiddlewareCommunicator(object):
                             other_entry_keys.append(entry_key)
                     entry_val["__WRAPYFI_INSTANCES"].remove(instance_addr)
 
-            # delete registry entry and all its publishers/listeners
+            # delete registry entry and all its publishers/listeners/servers/clients
             if del_entry:
                 for communicator in cls._MiddlewareCommunicator__registry[del_entry]["communicator"]:
                     wrapped_executor = communicator.get("wrapped_executor", False)

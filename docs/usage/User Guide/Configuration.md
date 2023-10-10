@@ -13,7 +13,13 @@ could break subsequent calls
 
 These properties can be set by calling: 
 
-`activate_communication(<Method name>, mode=<Mode>)` 
+`activate_communication(<Method name>, mode=<Mode>)`
+
+where `<Method name>` is the method's name (`string` name of method by definition) and `<Mode>` is the transmission mode 
+(`"publish"`, `"listen"`, `"reply"`, `request`, `"none"` | `None`, `"disable"`) depending on the communication pattern . 
+The `activate_communication` method can be called multiple times. `<Method name>` could also be a class instance method, by calling:
+
+`activate_communication(<MiddlwareCommunicator instance>.method_of_class_instance, mode=<Mode>)`
 
 for each decorated method within the class. This however requires modifying your scripts for each machine or process running
 on Wrapyfi. To overcome this limitation, use the `ConfigManager` e.g.:
@@ -32,7 +38,7 @@ TheClass:
   encapsulated_method: "publish"
 
 ```
-Where `TheClass` is the class name, `encapsulated_method` is the method's name, and `publish` is the transmission mode.
+where `TheClass` is the class name, `encapsulated_method` is the method's name, and `publish` is the transmission mode.
 This is useful when running the same script on multiple machines, where one is set to publish and the other listens. 
 Multiple instances of the same class' method can have different modes, which can be set independently using the configuration file. This
 can be achieved by providing the mode as a list:
