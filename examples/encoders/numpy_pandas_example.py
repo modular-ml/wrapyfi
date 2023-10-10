@@ -1,5 +1,5 @@
 """
-A message publisher and listener for native Python objects, NumPy arrays, and Pandas series/dataframes.
+A message publisher and listener for native Python objects, NumPy Arrays, and Pandas Series/Dataframes.
 
 This script demonstrates the capability to transmit native Python objects, NumPy arrays, and Pandas series/dataframes using
 the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern

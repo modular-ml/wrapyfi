@@ -1,5 +1,5 @@
 """
-A message publisher and listener for native Python objects and Dask arrays/dataframes.
+A message publisher and listener for native Python objects and Dask Arrays/Dataframes.
 
 This script demonstrates the capability to transmit native Python objects and Dask arrays/dataframes using
 the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern

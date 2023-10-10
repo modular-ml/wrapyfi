@@ -22,7 +22,7 @@ class ROSClient(Client):
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
-        :param ros_kwargs: dict, optional: Additional kwargs for the ROS middleware. Defaults to None
+        :param ros_kwargs: dict: Additional kwargs for the ROS middleware. Defaults to None
         :param kwargs: dict: Additional kwargs for the client
         """
         if carrier or carrier != "tcp":
@@ -56,8 +56,8 @@ class ROSNativeObjectClient(ROSClient):
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
-        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
-        :param deserializer_kwargs: dict, optional: Additional kwargs for the deserializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param kwargs: dict: Additional kwargs
         """
@@ -145,7 +145,7 @@ class ROSImageClient(ROSClient):
         :param height: int: The height of the image. Default is -1
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
-        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param kwargs: dict: Additional kwargs
         """
@@ -247,7 +247,7 @@ class ROSAudioChunkClient(ROSClient):
         :param channels: int: Number of audio channels. Default is 1
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: The size of audio chunks. Default is -1
-        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param kwargs: dict: Additional kwargs
         """

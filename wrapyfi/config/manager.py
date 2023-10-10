@@ -1,6 +1,6 @@
 import yaml
 import logging
-from typing import Union
+from typing import Union, Optional
 
 from wrapyfi.utils import SingletonOptimized
 
@@ -9,7 +9,7 @@ class ConfigManager(metaclass=SingletonOptimized):
     """
     The configuration manager is a singleton which is invoked once throughout the runtime.
     """
-    def __init__(self, config: Union[dict, str], **kwargs):
+    def __init__(self, config: Optional[Union[dict, str]], **kwargs):
         """
         Initializing the ConfigManager. The configuration can be provided as a yaml file name or as a dictionary.
 

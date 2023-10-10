@@ -54,7 +54,7 @@ class YarpNativeObjectClient(YarpClient):
         :param name: str: Name of the client
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         """
@@ -149,7 +149,7 @@ class YarpImageClient(YarpNativeObjectClient):
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
@@ -174,7 +174,8 @@ class YarpImageClient(YarpNativeObjectClient):
         msg.clear()
         self._port.write(args_msg, msg)
         img = json.loads(msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
-        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0]:
+        height, width, channels = img.shape
+        if 0 < self.width != width or 0 < self.height != height:
             raise ValueError("Incorrect image shape for client")
         else:
             self._queue.put(img, block=False)
@@ -195,7 +196,7 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: The size of audio chunks. Default is -1
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param serializer_kwargs: dict, optional: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param kwargs: dict: Additional kwargs
         """
         super().__init__(name, in_topic, carrier=carrier, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)

@@ -27,7 +27,7 @@ class ZeroMQClient(Client):
         :param name: str: Name of the client
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
-        :param zeromq_kwargs: dict, optional: Additional kwargs for the ZeroMQ middleware. Defaults to None
+        :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware. Defaults to None
         :param kwargs: dict: Additional kwargs for the client
         """
         if in_topic != "":
@@ -173,24 +173,16 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         :param args: tuple: Arguments to be serialized and sent
         :param kwargs: dict: Keyword arguments to be serialized and sent
         """
-        # Serialize and send request
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._serializer_kwargs)
         self._socket.send_string(args_str)
 
-        # Await and process reply
         if self.jpg:
-            # Receive and decode JPEG
             reply_bytes = self._socket.recv()
             reply_img = cv2.imdecode(np.frombuffer(reply_bytes, np.uint8), cv2.IMREAD_ANYCOLOR)
         else:
-            # Receive and deserialize JSON to ndarray
             reply_str = self._socket.recv_string()
             reply_img_list = json.loads(reply_str)
             reply_img = np.array(reply_img_list['img'], dtype=self._type)
-
-        # Optionally, you may want to check the image dimensions here too.
-
-        # Put the received image to the queue
         self._queue.put(reply_img, block=False)
 
     def _await_reply(self):
@@ -201,6 +193,9 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         """
         try:
             reply_img = self._queue.get(block=True)
+            height, width, channels = reply_img.shape
+            if 0 < self.width != width or 0 < self.height != height or reply_img.size != height * width:
+                raise ValueError("Incorrect image shape for subscriber")
             return reply_img
         except queue.Empty:
             logging.warning(f"[ZeroMQ] Discarding data because queue is empty. "

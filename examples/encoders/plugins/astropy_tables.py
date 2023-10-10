@@ -48,7 +48,7 @@ class AstropyData(Plugin):
         :param obj: Table: The Astropy table data to encode
         :param args: tuple: Additional arguments (not used)
         :param kwargs: dict: Additional keyword arguments (not used)
-        :return: tuple: A tuple containing:
+        :return: Tuple[bool, dict]: A tuple containing:
             - bool: Always True, indicating that the encoding was successful
             - dict: A dictionary containing:
                 - '__wrapyfi__': A tuple containing the class name and the encoded data string
