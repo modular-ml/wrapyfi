@@ -103,7 +103,7 @@ class ReqRep(MiddlewareCommunicator):
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message requester and replier for native Python objects, and images using OpenCV.")
+    parser = argparse.ArgumentParser(description="A message requester and replier for native Python objects, images using OpenCV, and sound using PortAudio.")
     parser.add_argument(
         "--mode", type=str, default="request",
         choices={"request", "reply"},

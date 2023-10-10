@@ -150,17 +150,20 @@ class ROSAudioChunkServer(ROSServer):
     def __init__(self, name, out_topic, carrier="", out_topic_connect=None, channels=1, rate=44100, chunk=-1,
                  deserializer_kwargs=None, **kwargs):
         super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
-        self.channels = channels
-        self.rate = rate
-        self.chunk = chunk
-
         self._plugin_kwargs = kwargs
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
 
-        self._server = self._sound_msg = None
+        self._server = self._rep_msg = None
+
+        self.channels = channels
+        self.rate = rate
+        self.chunk = chunk
 
     def establish(self):
+        """
+        Establish the connection to the server.
+        """
         try:
             from wrapyfi_ros_interfaces.srv import ROSAudioService
         except ImportError:
@@ -171,10 +174,19 @@ class ROSAudioChunkServer(ROSServer):
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
             sys.exit(1)
         self._server = rospy.Service(self.out_topic, ROSAudioService, self._service_callback)
-        self._sound_msg = ROSAudioService._response_class().response
+        self._rep_msg = ROSAudioService._response_class().response
         self.established = True
 
     def await_request(self, *args, **kwargs):
+        """
+        Await and deserialize the client's request, returning the extracted arguments and keyword arguments.
+        The method blocks until a message is received, then attempts to deserialize it using the configured JSON decoder
+        hook, returning the extracted arguments and keyword arguments.
+
+        :return: Tuple[list, dict]: A tuple containing two items:
+                 - A list of arguments extracted from the received message
+                 - A dictionary of keyword arguments extracted from the received message
+        """
         if not self.established:
             self.establish()
         try:
@@ -188,10 +200,21 @@ class ROSAudioChunkServer(ROSServer):
 
     @staticmethod
     def _service_callback(msg):
+        """
+        Callback for the ROS service.
+
+        :param msg: ROSAudioService._request_class: The request message
+        :return: ROSAudioService._response_class: The response message
+        """
         ROSAudioChunkServer.RECEIVE_QUEUE.put(msg)
         return ROSAudioChunkServer.SEND_QUEUE.get(block=True)
 
     def reply(self, aud):
+        """
+        Serialize the provided audio data and send it as a reply to the client.
+
+        :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        """
         try:
             aud, rate = aud
             if aud is None:
@@ -205,7 +228,7 @@ class ROSAudioChunkServer(ROSServer):
                 raise ValueError("Incorrect audio shape for publisher")
             aud = np.require(aud, dtype=np.float32, requirements='C')
 
-            aud_msg = self._sound_msg
+            aud_msg = self._rep_msg
             aud_msg.header.stamp = rospy.Time.now()
             aud_msg.chunk_size = chunk
             aud_msg.channels = channels

@@ -36,7 +36,6 @@ examples.custom\_msgs.yarp\_sender module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

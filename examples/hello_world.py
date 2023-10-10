@@ -1,24 +1,30 @@
 """
 This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the
-functionality of the middleware using the PUB/SUB pattern and the REP/REQ pattern. The example can be run on a single
-machine or on multiple machines.
+functionality of the middleware using the PUB/SUB pattern and the REQ/REP pattern. The example can be run on a single
+machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected
+using the ``--mware`` argument. The default is ZeroMQ, but YARP, ROS, and ROS2 are also supported.
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
     - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
 
 Run:
+    # Alternative 1: PUB/SUB mode
+        # On machine 1 (or process 1): PUB/SUB mode - Publisher waits for keyboard input and transmits message
 
-    # On machine 1 (or process 1): PUB/SUB mode - Publisher waits for keyboard input and transmits message
         ``python3 hello_world.py --publish --mware zeromq``
 
-    # On machine 2 (or process 2): PUB/SUB mode - Listener waits for message and prints the received object
+        # On machine 2 (or process 2): PUB/SUB mode - Listener waits for message and prints the received object
+
         ``python3 hello_world.py --listen --mware zeromq``
 
-    # On machine 3 (or process 3): REQ/REP mode - Replier waits for a message, sends a reply, and prints the received object
+    # Alternative 2: REQ/REP mode
+        # On machine 1 (or process 1): REQ/REP mode - Replier waits for a message, sends a reply, and prints the received object
+
         ``python3 hello_world.py --reply --mware zeromq``
 
-    # On machine 3 (or process 3): REQ/REP mode - Requester sends a predefined message and waits for a reply
+        # On machine 2 (or process 2): REQ/REP mode - Requester sends a predefined message and waits for a reply
+
         ``python3 hello_world.py --request --mware zeromq``
 
 

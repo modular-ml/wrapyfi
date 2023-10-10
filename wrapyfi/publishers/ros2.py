@@ -103,11 +103,11 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
-        self._publisher = None
-
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
         self._serializer_kwargs = serializer_kwargs or {}
+
+        self._publisher = None
 
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
@@ -161,7 +161,6 @@ class ROS2ImagePublisher(ROS2Publisher):
         :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
         super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -252,7 +251,6 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
         super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

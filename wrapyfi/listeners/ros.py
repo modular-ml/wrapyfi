@@ -136,7 +136,6 @@ class ROSImageListener(ROSListener):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -234,7 +233,6 @@ class ROSAudioChunkListener(ROSListener):
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -388,7 +386,6 @@ class ROSMessageListener(ROSListener):
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self._subscriber = self._queue = self._topic_type = None
 
         ListenerWatchDog().add_listener(self)

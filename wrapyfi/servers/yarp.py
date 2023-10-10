@@ -39,14 +39,13 @@ class YarpNativeObjectServer(YarpServer):
                  out_topic_connect: Optional[str] = None, persistent: bool = True,
                  serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
         super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, **kwargs)
-
-        self._port = self._netconnect = None
-
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
         self._serializer_kwargs = serializer_kwargs or {}
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._deserializer_kwargs = deserializer_kwargs or {}
+
+        self._port = self._netconnect = None
 
     def establish(self):
         self._port = yarp.RpcServer()
@@ -92,8 +91,8 @@ class YarpImageServer(YarpNativeObjectServer):
     def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
                  out_topic_connect: Optional[str] = None, persistent: bool = True,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False,
-                 serializer_kwargs: Optional[dict] = None, **kwargs):
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, deserializer_kwargs=deserializer_kwargs, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -112,8 +111,8 @@ class YarpAudioChunkServer(YarpNativeObjectServer):
     def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
                  out_topic_connect: Optional[str] = None, persistent: bool = True,
                  channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 serializer_kwargs: Optional[dict] = None, **kwargs):
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, deserializer_kwargs=deserializer_kwargs, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

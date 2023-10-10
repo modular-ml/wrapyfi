@@ -1,6 +1,6 @@
 #!/bin/bash
 # uncomment following line, and rename index_API.rst to index.rst to get docs from code.
-#sphinx-apidoc -o source ../wrapyfi
+sphinx-apidoc -o source ../wrapyfi
 # uncomment following lines to compile example documentation
 #python _extensions/build_examples.py
 sphinx-apidoc -o examples_docs ../examples

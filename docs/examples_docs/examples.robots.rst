@@ -12,7 +12,6 @@ examples.robots.icub\_head module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

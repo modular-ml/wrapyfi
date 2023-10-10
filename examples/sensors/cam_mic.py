@@ -142,11 +142,13 @@ class CamMic(MiddlewareCommunicator):
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="A streamer and listener for audio and video streams.")
     parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
     parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(),
                                                                              help="The middleware to use for transmission")
-    parser.add_argument("--stream", nargs="+", default=["video", "audio"], choices={"video", "audio"}, help="The streamed sensor data")
+    parser.add_argument("--stream", nargs="+", default=["video", "audio"],
+                        choices={"video", "audio"},
+                        help="The streamed sensor data")
     parser.add_argument("--img_source", type=int, default=0, help="The video capture device id (int camera id)")
     parser.add_argument("--img_width", type=int, default=320, help="The image width")
     parser.add_argument("--img_height", type=int, default=240, help="The image height")
@@ -179,9 +181,9 @@ def sound_play(my_aud, blocking=True, device=0):
 def main(args):
     if args.list_sound_devices:
         print(sd.query_devices())
+        return
 
-
-    cam_mic = CamMic(stream=args.stream, mic_source=args.mic_source)
+    cam_mic = CamMic(stream=args.stream, mic_source=args.mic_source, mware=args.mware)
 
     if args.mode == "publish":
         cam_mic.activate_communication(CamMic.collect_cam, mode="publish")

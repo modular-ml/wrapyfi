@@ -12,7 +12,6 @@ examples.encoders.plugins.astropy\_tables module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

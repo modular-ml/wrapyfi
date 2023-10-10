@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    examples.communication_patterns
    examples.communication_schemes
@@ -31,7 +32,6 @@ examples.hello\_world module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

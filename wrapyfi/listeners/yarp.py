@@ -109,7 +109,6 @@ class YarpNativeObjectListener(YarpListener):
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
-
         self._port = self._netconnect = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
@@ -173,7 +172,6 @@ class YarpImageListener(YarpListener):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -264,7 +262,6 @@ class YarpAudioChunkListener(YarpListener):
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

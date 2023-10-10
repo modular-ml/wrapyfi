@@ -58,7 +58,6 @@ class ZeroMQPublisher(Publisher):
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
 
-        # out_topic is equivalent to topic in zeromq
         self.socket_pub_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
 
@@ -193,7 +192,6 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -249,7 +247,6 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

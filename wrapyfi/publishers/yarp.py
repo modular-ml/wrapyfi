@@ -35,12 +35,11 @@ class YarpPublisher(Publisher):
         :param kwargs: dict: Additional kwargs for the publisher
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
+        YarpMiddleware.activate(**yarp_kwargs or {})
 
         self.style = yarp.ContactStyle()
         self.style.persistent = persistent
         self.style.carrier = self.carrier
-
-        YarpMiddleware.activate(**yarp_kwargs or {})
 
         self.out_topic_connect = out_topic + ":out" if out_topic_connect is None else out_topic_connect
 
@@ -103,11 +102,11 @@ class YarpNativeObjectPublisher(YarpPublisher):
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, persistent=persistent,
                          out_topic_connect=out_topic_connect, **kwargs)
-        self._port = self._netconnect = None
-
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
         self._serializer_kwargs = serializer_kwargs or {}
+
+        self._port = self._netconnect = None
 
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
@@ -173,7 +172,6 @@ class YarpImagePublisher(YarpPublisher):
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, persistent=persistent,
                          out_topic_connect=out_topic_connect, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -267,10 +265,10 @@ class YarpAudioChunkPublisher(YarpPublisher):
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, out_topic_connect=out_topic_connect,
                          persistent=persistent, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
+
         self._sound_msg = self._port = self._netconnect = None
 
         if not self.should_wait:

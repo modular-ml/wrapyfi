@@ -150,6 +150,7 @@ class ROSImageClient(ROSClient):
         self.height = height
         self.rgb = rgb
         self.fp = fp
+
         if self.fp:
             self._encoding = '32FC3' if self.rgb else '32FC1'
             self._type = np.float32

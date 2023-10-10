@@ -199,7 +199,6 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -256,7 +255,6 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

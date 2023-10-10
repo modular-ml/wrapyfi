@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    examples.encoders.plugins
 
@@ -114,7 +115,6 @@ examples.encoders.zarr\_example module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

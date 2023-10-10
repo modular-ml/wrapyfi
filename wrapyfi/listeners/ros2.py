@@ -140,7 +140,6 @@ class ROS2ImageListener(ROS2Listener):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -237,7 +236,6 @@ class ROS2AudioChunkListener(ROS2Listener):
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
         super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

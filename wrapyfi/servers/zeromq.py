@@ -139,7 +139,7 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
 
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False,
-                 serializer_kwargs: Optional[dict] = None, **kwargs):
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
 
@@ -151,9 +151,9 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
-        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, out_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, deserializer_kwargs=deserializer_kwargs, **kwargs)
 
         self.width = width
         self.height = height
@@ -195,9 +195,9 @@ class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
 
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
                  channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 serializer_kwargs: Optional[dict] = None, **kwargs):
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
+        Specific server handling audio data as numpy arrays, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
@@ -207,9 +207,9 @@ class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
-        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, out_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, deserializer_kwargs=deserializer_kwargs, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk

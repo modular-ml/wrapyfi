@@ -156,7 +156,6 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, in_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
