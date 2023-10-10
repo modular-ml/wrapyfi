@@ -26,7 +26,7 @@ class ROS2Client(Client, Node):
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware. Defaults to None
+        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
         :param kwargs: dict: Additional kwargs for the client
         """
         carrier = "tcp"
@@ -62,7 +62,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
         super().__init__(name, in_topic, **kwargs)
@@ -164,8 +164,7 @@ class ROS2ImageClient(ROS2Client):
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
-        :param kwargs: dict: Additional kwargs
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, in_topic, **kwargs)
         self._client = None
@@ -279,7 +278,7 @@ class ROS2ImageClient(ROS2Client):
                 height, width, encoding, is_bigendian, data = self._queue.get(block=True)
                 if encoding != self._encoding:
                     raise ValueError("Incorrect encoding for listener")
-                elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
                     raise ValueError("Incorrect image shape for listener")
                 img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
                 if img.shape[2] == 1:

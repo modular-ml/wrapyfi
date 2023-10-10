@@ -27,7 +27,7 @@ class ZeroMQClient(Client):
         :param name: str: Name of the client
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
-        :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware. Defaults to None
+        :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
         :param kwargs: dict: Additional kwargs for the client
         """
         if in_topic != "":
@@ -64,10 +64,9 @@ class ZeroMQNativeObjectClient(ZeroMQClient):
 
         :param name: str: Name of the client
         :param in_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
-        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for REQ/REP pattern. Default is 'tcp'
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
-        :param kwargs: Additional kwargs for the client
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
 
@@ -77,6 +76,8 @@ class ZeroMQNativeObjectClient(ZeroMQClient):
         self._deserializer_kwargs = deserializer_kwargs or {}
 
         self._queue = queue.Queue(maxsize=1)
+
+        self.establish()
 
     def establish(self, **kwargs):
         """
@@ -101,8 +102,6 @@ class ZeroMQNativeObjectClient(ZeroMQClient):
         :param kwargs: dict: Keyword arguments to be sent to the server
         :return: Any: The Python object received from the server, deserialized using the configured JSON decoder hook
         """
-        if not self.established:
-            self.establish()
         try:
             self._request(*args, **kwargs)
         except zmq.ZMQError as e:
@@ -119,9 +118,9 @@ class ZeroMQNativeObjectClient(ZeroMQClient):
         args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._serializer_kwargs)
         self._socket.send_string(args_str)
 
-        reply_str = self._socket.recv_string()
-        reply = json.loads(reply_str, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
-        self._queue.put(reply, block=False)
+        obj_str = self._socket.recv_string()
+        obj = json.loads(obj_str, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        self._queue.put(obj, block=False)
 
     def _await_reply(self):
         """
@@ -141,8 +140,8 @@ class ZeroMQNativeObjectClient(ZeroMQClient):
 @Clients.register("Image", "zeromq")
 class ZeroMQImageClient(ZeroMQNativeObjectClient):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
-                 width: int = -1, height: int = -1, rgb: bool = True,
-                 fp: bool = False, jpg: bool = False, **kwargs):
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False,
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The Image client using the ZeroMQ message construct parsed to a numpy array.
 
@@ -154,9 +153,9 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be compressed to JPG before sending. Default is False
-        :param kwargs: Additional kwargs for the client
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, in_topic, carrier=carrier, **kwargs)
+        super().__init__(name, in_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
 
         self.width = width
         self.height = height
@@ -182,7 +181,7 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         else:
             reply_str = self._socket.recv_string()
             reply_img_list = json.loads(reply_str)
-            reply_img = np.array(reply_img_list['img'], dtype=self._type)
+            reply_img = np.array(reply_img_list["img"], dtype=self._type)
         self._queue.put(reply_img, block=False)
 
     def _await_reply(self):
@@ -192,11 +191,69 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         :return: np.ndarray: The image received from the server as a NumPy array
         """
         try:
-            reply_img = self._queue.get(block=True)
-            height, width, channels = reply_img.shape
-            if 0 < self.width != width or 0 < self.height != height or reply_img.size != height * width:
+            img = self._queue.get(block=True)
+            height, width, channels = img.shape
+            if 0 < self.width != width or 0 < self.height != height or img.size != height * width * (3 if self.rgb else 1):
                 raise ValueError("Incorrect image shape for subscriber")
-            return reply_img
+            return img
+        except queue.Empty:
+            logging.warning(f"[ZeroMQ] Discarding data because queue is empty. "
+                            f"This happened due to bad synchronization in {self.__class__.__name__}")
+            return None
+
+
+@Clients.register("AudioChunk", "zeromq")
+class ZeroMQAudioChunkClient(ZeroMQNativeObjectClient):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
+                 channels: int = 1, rate: int = 44100, chunk: int = -1,
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
+        """
+        The AudioChunk client using the ZeroMQ message construct parsed to a numpy array.
+
+        :param name: str: Name of the client
+        :param in_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
+        :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
+        :param width: int: Width of the image. Default is -1 (use the width of the received image)
+        :param height: int: Height of the image. Default is -1 (use the height of the received image)
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be compressed to JPG before sending. Default is False
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        """
+        super().__init__(name, in_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
+        self.channels = channels
+        self.rate = rate
+        self.chunk = chunk
+
+    def _request(self, *args, **kwargs):
+        """
+        Internal method to serialize the request, send it to the server, and receive the reply.
+
+        :param args: tuple: Arguments to be serialized and sent
+        :param kwargs: dict: Keyword arguments to be serialized and sent
+        """
+        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._serializer_kwargs)
+        self._socket.send_string(args_str)
+
+        reply_str = self._socket.recv_string()
+        reply_aud_list = json.loads(reply_str)
+        chunk, channels, rate, aud = reply_aud_list["aud"]
+        reply_aud = np.array(aud, dtype=np.float32)
+        self._queue.put((chunk, channels, rate, reply_aud), block=False)
+
+    def _await_reply(self):
+        """
+        Internal method to retrieve the reply from the server from the queue and return it.
+
+        :return: Tuple[np.ndarray, int]: Audio chunk received formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        """
+        try:
+            chunk, channels, rate, aud = self._queue.get(block=True)
+            if 0 < self.rate != rate:
+                raise ValueError("Incorrect audio rate for listener")
+            if 0 < self.chunk != chunk or self.channels != channels or aud.size != chunk * channels:
+                raise ValueError("Incorrect audio shape for listener")
+            return aud, rate
         except queue.Empty:
             logging.warning(f"[ZeroMQ] Discarding data because queue is empty. "
                             f"This happened due to bad synchronization in {self.__class__.__name__}")

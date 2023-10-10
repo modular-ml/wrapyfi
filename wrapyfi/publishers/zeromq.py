@@ -127,7 +127,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param serializer_kwargs: dict: Additional kwargs for the serializer
-        :param kwargs: Additional kwargs for the Publisher
+        :param kwargs: dict: Additional kwargs for the publisher
         """
         super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         self._socket = self._netconnect = None
@@ -233,7 +233,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
 
 @Publishers.register("AudioChunk", "zeromq")
-class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
+class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
@@ -279,7 +279,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQImagePublisher):
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
 
-        aud_str = json.dumps(aud, cls=self._plugin_encoder, **self._plugin_kwargs,
+        aud_str = json.dumps((chunk, channels, rate, aud), cls=self._plugin_encoder, **self._plugin_kwargs,
                              serializer_kwrags=self._serializer_kwargs).encode()
         aud_header = '{timestamp:' + str(time.time()) + '}'
         self._socket.send_multipart([self._topic, aud_header.encode(), aud_str])

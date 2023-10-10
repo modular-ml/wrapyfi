@@ -22,7 +22,7 @@ class ROSClient(Client):
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
-        :param ros_kwargs: dict: Additional kwargs for the ROS middleware. Defaults to None
+        :param ros_kwargs: dict: Additional kwargs for the ROS middleware
         :param kwargs: dict: Additional kwargs for the client
         """
         if carrier or carrier != "tcp":
@@ -45,10 +45,9 @@ class ROSClient(Client):
 @Clients.register("NativeObject", "ros")
 class ROSNativeObjectClient(ROSClient):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", persistent: bool = True,
                  serializer_kwargs: Optional[dict] = None,
-                 deserializer_kwargs: Optional[dict] = None,
-                 persistent: bool = True, **kwargs):
+                 deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject client using the ROS String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -56,10 +55,9 @@ class ROSNativeObjectClient(ROSClient):
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ROS currently only supports TCP for rep/req pattern. Default is 'tcp'
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
-        :param deserializer_kwargs: dict: Additional kwargs for the deserializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param kwargs: dict: Additional kwargs
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self._client = None
@@ -132,9 +130,8 @@ class ROSNativeObjectClient(ROSClient):
 @Clients.register("Image", "ros")
 class ROSImageClient(ROSClient):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, serializer_kwargs: Optional[dict] = None,
-                 persistent: bool = True, **kwargs):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", width: int = -1, height: int = -1, persistent: bool = True,
+                 rgb: bool = True, fp: bool = False, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The Image client using the ROS Image message parsed to a numpy array.
 
@@ -145,9 +142,8 @@ class ROSImageClient(ROSClient):
         :param height: int: The height of the image. Default is -1
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param kwargs: dict: Additional kwargs
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
@@ -220,7 +216,7 @@ class ROSImageClient(ROSClient):
             height, width, encoding, is_bigendian, data = self._queue.get(block=True)
             if encoding != self._encoding:
                 raise ValueError("Incorrect encoding for listener")
-            elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+            if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
                 raise ValueError("Incorrect image shape for listener")
             img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
             if img.shape[2] == 1:
@@ -235,9 +231,8 @@ class ROSImageClient(ROSClient):
 @Clients.register("AudioChunk", "ros")
 class ROSAudioChunkClient(ROSClient):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
-                 channels: int = 1, rate: int = 44100, chunk: int = -1, serializer_kwargs: Optional[dict] = None,
-                 persistent: bool = True, **kwargs):
+    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", persistent: bool = True,
+                 channels: int = 1, rate: int = 44100, chunk: int = -1, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The AudioChunk client using the ROS Audio message parsed to a numpy array.
 
@@ -247,9 +242,8 @@ class ROSAudioChunkClient(ROSClient):
         :param channels: int: Number of audio channels. Default is 1
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: The size of audio chunks. Default is -1
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param kwargs: dict: Additional kwargs
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.channels = channels
@@ -325,13 +319,11 @@ class ROSAudioChunkClient(ROSClient):
                 raise ValueError("Incorrect audio rate for client")
             if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for client")
-            elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+            if 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
                 raise ValueError("Incorrect audio shape for client")
             aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape(
                 (chunk, channels))
             # aud = aud / 32767.0
-            if aud.shape[1] == 1:
-                aud = np.squeeze(aud)
             return aud, rate
         except queue.Full:
             logging.warning(f"[ROS] Discarding data because queue is full. "

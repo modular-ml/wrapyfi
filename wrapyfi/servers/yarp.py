@@ -130,6 +130,4 @@ class YarpAudioChunkServer(YarpNativeObjectServer):
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
         aud = np.require(aud, dtype=np.float32, requirements='C')
-
-        # img = np.require(img, dtype=self._type, requirements='C')
         super().reply((chunk, channels, rate, aud))

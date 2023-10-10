@@ -87,7 +87,7 @@ class ZeroMQListener(Listener):
 
     def read_socket(self, socket):
         """
-        Read the socket
+        Read the socket.
 
         :param socket: zmq.Socket: Socket to read from
         :return: bytes: Data read from the socket
@@ -102,7 +102,7 @@ class ZeroMQListener(Listener):
 
     def close(self):
         """
-        Close the subscriber
+        Close the subscriber.
         """
         ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.in_topic)
         time.sleep(0.2)
@@ -162,7 +162,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Any: The received message as a native python object
         """
@@ -273,11 +273,12 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            aud = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
-            chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
+            chunk, channels, rate, aud = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            if 0 < self.rate != rate:
+                raise ValueError("Incorrect audio rate for listener")
             if 0 < self.chunk != chunk or self.channels != channels or aud.size != chunk * channels:
                 raise ValueError("Incorrect audio shape for listener")
-            return aud, self.rate
+            return aud, rate
         else:
             return None, self.rate
 

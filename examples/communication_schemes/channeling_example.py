@@ -47,11 +47,11 @@ class ChannelingCls(MiddlewareCommunicator):
     )
     @MiddlewareCommunicator.register(
         "Image", "$mware_B", "ChannelingCls", "/example/image_B_msg",
-        carrier="tcp", width="$img_width", height="$img_height", rgb=True
+        carrier="tcp", width="$img_width", height="$img_height", rgb=True, should_wait=False
     )
     @MiddlewareCommunicator.register(
         "AudioChunk", "$mware_C", "ChannelingCls", "/example/audio_C_msg",
-        carrier="tcp", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels"
+        carrier="tcp", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels", should_wait=False
     )
     def read_mulret_mulmware(self, img_width=200, img_height=200,
                              aud_rate=44100, aud_chunk=8820, aud_channels=1,

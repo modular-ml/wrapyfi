@@ -38,7 +38,7 @@ class ZeroMQServer(Server):
         :param start_proxy_broker: bool: Whether to start a device broker. Default is True
         :param proxy_broker_spawn: str: Whether to spawn the device broker as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ Req/Rep middleware
-        :param kwargs: Additional kwargs for the server
+        :param kwargs: dict: Additional kwargs for the server
         """
         if out_topic != "":
             logging.warning(f"[ZeroMQ] ZeroMQ does not support topics for the REQ/REP pattern. Topic {out_topic} removed")
@@ -82,7 +82,6 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
-        :param kwargs: Additional kwargs for the server
         """
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
         self._plugin_encoder = JsonEncoder
@@ -139,25 +138,22 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
 class ZeroMQImageServer(ZeroMQNativeObjectServer):
 
     def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
+                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False,
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
         """
         Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
 
         :param name: str: Name of the server
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for REQ/REP pattern. Default is 'tcp'
-        :param serializer_kwargs: dict: Additional kwargs for the serializer
-        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         :param width: int: Width of the image. Default is -1 (use the width of the received image)
         :param height: int: Height of the image. Default is -1 (use the height of the received image)
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
-        :param kwargs: Additional kwargs for the server
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, out_topic, carrier=carrier,
-                         serializer_kwargs=serializer_kwargs, deserializer_kwargs=deserializer_kwargs, **kwargs)
+        super().__init__(name, out_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
 
         self.width = width
         self.height = height
@@ -192,3 +188,48 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
             img_list = img.tolist()
             img_json = json.dumps({"img": img_list})
             self._socket.send_string(img_json)
+
+
+@Servers.register("AudioChunk", "zeromq")
+class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
+
+    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
+                 channels: int = 1, rate: int = 44100, chunk: int = -1,
+                 serializer_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
+
+        :param name: str: Name of the server
+        :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
+        :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for REQ/REP pattern. Default is 'tcp'
+        :param width: int: Width of the image. Default is -1 (use the width of the received image)
+        :param height: int: Height of the image. Default is -1 (use the height of the received image)
+        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
+        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
+        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        """
+        super().__init__(name, out_topic, carrier=carrier, serializer_kwargs=serializer_kwargs, **kwargs)
+        self.channels = channels
+        self.rate = rate
+        self.chunk = chunk
+
+    def reply(self, aud):
+        """
+        Serialize the provided audio data and send it as a reply to the client.
+
+        :param aud: Tuple[np.ndarray, int]: Audio chunk to publish formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
+        """
+        aud, rate = aud
+        if 0 < self.rate != rate:
+            raise ValueError("Incorrect audio rate for publisher")
+        chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
+        self.chunk = chunk if self.chunk == -1 else self.chunk
+        self.channels = channels if self.channels == -1 else self.channels
+        if 0 < self.chunk != chunk or 0 < self.channels != channels:
+            raise ValueError("Incorrect audio shape for publisher")
+        aud = np.require(aud, dtype=np.float32, requirements='C')
+
+        aud_list = aud.tolist()
+        aud_json = json.dumps({"aud": (int(chunk), int(channels), int(rate), aud_list)})
+        self._socket.send_string(aud_json)

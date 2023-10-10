@@ -71,7 +71,6 @@ class ROS2NativeObjectServer(ROS2Server):
         :param out_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
-        :param kwargs: Additional kwargs for the server
         """
         super().__init__(name, out_topic, **kwargs)
         self._plugin_encoder = JsonEncoder
@@ -174,7 +173,6 @@ class ROS2ImageServer(ROS2Server):
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
-        :param kwargs: Additional kwargs for the server
         """
         super().__init__(name, out_topic, **kwargs)
         self._plugin_encoder = JsonEncoder

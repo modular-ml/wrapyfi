@@ -9,8 +9,8 @@ Demonstrations:
     - Using the NativeObject, Image and AudioChunk messages
     - Transmitting a Python object, an image, and audio chunk
     - Applying the REQ/REP pattern with persistence
-    - Transmitting OpenCV image which can be loaded, resized, and displayed on the client and server ends
-    - Transmitting a sounddevice (PortAudio with NumPy) audio chunk which can be played back on the client and server ends
+    - Reading and transmitting an OpenCV image which can be loaded, resized, and displayed on the client and server ends
+    - Reading and transmitting a sounddevice (PortAudio with NumPy) audio chunk which can be played back on the client and server ends
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
@@ -22,19 +22,33 @@ Requirements:
         ``pip install sounddevice soundfile``
 
 Run:
-    # On machine 1 (or process 1): Requester sends a message and awaits a reply
-        ``python3 request_reply_example.py --mode request``
+    # Alternative 1: Image and NativeObject transmission
+        # On machine 1 (or process 1): Requester sends a message and awaits a reply (image and native object)
 
-    # On machine 2 (or process 2): Replier waits for a message and sends a reply
-        ``python3 request_reply_example.py --mode reply``
+        ``python3 request_reply_example.py --mode request --stream image``
+
+        # On machine 2 (or process 2): Replier waits for a message and sends a reply (image and native object)
+
+        ``python3 request_reply_example.py --mode reply --stream image``
+
+    # Alternative 2: AudioChunk and NativeObject transmission
+        # On machine 1 (or process 1): Requester sends a message and awaits a reply (audio chunk and native object)
+
+        ``python3 request_reply_example.py --mode request --stream audio``
+
+        # On machine 2 (or process 2): Replier waits for a message and sends a reply (audio chunk and native object)
+
+        ``python3 request_reply_example.py --mode reply --stream audio``
 """
 
 import argparse
+import logging
 import time
 
 import sounddevice as sd
 import soundfile as sf
 import cv2
+import numpy as np
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
@@ -50,15 +64,11 @@ class ReqRep(MiddlewareCommunicator):
         carrier="", width="$img_width", height="$img_height", rgb=True, jpg=True,
         persistent=True
     )
-    @MiddlewareCommunicator.register(
-        "AudioChunk", "$mware", "ReqRep", "/req_rep/my_audio_message",
-        carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels",
-        persistent=True
-    )
-    def send_message(self, msg=None, img_width=320, img_height=240,
-                     aud_rate=-1, aud_chunk=-1, aud_channels=2,
-                     mware=None, *args, **kwargs):
-        """Exchange messages with OpenCV images and other native Python objects."""
+    def send_img_message(self, msg=None, img_width=320, img_height=240,
+                         mware=None, *args, **kwargs):
+        """
+        Exchange messages with OpenCV images and other native Python objects.
+        """
         obj = {"message": msg, "args": args, "kwargs": kwargs}
 
         # read image from file
@@ -69,9 +79,26 @@ class ReqRep(MiddlewareCommunicator):
                      (img.shape[0] + cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][1]) // 2),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
+        return obj, img
+
+    @MiddlewareCommunicator.register(
+        "NativeObject", "$mware", "ReqRep", "/req_rep/my_message",
+        carrier="tcp", persistent=True
+    )
+    @MiddlewareCommunicator.register(
+        "AudioChunk", "$mware", "ReqRep", "/req_rep/my_audio_message",
+        carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels",
+        persistent=True
+    )
+    def send_aud_message(self, msg=None,
+                     aud_rate=-1, aud_chunk=-1, aud_channels=2,
+                     mware=None, *args, **kwargs):
+        """Exchange messages with sounddevice audio chunks and other native Python objects."""
+        obj = {"message": msg, "args": args, "kwargs": kwargs}
         # read audio from file
         aud = sf.read("../../resources/sound_test.wav", dtype="float32")
-        return obj, img, aud
+        # aud = (np.mean(aud[0], axis=1), aud[1])
+        return obj, aud
 
 
 def parse_args():
@@ -97,7 +124,29 @@ def parse_args():
         "--list_sound_devices", action="store_true",
         help="List all available sound devices and exit"
     )
+
+    parser.add_argument(
+        "--stream", type=str, default="image", choices={"image", "audio"},
+        help="The streamed data as either 'image' or 'audio'"
+    )
     return parser.parse_args()
+
+
+def sound_play(my_aud, blocking=True, device=0):
+    """
+    Play audio using sounddevice.
+
+    :param my_aud: Tuple[np.ndarray, int]: The audio chunk and sampling rate to play
+    :param blocking: bool: Whether to block the execution until the audio is played
+    :param device: int: The sound device to use for audio playback
+    :return: bool: Whether the audio was played successfully
+    """
+    try:
+        sd.play(*my_aud, blocking=blocking, device=device)
+        return True
+    except sd.PortAudioError:
+        logging.warning("PortAudioError: No device is found or the device is already in use. Will try again in 3 seconds.")
+        return False
 
 
 def main(args):
@@ -113,7 +162,12 @@ def main(args):
         time.sleep(5)
 
     req_rep = ReqRep()
-    req_rep.activate_communication(ReqRep.send_message, mode=args.mode)
+    if args.stream == "image":
+        req_rep.activate_communication(ReqRep.send_img_message, mode=args.mode)
+        req_rep.activate_communication(ReqRep.send_aud_message, mode="disable")
+    elif args.stream == "audio":
+        req_rep.activate_communication(ReqRep.send_aud_message, mode=args.mode)
+        req_rep.activate_communication(ReqRep.send_img_message, mode="disable")
     counter = 0
 
     while True:
@@ -121,42 +175,57 @@ def main(args):
         # but this separation is NOT necessary for the method to work
         if args.mode == "request":
             msg = input("Type your message: ")
-            my_message, my_image, my_aud = req_rep.send_message(msg, counter=counter, mware=args.mware)
+            my_message, my_image = req_rep.send_img_message(msg, counter=counter, mware=args.mware)
+            my_message2, my_aud, = req_rep.send_aud_message(msg, counter=counter, mware=args.mware)
+            my_message = my_message2 if my_message2 is not None else my_message
             counter += 1
             if my_message is not None:
                 print("Request: counter:", counter)
                 print("Request: received reply:", my_message)
-                if my_image is not None:
-                    cv2.imshow("Received image", my_image)
-                    while True:
-                        k = cv2.waitKey(1) & 0xFF
-                        if not (cv2.getWindowProperty("Received image", cv2.WND_PROP_VISIBLE)):
-                            break
+            if my_image is not None:
+                cv2.imshow("Received image", my_image)
+                while True:
+                    k = cv2.waitKey(1) & 0xFF
+                    if not (cv2.getWindowProperty("Received image", cv2.WND_PROP_VISIBLE)):
+                        break
 
-                        if cv2.waitKey(1) == 27:
-                            break  # esc to quit
-                    cv2.destroyAllWindows()
-                if my_aud is not None:
-                    print("Request: received audio:", my_aud)
-                    sd.play(*my_aud, blocking=True, device=args.sound_device)
+                    if cv2.waitKey(1) == 27:
+                        break  # esc to quit
+                cv2.destroyAllWindows()
+            if my_aud is not None:
+                print("Request: received audio:", my_aud)
+                while True:
+                    played = sound_play(my_aud, blocking=True, device=args.sound_device)
+                    if played:
+                        break
+                    else:
+                        time.sleep(3)
         if args.mode == "reply":
             # The send_message() only executes in "reply" mode,
             # meaning, the method is only accessible from this code block
-            my_message, my_image, my_aud = req_rep.send_message(mware=args.mware)
+            my_message, my_image = req_rep.send_img_message(mware=args.mware)
+            my_message2, my_aud, = req_rep.send_aud_message(mware=args.mware)
+            my_message = my_message2 if my_message2 is not None else my_message
             if my_message is not None:
                 print("Reply: received reply:", my_message)
-                if my_image is not None:
-                    cv2.imshow("Image", my_image)
-                    while True:
-                        k = cv2.waitKey(1) & 0xFF
-                        if not (cv2.getWindowProperty("Image", cv2.WND_PROP_VISIBLE)):
-                            break
+            if my_image is not None:
+                cv2.imshow("Image", my_image)
+                while True:
+                    k = cv2.waitKey(1) & 0xFF
+                    if not (cv2.getWindowProperty("Image", cv2.WND_PROP_VISIBLE)):
+                        break
 
-                        if cv2.waitKey(1) == 27:
-                            break  # esc to quit
-                    cv2.destroyAllWindows()
-                if my_aud is not None:
-                    sd.play(*my_aud, blocking=True, device=args.sound_device)
+                    if cv2.waitKey(1) == 27:
+                        break  # esc to quit
+                cv2.destroyAllWindows()
+            if my_aud is not None:
+                while True:
+                    played = sound_play(my_aud, blocking=True, device=args.sound_device)
+                    if played:
+                        break
+                    else:
+                        time.sleep(3)
+
 
 if __name__ == "__main__":
     args = parse_args()

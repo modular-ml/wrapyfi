@@ -191,7 +191,7 @@ class ROSImageListener(ROSListener):
                 height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
                 if encoding != self._encoding:
                     raise ValueError("Incorrect encoding for listener")
-                elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
                     raise ValueError("Incorrect image shape for listener")
                 img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
                 if img.shape[2] == 1:
@@ -273,12 +273,10 @@ class ROSAudioChunkListener(ROSListener):
                 raise ValueError("Incorrect audio rate for listener")
             if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for listener")
-            elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+            if 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
                 raise ValueError("Incorrect audio shape for listener")
             aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape((chunk, channels))
             # aud = aud / 32767.0
-            if aud.shape[1] == 1:
-                aud = np.squeeze(aud)
             return aud, rate
         except queue.Empty:
             return None, self.rate

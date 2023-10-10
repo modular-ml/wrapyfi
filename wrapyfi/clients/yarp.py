@@ -54,9 +54,12 @@ class YarpNativeObjectClient(YarpClient):
         :param name: str: Name of the client
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
+        :param deserializer_kwargs: dict: Additional kwargs for the deserializer
+        :param kwargs: dict: Additional kwargs for the client
         """
         super().__init__(name, in_topic, carrier=carrier, persistent=persistent, **kwargs)
         self._port = None
@@ -149,8 +152,7 @@ class YarpImageClient(YarpNativeObjectClient):
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
-        :param kwargs: dict: Additional kwargs
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, in_topic, carrier=carrier, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
         self.width = width
@@ -187,7 +189,7 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
                  channels: int = 1, rate: int = 44100, chunk: int = -1,
                  persistent: bool = True, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The Image client using the YARP Bottle construct parsed to a numpy array.
+        The AudioChunk client using the YARP Bottle construct parsed to a numpy array.
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -196,8 +198,7 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: The size of audio chunks. Default is -1
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
-        :param serializer_kwargs: dict: Additional kwargs for the serializer. Defaults to None
-        :param kwargs: dict: Additional kwargs
+        :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(name, in_topic, carrier=carrier, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
         self.channels = channels
@@ -225,6 +226,4 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
         if 0 < self.chunk != chunk or self.channels != channels or aud.size != chunk * channels:
             raise ValueError("Incorrect audio shape for client")
         else:
-            if aud.shape[1] == 1:
-                aud = np.squeeze(aud)
             self._queue.put((aud, rate), block=False)
