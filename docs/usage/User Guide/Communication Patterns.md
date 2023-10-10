@@ -112,7 +112,7 @@ The requester encodes its arguments as a `json` string supporting all native pyt
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image` [*planned for Wrapyfi v0.5*]
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 
 *(ZeroMQ)*:
@@ -122,7 +122,7 @@ The requester encodes its arguments as a `json` string supporting all native pyt
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct [*planned for Wrapyfi v0.5*]
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using 
                     `zmq context.socket(zmq.REP)` for replying and `zmq context.socket(zmq.REQ)` for receiving messages
 
@@ -130,7 +130,10 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 ### Publisher- and Listener-specific Arguments
 
 ```{warning}
-Differences are expected between the returns of publishers and listeners, sometimes due to compression methods (e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), intentional setting of different devices for different tensors (refer to [device mapping for tensors](<Plugins.md#device-mapping-for-tensors>)), and differences in library versions between receiving and transmitting plugins (refer to [plugins](<Plugins.md#plugins>)). 
+Differences are expected between the returns of publishers and listeners, sometimes due to compression methods 
+(e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), 
+intentional setting of different devices for different tensors (refer to [device mapping for tensors](<Plugins.md#device-mapping-for-tensors>)), 
+and differences in library versions between receiving and transmitting plugins (refer to [plugins](<Plugins.md#plugins>)). 
 ```
 
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.

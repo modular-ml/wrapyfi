@@ -85,6 +85,9 @@ class ROSImageServer(ROSServer):
 
     def __init__(self, name, out_topic, carrier="", out_topic_connect=None, width=-1, height=-1, rgb=True, fp=False, deserializer_kwargs=None, **kwargs):
         super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
+        if "jpg" in kwargs:
+            logging.warning("[ROS] ROS currently does not support JPG encoding in REQ/REP. Using raw image.")
+            kwargs.pop("jpg")
         self.width = width
         self.height = height
         self.rgb = rgb

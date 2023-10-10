@@ -92,6 +92,9 @@ class YarpImageServer(YarpNativeObjectServer):
                  out_topic_connect: Optional[str] = None, persistent: bool = True,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False,
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
+        if "jpg" in kwargs:
+            logging.warning("[YARP] YARP currently does not support JPG encoding in REQ/REP. Using raw image.")
+            kwargs.pop("jpg")
         super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, deserializer_kwargs=deserializer_kwargs, **kwargs)
         self.width = width
         self.height = height

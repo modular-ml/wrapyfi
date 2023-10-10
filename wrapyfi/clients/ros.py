@@ -145,6 +145,9 @@ class ROSImageClient(ROSClient):
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
+        if "jpg" in kwargs:
+            logging.warning("[ROS] ROS currently does not support JPG encoding in REQ/REP. Using raw image.")
+            kwargs.pop("jpg")
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
         self.height = height

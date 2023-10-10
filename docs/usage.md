@@ -277,7 +277,7 @@ The requester encodes its arguments as a `json` string supporting all native pyt
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image` [*planned for Wrapyfi v0.5*]
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 
 *(ZeroMQ)*:
@@ -287,7 +287,7 @@ The requester encodes its arguments as a `json` string supporting all native pyt
 The requester formats its arguments as *(\[args\], {kwargs})*
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct [*planned for Wrapyfi v0.5*]
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using 
                     `zmq context.socket(zmq.REP)` for replying and `zmq context.socket(zmq.REQ)` for receiving messages
 
