@@ -17,17 +17,22 @@ The publishers and listeners of the same message type should have identical cons
 All messages are transmitted using the yarp python bindings
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`. 
-             When JPG conversion is specified, use a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
+             When JPG conversion is specified, it uses a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk with the sound properties using `yarp.Port` transporting `yarp.Sound`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) using `yarp.BufferedPortBottle`
-* **Properties**: Transmits properties [*coming soon*]
+* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
 
 *(ROS)*:
+
+```{warning}
+ROS requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+```
 
 All messages are transmitted using the rospy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros_interfaces.msg.ROSAudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 * **Properties**: Transmits and receives parameters  to/from the parameter server using the methods `rospy.set_param` and `rospy.get_param` respectively
 * **ROSMessage**: Transmits and receives a single [ROS message](http://wiki.ros.org/msg) per return decorator. Note that currently, only common ROS interface messages 
@@ -35,15 +40,20 @@ All messages are transmitted using the rospy python bindings as topic messages
                   [geometry_msgs](http://wiki.ros.org/geometry_msgs), and [sensor_msgs](http://wiki.ros.org/sensor_msgs) can be directly 
                   returned by the method do not need to be converted to native types
 
-*(ROS 2)*: 
+*(ROS2)*: 
+
+```{warning}
+ROS2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS2 Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+```
 
 All messages are transmitted using the rclpy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
-* **Properties**: Transmits properties [*coming soon*]
-* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*coming soon*]
+* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
+* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*planned for Wrapyfi v0.5*]
 
 *(ZeroMQ)*:
 
@@ -57,7 +67,7 @@ All messages are transmitted using the zmq python bindings. Transmission follows
                     `zmq context.socket(zmq.PUB).send_multipart` for publishing and `zmq context.socket(zmq.SUB).receive_multipart` for receiving messages.
                     The `zmq.PUB` socket is wrapped in a `zmq.proxy` to allow multiple subscribers to the same publisher. Note that all `NativeObject` types
                     are transmitted as multipart messages, where the first element is the topic name and the second element is the message itself (Except for `Image`)
-* **Properties**: Transmits properties [*coming soon*]
+* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
 
 
 ### Servers and Clients (REQ/REP)
@@ -71,33 +81,38 @@ All messages are transmitted using the yarp python bindings [for RPC communicati
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `yarp.Bottle`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image encoded as a `json` string using `yarp.Bottle`. 
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk encoded as a `json` string using `yarp.Bottle` [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image encoded as a `json` string using `yarp.Bottle`. *JPG conversion is currently not supported* 
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk encoded as a `json` string using `yarp.Bottle`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `yarp.Bottle`
 
 *(ROS)*:
+
+```{warning}
+ROS requires a custom service to handle audio. This service must be compiled first before using Wrapyfi with ROS Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+```
 
 All messages are transmitted using the rospy python bindings as services.
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image` *JPG conversion is currently not supported* 
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros_interfaces.msg.ROSAudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 
 *(ROS2)*:
 
 ```{warning}
-ROS2 requires custom services to deal with arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
-Refer to [these instructions for compiling Wrapyfi ROS2 services](../../ros2_interfaces_lnk.md).
+ROS2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
+Refer to [these instructions for compiling Wrapyfi ROS2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as services.
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image` [*coming soon*]
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image` [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 
 *(ZeroMQ)*:
@@ -106,8 +121,8 @@ All messages are transmitted using the zmq python bindings. Transmission follows
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `zmq context.socket(zmq.REQ).send_multipart`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct [*coming soon*]
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using 
                     `zmq context.socket(zmq.REP)` for replying and `zmq context.socket(zmq.REQ)` for receiving messages
 
@@ -115,7 +130,10 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 ### Publisher- and Listener-specific Arguments
 
 ```{warning}
-Differences are expected between the returns of publishers and listeners, sometimes due to compression methods (e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), intentional setting of different devices for different tensors (refer to [device mapping for tensors](<Plugins.md#device-mapping-for-tensors>)), and differences in library versions between receiving and transmitting plugins (refer to [plugins](<Plugins.md#plugins>)). 
+Differences are expected between the returns of publishers and listeners, sometimes due to compression methods 
+(e.g., setting `jpg=True` when transmitting an **Image** compresses the image but the encoding remains the same), 
+intentional setting of different devices for different tensors (refer to [device mapping for tensors](<Plugins.md#device-mapping-for-tensors>)), 
+and differences in library versions between receiving and transmitting plugins (refer to [plugins](<Plugins.md#plugins>)). 
 ```
 
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.

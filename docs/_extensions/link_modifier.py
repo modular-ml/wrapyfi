@@ -5,7 +5,10 @@ REPLACEMENTS = {
     'https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/yarp/README.md':
         'yarp_install_lnk.html',
     'https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md':
-        'ros2_interfaces_lnk.html'}
+        'ros2_interfaces_lnk.html',
+    'https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md':
+        'ros_interfaces_lnk.html'
+    }
 
 
 class LinkModifier(SphinxTransform):

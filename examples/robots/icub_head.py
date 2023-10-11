@@ -11,13 +11,13 @@ Demonstrations:
     - Using Wrapyfi for creating a port listener only.
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - iCub Robot and Simulator: Ensure the robot and its simulator are installed and configured.
         When running in simulation mode, the `iCub_SIM` must be running in a standalone terminal
-        (Refer to the Wrapyfi documentation for installation instructions)
-    - NumPy: Used for creating arrays (Installed with Wrapyfi)
-    - SciPy: For applying smoothing filters to the facial expressions (Refer to https://www.scipy.org/install.html for installation instructions)
+        (refer to the Wrapyfi documentation for installation instructions)
+    - NumPy: Used for creating arrays (installed with Wrapyfi)
+    - SciPy: For applying smoothing filters to the facial expressions (refer to https://www.scipy.org/install.html for installation instructions)
     - Pexpect: To control the facial expressions using RPC
 
     Install using pip:
@@ -106,6 +106,16 @@ EMOTION_LOOKUP = {
 
 
 def cartesian_to_spherical(xyz=None, x=None, y=None, z=None, expand_return=None):
+    """
+    Convert cartesian coordinates to spherical coordinates.
+
+    :param xyz: tuple: Cartesian coordinates (x, y, z)
+    :param x: float: Cartesian coordinate x
+    :param y: float: Cartesian coordinate y
+    :param z: float: Cartesian coordinate z
+    :param expand_return: bool: Whether to return the spherical coordinates as a dictionary or not
+    :return: tuple: Spherical coordinates (p, t, r) or dictionary: Spherical coordinates {"p": p, "t": t, "r": r}
+    """
     from operator import xor
     import numpy as np
 
@@ -125,7 +135,15 @@ def cartesian_to_spherical(xyz=None, x=None, y=None, z=None, expand_return=None)
     return ptr if not expand_return else {"p": ptr[0], "t": ptr[1], "r": ptr[2]}
 
 
-def mode_smoothing_filter(time_series, default, alpha=0.22, beta=0.1, window_length=6, min_count=None):
+def mode_smoothing_filter(time_series, default, window_length=6, min_count=None):
+    """
+    Apply a smoothing filter to the time series using the mode of the last `window_length` values.
+
+    :param time_series: list: Time series to apply the smoothing filter to
+    :param default: object: Default value to return if the mode count is less than `min_count`
+    :param window_length: int: Length of the window to apply the smoothing filter to
+    :param min_count: int: Minimum number of values in the window to apply the smoothing filter
+    """
     import scipy.stats
     if min_count is None:
         min_count = window_length // 2
@@ -363,7 +381,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         """
 
         if cv2_key is None:
-            # TODO (fabawi): listen to stdin for keypress
             logging.error("controlling orientation in headless mode not yet supported")
             return None,
         else:
@@ -419,7 +436,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         """
 
         if cv2_key is None:
-            # TODO (fabawi): listen to stdin for keypress
             logging.error("controlling orientation in headless mode not yet supported")
             return None,
         else:
@@ -725,7 +741,6 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
         """
         emotion = None
         if cv2_key is None:
-            # TODO (fabawi): listen to stdin for keypress
             logging.error("controlling expressions in headless mode not yet supported")
             return None,
         else:
@@ -931,12 +946,12 @@ class ICub(MiddlewareCommunicator, yarp.RFModule):
 
             if move_robot.get("reset_gaze", False):
                 self.reset_gaze()
-            self.control_gaze_plane_coordinates(x=move_robot.get("x", 0.0), y=move_robot.get("y", 0.0),
-                                                limit_x=move_robot.get("limit_x", 0.3),
-                                                limit_y=move_robot.get("limit_y", 0.3),
-                                                control_head=move_robot.get("control_head",
-                                                                            False if not self.ikingaze else True),
-                                                control_eyes=move_robot.get("control_eyes", True), _mware=self.MWARE),
+            self.control_gaze_at_plane(x=move_robot.get("x", 0.0), y=move_robot.get("y", 0.0),
+                                       limit_x=move_robot.get("limit_x", 0.3),
+                                       limit_y=move_robot.get("limit_y", 0.3),
+                                       control_head=move_robot.get("control_head",
+                                                                   False if not self.ikingaze else True),
+                                       control_eyes=move_robot.get("control_eyes", True), _mware=self.MWARE),
 
         return True
 
@@ -980,6 +995,5 @@ if __name__ == "__main__":
     args = parse_args()
     assert not (args.headless and (args.set_facial_expressions or args.set_head_eye_coordinates)), \
         "setters require a CV2 window for capturing keystrokes. Disable --set-... for running in headless mode"
-    # TODO (fabawi): add RPC support for controlling the robot and not just facial expressions. Make it optional
     controller = ICub(**vars(args))
     controller.runModule()

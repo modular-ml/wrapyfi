@@ -117,7 +117,13 @@ could break subsequent calls
 
 These properties can be set by calling: 
 
-`activate_communication(<Method name>, mode=<Mode>)` 
+`activate_communication(<Method name>, mode=<Mode>)`
+
+where `<Method name>` is the method's name (`string` name of method by definition) and `<Mode>` is the transmission mode 
+(`"publish"`, `"listen"`, `"reply"`, `request`, `"none"` | `None`, `"disable"`) depending on the communication pattern . 
+The `activate_communication` method can be called multiple times. `<Method name>` could also be a class instance method, by calling:
+
+`activate_communication(<MiddlwareCommunicator instance>.method_of_class_instance, mode=<Mode>)`
 
 for each decorated method within the class. This however requires modifying your scripts for each machine or process running
 on Wrapyfi. To overcome this limitation, use the `ConfigManager` e.g.:
@@ -136,7 +142,8 @@ TheClass:
   encapsulated_method: "publish"
 
 ```
-Where `TheClass` is the class name, `encapsulated_method` is the method's name, and `publish` is the transmission mode.
+
+where `TheClass` is the class name, `encapsulated_method` is the method's name, and `publish` is the transmission mode.
 This is useful when running the same script on multiple machines, where one is set to publish and the other listens. 
 Multiple instances of the same class' method can have different modes, which can be set independently using the configuration file. This
 can be achieved by providing the mode as a list:
@@ -175,17 +182,22 @@ The publishers and listeners of the same message type should have identical cons
 All messages are transmitted using the yarp python bindings
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using either `yarp.BufferedPortImageRgb` or `yarp.BufferedPortImageFloat`. 
-             When JPG conversion is specified, use a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `yarp.BufferedPortImageFloat`, concurrently transmitting the sound properties using `yarp.BufferedPortSound`
+             When JPG conversion is specified, it uses a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk with the sound properties using `yarp.Port` transporting `yarp.Sound`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-structure-types) using `yarp.BufferedPortBottle`
-* **Properties**: Transmits properties [*coming soon*]
+* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
 
 *(ROS)*:
+
+```{warning}
+ROS requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+```
 
 All messages are transmitted using the rospy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros_interfaces.msg.ROSAudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 * **Properties**: Transmits and receives parameters  to/from the parameter server using the methods `rospy.set_param` and `rospy.get_param` respectively
 * **ROSMessage**: Transmits and receives a single [ROS message](http://wiki.ros.org/msg) per return decorator. Note that currently, only common ROS interface messages 
@@ -193,15 +205,20 @@ All messages are transmitted using the rospy python bindings as topic messages
                   [geometry_msgs](http://wiki.ros.org/geometry_msgs), and [sensor_msgs](http://wiki.ros.org/sensor_msgs) can be directly 
                   returned by the method do not need to be converted to native types
 
-*(ROS 2)*: 
+*(ROS2)*: 
+
+```{warning}
+ROS2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS2 Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+```
 
 All messages are transmitted using the rclpy python bindings as topic messages
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
-* **Properties**: Transmits properties [*coming soon*]
-* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*coming soon*]
+* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
+* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*planned for Wrapyfi v0.5*]
 
 *(ZeroMQ)*:
 
@@ -215,7 +232,7 @@ All messages are transmitted using the zmq python bindings. Transmission follows
                     `zmq context.socket(zmq.PUB).send_multipart` for publishing and `zmq context.socket(zmq.SUB).receive_multipart` for receiving messages.
                     The `zmq.PUB` socket is wrapped in a `zmq.proxy` to allow multiple subscribers to the same publisher. Note that all `NativeObject` types
                     are transmitted as multipart messages, where the first element is the topic name and the second element is the message itself (Except for `Image`)
-* **Properties**: Transmits properties [*coming soon*]
+* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
 
 
 ### Servers and Clients (REQ/REP)
@@ -229,24 +246,29 @@ All messages are transmitted using the yarp python bindings [for RPC communicati
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `yarp.Bottle`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image encoded as a `json` string using `yarp.Bottle`. 
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk encoded as a `json` string using `yarp.Bottle` [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image encoded as a `json` string using `yarp.Bottle`. *JPG conversion is currently not supported* 
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk encoded as a `json` string using `yarp.Bottle`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `yarp.Bottle`
 
 *(ROS)*:
+
+```{warning}
+ROS requires a custom service to handle audio. This service must be compiled first before using Wrapyfi with ROS Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+```
 
 All messages are transmitted using the rospy python bindings as services.
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image`
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image` *JPG conversion is currently not supported* 
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros_interfaces.msg.ROSAudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 
 *(ROS2)*:
 
 ```{warning}
-ROS2 requires custom services to deal with arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
+ROS2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
 Refer to [these instructions for compiling Wrapyfi ROS2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
@@ -254,8 +276,8 @@ All messages are transmitted using the rclpy python bindings as services.
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image` [*coming soon*]
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `sensor_messages.msg.Image` [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 
 *(ZeroMQ)*:
@@ -264,8 +286,8 @@ All messages are transmitted using the zmq python bindings. Transmission follows
 The requester encodes its arguments as a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `zmq context.socket(zmq.REQ).send_multipart`.
 The requester formats its arguments as *(\[args\], {kwargs})*
 
-* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct [*coming soon*]
-* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct [*coming soon*]
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using 
                     `zmq context.socket(zmq.REP)` for replying and `zmq context.socket(zmq.REQ)` for receiving messages
 
@@ -279,9 +301,65 @@ Differences are expected between the returns of publishers and listeners, someti
 To direct arguments specifically toward the publisher or subscriber without exposing one or the other to the same argument values, the corresponding arguments can be added to the dictionary `listener_kwargs` to control the listener only, or `publisher_kwargs` to control the publisher only. Both dictionaries can be passed directly to the Wrapyfi decorator.
 Since the transmitting and receiving arguments should generally be the same regardless of the communication pattern, `publisher_kwargs` and `listener_kwargs` also apply to the servers and clients respectively.
 
+## Communication Schemes
+
+We introduce three communication schemes: **Mirroring**, **Channeling**, and **Forwarding**. 
+These schemes are communication forms that can be useful in different scenarios.
+
+
+### Mirroring
+
+For the REQ/REP pattern, mirroring is a communication scheme that allows a client to send arguments to a server, 
+and receive the method returns back from the server. As for the PUB/SUB pattern, mirroring allows a publisher to
+send the returns of a method to a subscriber based on the publisher's method arguments. Following both patterns, 
+the returns of a method are mirrored on the receiver and the sender side. This is useful when the pipeline for each
+receiver is identical, but we would like to delegate the processing to different publishers when processing requires 
+more resources than a single publisher can provide. 
+
+#### Mirroring Example
+
+In the [mirroring_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/mirroring_example.py), 
+the module transmits a user input message from the publisher to a listener (PUB/SUB pattern), and displays the message along with other native 
+objects on the listener and publisher side. Similarly, we transmit a user input message from the server to a client (REQ/REP pattern),
+when the client requests the message from the server. The example can be run from the 
+[examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+
+
+### Forwarding
+
+Forwarding is a communication scheme that allows a server or publisher to forward the method arguments to another server or publisher (acting as a client or listener),
+and in return, forwards the received messages to another client or listener. This is useful when the server or publisher is not able to communicate with the client or listener
+directly due to limited middleware support on the client or listener side. The middle server or publisher can then act as a bridge between the two, and forward the messages
+between them, effectively chaining the communication. The chain can be extended and is not limited to two servers or publishers.
+
+#### Forwarding Example
+
+In the [forwarding_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/forwarding_example.py),
+the module constantly publishes a string from `chain_A` to a listener on `chain_A`. The `chain_A` listener then forwards the message by publishing to `chain_B`. 
+The string is then forwarded to a third instances which listens exclusively to `chain_B`, without needing to support the middleware used by `chain_A`.
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+
+
+### Channeling
+
+Channeling differs from mirroring, in that there are multiple returns from a method. Disabling one or more of these returns
+is possible, allowing the server or publisher to transmit the message to multiple channels, each with a different topic, and
+potentially, a different middleware. This is useful for transmitting messages using the same method, but to different receivers
+based on what they choose to receive. Not all clients or subscribers require all the messages from a method, and can therefore
+selectively filter out what is needed and operate on that partial return.
+
+#### Channeling Example
+
+In the [channeling_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/channeling_example.py),
+the module constantly publishes three data types (**NativeObject**, **Image**, and **AudioChunk**) over one or more middlware. The listeners 
+can then choose to receive one or more of these data types, depending on the middleware they support. When `--mware_...` for one of the
+channels is not provided, it automatically disables the topic for that channel/s and returns a `None` type value. 
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+
+
 ## Plugins
 
-The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](../wrapyfi/plugins). Plugins can be added by:
+The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi/plugins). Plugins can be added by:
 * Creating a derived class that inherits from the base class `wrapyfi.utils.Plugin`
 * Overriding the `encode` method for converting the object to a `json` serializable string. Deserializing the string is performed within the overridden `decode` method
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
@@ -407,7 +485,7 @@ This can be achieved by setting:
 * `WRAPYFI_ZEROMQ_SOCKET_SUB_PORT`: The sub-socket port (listening port for the broker). Defaults to 5556
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC`: The topic name for the pub-sub monitor. Defaults to "ZEROMQ/CONNECTIONS"
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN`: Either spawn the pub-sub monitor listener as a "process" or "thread". Defaults to "process"
-* `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](../../../wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
+* `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
 * `WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL`: Polling interval in milliseconds for the parameter server. Defaults to 1 (**currently not supported**)
 * `WRAPYFI_ZEROMQ_PARAM_REQREP_PORT`: The parameter server request-reply port. Defaults to 5659 (**currently not supported**)

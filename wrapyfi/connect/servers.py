@@ -2,7 +2,7 @@ import logging
 import os
 from glob import glob
 
-from wrapyfi.utils import SingletonOptimized, dynamic_module_import
+from wrapyfi.utils import dynamic_module_import
 
 
 class Servers(object):

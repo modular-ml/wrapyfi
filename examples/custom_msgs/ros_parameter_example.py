@@ -12,8 +12,8 @@ Demonstrations:
     - Applying the PUB/SUB pattern with channeling and mirroring
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - ROS, ROSPy: Used for handling and creating ROS properties (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - ROS, ROSPy: Used for handling and creating ROS properties (refer to the Wrapyfi documentation for installation instructions)
 
     Ensure ROS is installed and the required message types are available.
 

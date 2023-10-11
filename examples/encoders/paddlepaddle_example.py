@@ -13,9 +13,9 @@ Demonstrations:
     - Flipping of devices by mapping CPU to GPU and vice versa
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - PaddlePaddle: Used for handling and creating tensors (Refer to https://www.paddlepaddle.org.cn/en/install/quick for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - PaddlePaddle: Used for handling and creating tensors (refer to https://www.paddlepaddle.org.cn/en/install/quick for installation instructions)
 
     Install using pip:
         ``pip install paddlepaddle-gpu``  # Basic installation of PaddlePaddle

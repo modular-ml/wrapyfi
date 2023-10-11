@@ -11,9 +11,9 @@ Demonstrations:
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - TensorFlow: Used for creating and handling tensors (Refer to https://www.tensorflow.org/install for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - TensorFlow: Used for creating and handling tensors (refer to https://www.tensorflow.org/install for installation instructions)
 
     Install using pip:
         ``pip install "tensorflow>=2.9.1"``  # Basic installation of TensorFlow

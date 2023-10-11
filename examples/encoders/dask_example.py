@@ -1,5 +1,5 @@
 """
-A message publisher and listener for native Python objects and Dask arrays/dataframes.
+A message publisher and listener for native Python objects and Dask Arrays/Dataframes.
 
 This script demonstrates the capability to transmit native Python objects and Dask arrays/dataframes using
 the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
@@ -11,8 +11,8 @@ Demonstrations:
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - Dask, pandas: Used for handling and creating arrays and dataframes
 
     Install using pip:

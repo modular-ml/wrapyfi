@@ -1,5 +1,5 @@
 """
-A message publisher and listener for native Python objects, NumPy arrays, and Pandas series/dataframes.
+A message publisher and listener for native Python objects, NumPy Arrays, and Pandas Series/Dataframes.
 
 This script demonstrates the capability to transmit native Python objects, NumPy arrays, and Pandas series/dataframes using
 the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
@@ -11,9 +11,9 @@ Demonstrations:
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - NumPy: Used for creating arrays (Installed with Wrapyfi)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - NumPy: Used for creating arrays (installed with Wrapyfi)
     - pandas: Used for creating and handling series and dataframes
 
     Install using pip:

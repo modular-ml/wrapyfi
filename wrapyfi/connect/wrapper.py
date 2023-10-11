@@ -1,6 +1,7 @@
 import os
 from functools import wraps
 import re
+from typing import Union, List, Any, Callable, Optional
 
 import wrapyfi.connect.publishers as pub
 import wrapyfi.connect.listeners as lsn
@@ -19,13 +20,28 @@ class MiddlewareCommunicator(object):
     __registry = {}
 
     def __init__(self):
+        """
+        Initialises the middleware communicator.
+        """
         self.config = ConfigManager(None).config
         if self.__class__.__name__ in self.config:
             for key, value in self.config[self.__class__.__name__].items():
                 self.activate_communication(getattr(self.__class__, key), mode=value)
 
     @classmethod
-    def __trigger_publish(cls, func, instance_id, kwd, *wds, **kwds):
+    def __trigger_publish(cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds):
+        """
+        Triggers the publish mode of the middleware communicator.
+
+        :param func: Callable[..., Any]: The function to be triggered and whose return values are to be published
+        :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
+        :param kwd: dict: A dictionary containing keyword arguments to be matched and potentially utilized during the publisher instantiation and function invocation
+        :param wds: tuple: Variable positional arguments to be passed to the function
+        :param kwds: dict: Additional keyword arguments to be passed to the function
+        :return: Any: The return values of the triggered function (`func`). The data type and structure depend on the output of `func`
+
+        :raises: KeyError: If the intended publisher type and middleware are unavailable, resorting to a fallback publisher
+        """
         if "wrapped_executor" not in \
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
             # instantiate the publishers
@@ -90,7 +106,19 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def __trigger_listen(cls, func, instance_id, kwd, *wds, **kwds):
+    def __trigger_listen(cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds):
+        """
+        Triggers the listen mode of the middleware communicator.
+
+        :param func: Callable[..., Any]: The function associated with the listener and whose return values might be utilized
+        :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
+        :param kwd: dict: A dictionary containing keyword arguments to be matched and potentially utilized during the listener instantiation and function invocation
+        :param wds: tuple: Variable positional arguments to be passed to the function
+        :param kwds: dict: Additional keyword arguments to be passed to the function (not used since the listener does not accept any additional arguments, given that it does not execute any function or transmit any arguments)
+        :return: Any: The return values obtained from the listeners. The data type and structure depend on the output of the listener
+
+        :raises: KeyError: If the intended listener type and middleware are unavailable, resorting to a fallback listener
+        """
         if "wrapped_executor" not in \
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
             # instantiate the listeners
@@ -156,7 +184,19 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def __trigger_reply(cls, func, instance_id, kwd, *wds, **kwds):
+    def __trigger_reply(cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds):
+        """
+        Triggers the reply mode of the middleware communicator.
+
+        :param func: Callable[..., Any]: The function to be triggered and whose return values may be used in replies
+        :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
+        :param kwd: dict: A dictionary containing keyword arguments to be matched and potentially utilized during the server instantiation and function invocation
+        :param wds: tuple: Variable positional arguments to be passed to the function
+        :param kwds: dict: Additional keyword arguments to be passed to the function
+        :return: Any: The return values of the triggered function (`func`). The data type and structure depend on the output of `func`
+
+        :raises: KeyError: If the intended server type and middleware are unavailable, resorting to a fallback server
+        """
         if "wrapped_executor" not in \
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
             # instantiate the publishers
@@ -230,7 +270,19 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def __trigger_request(cls, func, instance_id, kwd, *wds, **kwds):
+    def __trigger_request(cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds):
+        """
+        Triggers the request mode of the middleware communicator.
+
+        :param func: Callable[..., Any]: The function associated with the client requests and might utilize the request results
+        :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
+        :param kwd: dict: A dictionary containing keyword arguments to be matched and potentially utilized during the client instantiation and function invocation
+        :param wds: tuple: Variable positional arguments to be passed to the function
+        :param kwds: dict: Additional keyword arguments to be passed to the function
+        :return: Any: The return values obtained from the clients' requests. The data type and structure depend on the output of the client requests
+
+        :raises: KeyError: If the intended client type and middleware are unavailable, resorting to a fallback client
+        """
         if "wrapped_executor" not in \
                 cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
             # instantiate the listeners
@@ -297,7 +349,20 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def register(cls, data_type, middleware=DEFAULT_COMMUNICATOR, *args, **kwargs):
+    def register(cls, data_type: Union[str, List[Any]], middleware: str = DEFAULT_COMMUNICATOR, *args, **kwargs):
+        """
+        Registers a function to the middleware communicator, defining its communication message type and associated
+        middleware. Note that the function returned is a wrapper that can alter the behavior of the registered function
+        based on the communication mode set in the middleware communicator registry.
+
+        :param data_type: Union[str, List[Any]]: Specifies the communication message type, either as a string or a list containing specifications of the data type and middleware
+        :param middleware: str: Specifies the middleware to be used for the communication, defaults to DEFAULT_COMMUNICATOR
+        :param args: tuple: Variable positional arguments to be passed to the function
+        :param kwargs: dict: Additional keyword arguments to be passed to the function
+        :return: Callable[..., Any]: A wrapper function that triggers specific communication modes (e.g., publish, listen, reply, request) based on the registered function and middleware settings
+
+        :raises: NotImplementedError: If `data_type` is a dictionary or an unsupported type
+        """
         def encapsulate(func):
             # define the communication message type (single element)
             if isinstance(data_type, str):
@@ -383,7 +448,19 @@ class MiddlewareCommunicator(object):
             return wrapper
         return encapsulate
 
-    def activate_communication(self, func, mode):
+    def activate_communication(self, func: Union[str, Callable[..., Any]], mode: Union[str, List[str]]):
+        """
+        Activates the communication mode for a registered function in the middleware communicator.
+        The mode determines how the function will interact with the middleware communicator upon invocation,
+        e.g., whether it should publish its return values, listen for values, etc.
+        The communication mode can be set for all instances of the function or individually per instance.
+
+        :param func: Union[str, Callable[..., Any]]: The function or the name of the function for which the communication mode should be activated
+        :param mode: Union[str, List[str]]: Specifies the communication mode to be activated, either as a single mode (string) applicable to all instances, or as a list of modes (strings) per instance
+
+        :raises: IndexError: If mode is a list and the number of elements does not match the number of instances
+        :raises: ValueError: If the instance address cannot be found in the registry
+        """
         if isinstance(func, str):
             func = getattr(self, func)
         entry = self.__registry.get(func.__qualname__, None)
@@ -415,14 +492,25 @@ class MiddlewareCommunicator(object):
             self.__registry[instance_qualname]["instance_addr"] = instance_addr
 
     def close(self):
+        """
+        Closes this middleware communicator instance.
+        """
         self.close_instance(hex(id(self)))
 
     @staticmethod
     def get_communicators():
+        """
+        Returns the available middleware communicators.
+
+        :return: Set[str]: The available middleware communicators (excluding the fallback communicator)
+        """
         return (pub.Publishers.mwares | lsn.Listeners.mwares) - {"fallback"}
 
     @classmethod
     def close_all_instances(cls):
+        """
+        Closes all instances of the middleware communicator.
+        """
         close_instance_idxs = set()
         for val in cls._MiddlewareCommunicator__registry.values():
             instance_addr = val.get("instance_addr", False)
@@ -431,7 +519,16 @@ class MiddlewareCommunicator(object):
             cls.close_instance(close_instance_idx)
 
     @classmethod
-    def close_instance(cls, instance_addr=None):
+    def close_instance(cls, instance_addr: Optional[str] = None):
+        """
+        Closes a specific instance of the middleware communicator.
+
+        :param instance_addr: str: The unique identifier of the instance to be closed, defaults to None
+
+        :raises: ValueError: If the instance address cannot be found in the registry
+
+        Note that the instance address is the hex representation of the instance's id. If no instance address is provided, all instances will be closed.
+        """
         while True:
             del_entry = False
             del_entry_name = None
@@ -452,7 +549,7 @@ class MiddlewareCommunicator(object):
                             other_entry_keys.append(entry_key)
                     entry_val["__WRAPYFI_INSTANCES"].remove(instance_addr)
 
-            # delete registry entry and all its publishers/listeners
+            # delete registry entry and all its publishers/listeners/servers/clients
             if del_entry:
                 for communicator in cls._MiddlewareCommunicator__registry[del_entry]["communicator"]:
                     wrapped_executor = communicator.get("wrapped_executor", False)

@@ -2,20 +2,19 @@
 Encoder and Decoder for Astropy Table Data via Wrapyfi.
 
 This script provides a mechanism to encode and decode Astropy table data using
-Wrapyfi. It makes use of base64 encoding to transform binary data into ASCII strings,
-which are more easily transmitted or stored.
+Wrapyfi. It makes use of base64 encoding to transform binary data into ASCII strings.
 
 The script contains a class, `AstropyData`, registered as a plugin to handle the
 conversion of Astropy data (if available) between its original and encoded forms.
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
     - Astropy: A library for Astronomy computations and data handling in Python.
         Note: If Astropy is not available, HAVE_ASTROPY will be set to False and
         the plugin will be registered with no types.
 
     You can install the necessary packages using pip:
-        ``pip install wrapyfi astropy``
+        ``pip install astropy``
 """
 
 import io
@@ -30,19 +29,17 @@ except ImportError:
     HAVE_ASTROPY = False
 
 
+@PluginRegistrar.register(types=None if not HAVE_ASTROPY else Table.__mro__[:-1])
 class AstropyData(Plugin):
-    """
-    A Wrapyfi plugin for encoding and decoding Astropy table data.
-
-    This class provides methods to convert Astropy table data to an encoded form
-    and decode it back to its original form. The data is encoded using base64
-    to transform binary data into ASCII strings suitable for transmission or storage.
-    """
-
     def __init__(self, **kwargs):
         """
-        Initialize the AstropyData plugin.
+        Initialize the AstropyData plugin for encoding and decoding Astropy table data.
+
+        This class provides methods to convert Astropy table data to an encoded form
+        and decode it back to its original form. The data is encoded using base64
+        to transform binary data into ASCII strings.
         """
+        pass
 
     def encode(self, obj, *args, **kwargs):
         """
@@ -51,8 +48,7 @@ class AstropyData(Plugin):
         :param obj: Table: The Astropy table data to encode
         :param args: tuple: Additional arguments (not used)
         :param kwargs: dict: Additional keyword arguments (not used)
-
-        :return: tuple: A tuple containing:
+        :return: Tuple[bool, dict]: A tuple containing:
             - bool: Always True, indicating that the encoding was successful
             - dict: A dictionary containing:
                 - '__wrapyfi__': A tuple containing the class name and the encoded data string
@@ -72,7 +68,6 @@ class AstropyData(Plugin):
         :param obj_full: tuple: A tuple containing the encoded data string
         :param args: tuple: Additional arguments (not used)
         :param kwargs: dict: Additional keyword arguments (not used)
-
         :return: Tuple[bool, astropy.Table]: A tuple containing:
             - bool: Always True, indicating that the decoding was successful
             - Table: The decoded Astropy table data

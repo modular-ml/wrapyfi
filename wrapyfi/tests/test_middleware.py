@@ -8,6 +8,10 @@ class ZeroMQTestMiddleware(unittest.TestCase):
     MWARE = "zeromq"
 
     def test_publish_listen(self):
+        """
+        Test the publish and listen functionality of the middleware. This verifies that the middleware can send and
+        receive messages using the PUB/SUB pattern.
+        """
         import wrapyfi.tests.tools.class_test as class_test
         # importlib.reload(wrapyfi)
         # importlib.reload(class_test)
@@ -42,14 +46,26 @@ class ZeroMQTestMiddleware(unittest.TestCase):
 
 
 class ROS2TestMiddleware(ZeroMQTestMiddleware):
+    """
+    Test the ROS2 wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the ROS2 wrapper.
+    """
     MWARE = "ros2"
 
 
 class YarpTestMiddleware(ZeroMQTestMiddleware):
+    """
+    Test the YARP wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the YARP wrapper.
+    """
     MWARE = "yarp"
 
 
 class ROSTestMiddleware(ZeroMQTestMiddleware):
+    """
+    Test the ROS wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the ROS wrapper.
+    """
     MWARE = "ros"
 
 

@@ -28,7 +28,7 @@ class ZeroMQListener(Listener):
                  pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
                  zeromq_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the subscriber
+        Initialize the subscriber.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -59,7 +59,7 @@ class ZeroMQListener(Listener):
 
     def await_connection(self, socket=None, in_topic: Optional[str] = None, repeats: Optional[int] = None):
         """
-        Wait for the connection to be established
+        Wait for the connection to be established.
 
         :param socket: zmq.Socket: Socket to await connection to
         :param in_topic: str: Name of the input topic
@@ -87,7 +87,7 @@ class ZeroMQListener(Listener):
 
     def read_socket(self, socket):
         """
-        Read the socket
+        Read the socket.
 
         :param socket: zmq.Socket: Socket to read from
         :return: bytes: Data read from the socket
@@ -102,7 +102,7 @@ class ZeroMQListener(Listener):
 
     def close(self):
         """
-        Close the subscriber
+        Close the subscriber.
         """
         ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.in_topic)
         time.sleep(0.2)
@@ -122,7 +122,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ZeroMQ message construct assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a native object
+        Deserializes the data (including plugins) using the decoder and parses it to a native object.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -141,7 +141,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
-        Establish the connection to the publisher
+        Establish the connection to the publisher.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
@@ -162,7 +162,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Any: The received message as a native python object
         """
@@ -186,7 +186,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image listener using the ZeroMQ message construct parsed to a numpy array
+        The Image listener using the ZeroMQ message construct parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -199,7 +199,6 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -210,7 +209,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
@@ -243,7 +242,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
     def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunk listener using the ZeroMQ message construct parsed to a numpy array
+        The AudioChunk listener using the ZeroMQ message construct parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -256,14 +255,13 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
         """
         super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait,
                          width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
-
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
@@ -273,11 +271,12 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
                 return None
         if self._socket.poll(timeout=None if self.should_wait else 0):
             obj = self._socket.recv_multipart()
-            aud = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
-            chunk, channels = aud.shape if len(aud.shape) > 1 else (aud.shape[0], 1)
-            if 0 < self.chunk != chunk or self.channels != channels or len(aud) != chunk * channels:
+            chunk, channels, rate, aud = json.loads(obj[2].decode(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs) if obj is not None else None
+            if 0 < self.rate != rate:
+                raise ValueError("Incorrect audio rate for listener")
+            if 0 < self.chunk != chunk or self.channels != channels or aud.size != chunk * channels:
                 raise ValueError("Incorrect audio shape for listener")
-            return aud, self.rate
+            return aud, rate
         else:
             return None, self.rate
 

@@ -4,6 +4,7 @@ import queue
 import time
 import os
 from typing import Optional
+import sys
 
 import numpy as np
 import cv2
@@ -28,7 +29,7 @@ class ROS2Listener(Listener, Node):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, ros2_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialize the subscriber
+        Initialize the subscriber.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -51,7 +52,7 @@ class ROS2Listener(Listener, Node):
 
     def close(self):
         """
-        Close the subscriber
+        Close the subscriber.
         """
         if hasattr(self, "_subscriber") and self._subscriber:
             if self._subscriber is not None:
@@ -68,7 +69,7 @@ class ROS2NativeObjectListener(ROS2Listener):
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
         The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
-        Deserializes the data (including plugins) using the decoder and parses it to a native object
+        Deserializes the data (including plugins) using the decoder and parses it to a native object.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -87,7 +88,7 @@ class ROS2NativeObjectListener(ROS2Listener):
 
     def establish(self):
         """
-        Establish the subscriber
+        Establish the subscriber.
         """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = self.create_subscription(std_msgs.msg.String, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
@@ -95,7 +96,7 @@ class ROS2NativeObjectListener(ROS2Listener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Any: The received message as a native python object
         """
@@ -110,7 +111,7 @@ class ROS2NativeObjectListener(ROS2Listener):
 
     def _message_callback(self, msg):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
 
         :param msg: std_msgs.msg.String: The received message
         """
@@ -126,7 +127,7 @@ class ROS2ImageListener(ROS2Listener):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image listener using the ROS2 Image message parsed to a numpy array
+        The Image listener using the ROS2 Image message parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -139,7 +140,6 @@ class ROS2ImageListener(ROS2Listener):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
         super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
-
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -175,7 +175,7 @@ class ROS2ImageListener(ROS2Listener):
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: np.ndarray: The received message as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels]
         """
@@ -195,7 +195,7 @@ class ROS2ImageListener(ROS2Listener):
                 height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
                 if encoding != self._encoding:
                     raise ValueError("Incorrect encoding for listener")
-                elif 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
                     raise ValueError("Incorrect image shape for listener")
                 img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
                 if img.shape[2] == 1:
@@ -206,7 +206,7 @@ class ROS2ImageListener(ROS2Listener):
 
     def _message_callback(self, data):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
 
         :param data: sensor_msgs.msg.Image: The received message
         """
@@ -225,7 +225,7 @@ class ROS2AudioChunkListener(ROS2Listener):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunk listener using the ROS2 Image message parsed to a numpy array
+        The AudioChunk listener using the ROS2 Audio message parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -235,9 +235,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size,
-                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
-
+        super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -248,15 +246,24 @@ class ROS2AudioChunkListener(ROS2Listener):
 
     def establish(self):
         """
-        Establish the subscriber
+        Establish the subscriber.
         """
+        try:
+            from wrapyfi_ros2_interfaces.msg import ROS2AudioMessage
+        except ImportError:
+            import wrapyfi
+            logging.error("[ROS2] Could not import ROS2AudioMessage. "
+                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Refer to the documentation for more information: \n" +
+                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+            sys.exit(1)
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = self.create_subscription(sensor_msgs.msg.Image, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
+        self._subscriber = self.create_subscription(ROS2AudioMessage, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):
         """
-        Listen for a message
+        Listen for a message.
 
         :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
@@ -264,78 +271,35 @@ class ROS2AudioChunkListener(ROS2Listener):
             self.establish()
         try:
             rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
-            chunk, channels, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
-            if encoding != '32FC1':
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+            if 0 < self.rate != rate:
+                raise ValueError("Incorrect audio rate for publisher")
+            if encoding not in ['S16LE', 'S16BE']:
                 raise ValueError("Incorrect encoding for listener")
-            elif 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+            if 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
                 raise ValueError("Incorrect audio shape for listener")
             aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape((chunk, channels))
-            return aud, self.rate
+            # aud = aud / 32767.0
+            return aud, rate
         except queue.Empty:
             return None, self.rate
 
     def _message_callback(self, data):
         """
-        Callback for the subscriber
+        Callback for the subscriber.
 
-        :param data: sensor_msgs.msg.Image: The received message
+        :param data: wrapyfi_ros2_interfaces.msg.ROS2AudioMessage: The received message
         """
         try:
-            self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+            self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data), block=False)
         except queue.Full:
             logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
 
-
-# TODO (fabawi): WIP - Support for ROS2
 @Listeners.register("Properties", "ros2")
 class ROS2PropertiesListener(ROS2Listener):
-
-    def __init__(self, name, in_topic, should_wait=True, **kwargs):
-        super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
-        self._subscriber = self._queue = None
-
-        if not self.should_wait:
-            ListenerWatchDog().add_listener(self)
-
-        self.previous_property = False
-
-    def await_connection(self, port=None, repeats=None):
-        connected = False
-        if port is None:
-            port = self.in_topic
-        logging.info(f"[ROS2] Waiting for property: {port}")
-        if repeats is None:
-            if self.should_wait:
-                repeats = -1
-            else:
-                repeats = 1
-
-            while repeats > 0 or repeats <= -1:
-                repeats -= 1
-                self.previous_property = self.get_parameter_or(self.in_topic,
-                                                               alternative_value=Parameter("default", Parameter.Type.BOOL, False))
-                connected = True if bool(self.previous_property) else False
-                if connected:
-                    logging.info(f"[ROS2] Found property: {port}")
-                    break
-                time.sleep(0.2)
-        return connected
-
-    def establish(self, repeats=None, **kwargs):
-        established = self.await_connection(repeats=repeats)
-        return self.check_establishment(established)
-
-    def listen(self):
-        if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
-            if not established:
-                obj = None
-            else:
-                obj = self.previous_property
-            return obj
-        else:
-            obj = self.get_parameter_or(self.in_topic, alternative_value=Parameter("default", Parameter.Type.BOOL, False))
-            return obj
+    def __init__(self, name, in_topic, **kwargs):
+        super().__init__(name, in_topic, **kwargs)
+        raise NotImplementedError
 
 

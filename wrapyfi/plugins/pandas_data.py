@@ -1,5 +1,23 @@
+"""
+Encoder and Decoder for Pandas Series/Dataframes Data via Wrapyfi.
+
+This script provides mechanisms to encode and decode Pandas data using Wrapyfi.
+It utilizes base64 encoding to convert binary data into ASCII strings.
+
+The script contains a class, `PandasData`, registered as a plugin to manage the
+conversion of Pandas data (if available) between its original and encoded forms.
+
+Requirements:
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - Pandas: A fast, powerful, flexible and easy to use open source data analysis and manipulation tool (refer to https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html for installation instructions)
+        Note: If Pandas is not available, HAVE_PANDAS will be set to False and
+        the plugin will be registered with no types.
+
+    You can install the necessary packages using pip:
+        ``pip install "pandas<2.0"``  # Basic installation of Pandas
+"""
+
 import io
-import json
 import base64
 
 import numpy as np
@@ -16,9 +34,23 @@ except ImportError:
 @PluginRegistrar.register(types=None if not HAVE_PANDAS else pandas.DataFrame.__mro__[:-1] + pandas.Series.__mro__[:-1])
 class PandasData(Plugin):
     def __init__(self, **kwargs):
+        """
+        Initialize the PandasData plugin.
+        """
         pass
 
     def encode(self, obj, *args, **kwargs):
+        """
+        Encode Pandas data into a base64 ASCII string.
+
+        :param obj: Union[pandas.DataFrame, pandas.Series]: The Pandas data to encode
+        :param args: tuple: Additional arguments (not used)
+        :param kwargs: dict: Additional keyword arguments (not used)
+        :return: Tuple[bool, dict]: A tuple containing:
+            - bool: Always True, indicating that the encoding was successful
+            - dict: A dictionary containing:
+                - '__wrapyfi__': A tuple containing the class name, encoded data string, and object type
+        """
         with io.BytesIO() as memfile:
             if isinstance(obj, pandas.DataFrame):
                 obj_type = 'DataFrame'
@@ -30,6 +62,17 @@ class PandasData(Plugin):
         return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data, obj_type))
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
+        """
+        Decode a base64 ASCII string back into Pandas data.
+
+        :param obj_type: type: The expected type of the decoded object (not used)
+        :param obj_full: tuple: A tuple containing the encoded data string and object type
+        :param args: tuple: Additional arguments (not used)
+        :param kwargs: dict: Additional keyword arguments (not used)
+        :return: Tuple[bool, Union[pandas.DataFrame, pandas.Series]]: A tuple containing:
+            - bool: Always True, indicating that the decoding was successful
+            - Union[pandas.DataFrame, pandas.Series]: The decoded Pandas data
+        """
         with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
             obj = pandas.read_json(memfile, orient="split")
             obj_type = obj_full[2]

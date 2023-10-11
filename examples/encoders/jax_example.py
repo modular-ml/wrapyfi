@@ -11,9 +11,9 @@ Demonstrations:
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - JAX: Used for handling and creating arrays (Refer to https://jax.readthedocs.io/en/latest/installation.html for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - JAX: Used for handling and creating arrays (refer to https://jax.readthedocs.io/en/latest/installation.html for installation instructions)
 
     Install using pip:
         ``pip install jax jaxlib``  # Basic installation of JAX

@@ -13,9 +13,9 @@ Demonstrations:
     - Flipping of contexts by mapping CPU to GPU and vice versa
 
 Requirements:
-    - Wrapyfi: Middleware communication wrapper (Refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (Refer to the Wrapyfi documentation for installation instructions)
-    - MXNet: Used for handling and creating tensors (Refer to https://mxnet.apache.org/get_started?version=v1.8.0&platform=platform1&language=python&processor=cpu&environ=build_from_source&build=build for installation instructions)
+    - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - MXNet: Used for handling and creating tensors (refer to https://mxnet.apache.org/get_started for installation instructions)
 
     Install using pip:
         ``pip install mxnet``  # Basic installation of MXNet

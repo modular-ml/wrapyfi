@@ -12,14 +12,6 @@ examples.communication\_schemes.channeling\_example module
    :undoc-members:
    :show-inheritance:
 
-examples.communication\_schemes.encapsulation module
-----------------------------------------------------
-
-.. automodule:: examples.communication_schemes.encapsulation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 examples.communication\_schemes.forwarding\_example module
 ----------------------------------------------------------
 

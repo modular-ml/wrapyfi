@@ -7,23 +7,15 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   examples.communication_patterns
    examples.communication_schemes
    examples.custom_msgs
    examples.encoders
-   examples.patterns
    examples.robots
    examples.sensors
 
 Submodules
 ----------
-
-examples.dummy module
----------------------
-
-.. automodule:: examples.dummy
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 examples.hello\_world module
 ----------------------------
