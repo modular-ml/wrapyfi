@@ -15,7 +15,7 @@ a number of helper functions to make middleware integration possible without the
 multiple machines. 
 Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
 
-To integrate Wrapyfi with your scripts, simply add the decorators describing the transmitting and listening method parameters.
+To integrate Wrapyfi with your scripts, add the decorators describing the transmitting and listening method parameters.
 
 # Attribution
 
@@ -73,7 +73,7 @@ Clone Wrapyfi:
 git clone https://github.com/fabawi/wrapyfi.git
 ```
 
-To install Warpify using **pip**:
+To install Wrapyfi using **pip**:
 
 ```
 pip install .
@@ -86,7 +86,7 @@ pip install .[pyzmq]
 ```
 
 Most plugins require additional dependencies and should be installed separately. 
-Other middleware such as ROS are environment specific and require dependencies which cannot be installed using pip. 
+Other middleware such as ROS are environment-specific and require dependencies that cannot be installed using pip. 
 Wrapyfi should be used within such environments.
 
 ## Usage
