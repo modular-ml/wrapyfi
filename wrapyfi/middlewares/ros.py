@@ -13,14 +13,14 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator
 class ROSMiddleware(metaclass=SingletonOptimized):
     """
     ROS middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate`` method
-    should be called to initialise the middleware. The ``deinit`` method should be called to deinitialise the middleware
+    should be called to initialize the middleware. The ``deinit`` method should be called to deinitialize the middleware
     and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the class is
     instantiated and when the program exits, respectively.
     """
     @staticmethod
     def activate(**kwargs):
         """
-        Activate the ROS middleware. This method should be called to initialise the middleware.
+        Activate the ROS middleware. This method should be called to initialize the middleware.
 
         :param kwargs: dict: Keyword arguments to be passed to the ROS initialisation function
         """
@@ -28,7 +28,7 @@ class ROSMiddleware(metaclass=SingletonOptimized):
 
     def __init__(self, node_name: str = "wrapyfi", anonymous: bool = True, disable_signals: bool = True, *args, **kwargs):
         """
-        Initialise the ROS middleware. This method is automatically called when the class is instantiated.
+        Initialize the ROS middleware. This method is automatically called when the class is instantiated.
 
         :param node_name: str: The name of the ROS node
         :param anonymous: bool: Whether the ROS node should be anonymous
@@ -44,7 +44,7 @@ class ROSMiddleware(metaclass=SingletonOptimized):
     @staticmethod
     def deinit():
         """
-        Deinitialise the ROS middleware. This method is automatically called when the program exits.
+        Deinitialize the ROS middleware. This method is automatically called when the program exits.
         """
         logging.info("Deinitialising ROS middleware")
         rospy.signal_shutdown('Deinit')
