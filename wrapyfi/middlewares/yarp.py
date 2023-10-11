@@ -10,14 +10,14 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator
 class YarpMiddleware(metaclass=SingletonOptimized):
     """
     YARP middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate`` method
-    should be called to initialise the middleware. The ``deinit`` method should be called to deinitialise the middleware
+    should be called to initialize the middleware. The ``deinit`` method should be called to deinitialize the middleware
     and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the class is
     instantiated and when the program exits, respectively.
     """
     @staticmethod
     def activate(**kwargs):
         """
-        Activate the YARP middleware. This method should be called to initialise the middleware.
+        Activate the YARP middleware. This method should be called to initialize the middleware.
 
         :param kwargs: dict: Keyword arguments to be passed to the YARP initialisation function
         """
@@ -25,7 +25,7 @@ class YarpMiddleware(metaclass=SingletonOptimized):
 
     def __init__(self, *args, **kwargs):
         """
-        Initialise the YARP middleware. This method is automatically called when the class is instantiated.
+        Initialize the YARP middleware. This method is automatically called when the class is instantiated.
         """
         logging.info("Initialising YARP middleware")
         yarp.Network.init()
@@ -35,7 +35,7 @@ class YarpMiddleware(metaclass=SingletonOptimized):
     @staticmethod
     def deinit():
         """
-        Deinitialise the YARP middleware. This method is automatically called when the program exits.
+        Deinitialize the YARP middleware. This method is automatically called when the program exits.
         """
         logging.info("Deinitialising YARP middleware")
         yarp.Network.fini()

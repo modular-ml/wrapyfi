@@ -19,7 +19,7 @@ ZEROMQ_POST_OPTS = ["SUBSCRIBE", "UNSUBSCRIBE", "LINGER", "ROUTER_HANDOVER", "RO
 class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
     """
     ZeroMQ PUB/SUB middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate``
-    method should be called to initialise the middleware. The ``deinit`` method should be called to deinitialise the
+    method should be called to initialize the middleware. The ``deinit`` method should be called to deinitialize the
     middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the
     class is instantiated and when the program exits, respectively.
     """
@@ -30,7 +30,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         """
         def __init__(self, use_multiprocessing: bool = False):
             """
-            Initialise the shared data class.
+            Initialize the shared data class.
 
             :param use_multiprocessing: bool: Whether to use multiprocessing or threading
             """
@@ -117,7 +117,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
     @staticmethod
     def activate(**kwargs):
         """
-        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialise the middleware.
+        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialize the middleware.
 
         :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
         """
@@ -137,7 +137,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
     def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional[dict] = None, **kwargs):
         """
-        Initialise the ZeroMQ PUB/SUB middleware. This method is automatically called when the class is instantiated.
+        Initialize the ZeroMQ PUB/SUB middleware. This method is automatically called when the class is instantiated.
 
         :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
         :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
@@ -271,7 +271,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                      pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
                      **kwargs):
         """
-        Initialise the ZeroMQ PUB/SUB proxy and subscription monitor.
+        Initialize the ZeroMQ PUB/SUB proxy and subscription monitor.
 
         :param socket_pub_address: str: The address of the PUB socket
         :param socket_sub_address: str: The address of the SUB socket
@@ -295,7 +295,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                                 pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
                                 verbose: bool = False, **kwargs):
         """
-        Initialise the ZeroMQ PUB/SUB monitor listener.
+        Initialize the ZeroMQ PUB/SUB monitor listener.
 
         :param socket_pub_address: str: The address of the PUB socket
         :param pubsub_monitor_topic: str: The topic to use for publishing subscription data
@@ -339,14 +339,14 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     """
     ZeroMQ REQ/REP middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate``
-    method should be called to initialise the middleware. The ``deinit`` method should be called to deinitialise the
+    method should be called to initialize the middleware. The ``deinit`` method should be called to deinitialize the
     middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the
     class is instantiated and when the program exits, respectively.
     """
     @staticmethod
     def activate(**kwargs):
         """
-        Activate the ZeroMQ REQ/REP middleware. This method should be called to initialise the middleware.
+        Activate the ZeroMQ REQ/REP middleware. This method should be called to initialize the middleware.
 
         :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
         """
@@ -366,7 +366,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
     def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional[dict] = None, *args, **kwargs):
         """
-        Initialise the ZeroMQ REQ/REP middleware. This method is automatically called when the class is instantiated.
+        Initialize the ZeroMQ REQ/REP middleware. This method is automatically called when the class is instantiated.
 
         :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
         :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
@@ -399,7 +399,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     @staticmethod
     def __init_device(socket_rep_address: str = "tcp://127.0.0.1:5559", socket_req_address: str = "tcp://127.0.0.1:5560", **kwargs):
         """
-        Initialise the ZeroMQ REQ/REP device broker.
+        Initialize the ZeroMQ REQ/REP device broker.
 
         :param socket_rep_address: str: The address of the REP socket
         :param socket_req_address: str: The address of the REQ socket
@@ -428,8 +428,8 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
     """
     ZeroMQ parameter server middleware wrapper. This class is a singleton, so it can be instantiated only once. The
-    ``activate`` method should be called to initialise the middleware. The ``deinit`` method should be called to
-    deinitialise the middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically
+    ``activate`` method should be called to initialize the middleware. The ``deinit`` method should be called to
+    deinitialize the middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically
     called when the class is instantiated and when the program exits, respectively.
 
     Note: This parameter server is experimental and not fully tested.
@@ -452,7 +452,7 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
     def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional = None, *args, **kwargs):
         """
-        Initialise the ZeroMQ parameter server middleware. This method is automatically called when the class is
+        Initialize the ZeroMQ parameter server middleware. This method is automatically called when the class is
         instantiated.
 
         :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
@@ -501,7 +501,7 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
     def __init_broadcaster(params, param_pub_address: str = "tcp://127.0.0.1:5655", param_sub_address: str = "tcp://127.0.0.1:5656",
                            param_poll_interval=1, verbose=False, **kwargs):
         """
-        Initialise the ZeroMQ parameter server broadcaster.
+        Initialize the ZeroMQ parameter server broadcaster.
 
         :param params: dict: The parameters to be broadcasted
         :param param_pub_address: str: The address of the PUB socket
@@ -602,7 +602,7 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
     @staticmethod
     def __init_server(params: dict, param_reqrep_address: str = "tcp://127.0.0.1:5659", **kwargs):
         """
-        Initialise the ZeroMQ parameter server.
+        Initialize the ZeroMQ parameter server.
 
         :param params: dict: The parameters to be published
         :param param_reqrep_address: str: The address of the REQ/REP socket
@@ -665,7 +665,7 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
     @staticmethod
     def deinit():
         """
-        Deinitialise the ZeroMQ parameter server.
+        Deinitialize the ZeroMQ parameter server.
         """
         logging.info("Deinitialising ZeroMQ Parameter Server")
         zmq.Context.instance().destroy()
