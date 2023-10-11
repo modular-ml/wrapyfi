@@ -9,7 +9,7 @@ conversion of XArray Data (DataArray and Dataset) (if available) between its ori
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - Pandas: A fast, powerful, flexible and easy to use open source data analysis and manipulation tool (refer to https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html for installation instructions)
+    - Pandas: A data structures library for data analysis, time series, and statistics (refer to https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html for installation instructions)
     - XArray: N-D labeled arrays and datasets in Python (refer to http://xarray.pydata.org/en/stable/getting-started-guide/installing.html for installation instructions)
         Note: If XArray is not available, HAVE_XARRAY will be set to False and
         the plugin will be registered with no types.
