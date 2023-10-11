@@ -6,7 +6,7 @@ import threading
 import os
 import importlib.util
 import queue
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import cv2
@@ -253,6 +253,7 @@ class ROS2ImageServer(ROS2Server):
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message
+        :return: ROS2NativeObjectService.Response: The response message
         """
         ROS2ImageServer.RECEIVE_QUEUE.put(request)
         return ROS2ImageServer.SEND_QUEUE.get(block=True)
@@ -366,11 +367,12 @@ class ROS2AudioChunkServer(ROS2Server):
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message
+        :return: ROS2NativeObjectService.Response: The response message
         """
         ROS2AudioChunkServer.RECEIVE_QUEUE.put(request)
         return ROS2AudioChunkServer.SEND_QUEUE.get(block=True)
 
-    def reply(self, aud):
+    def reply(self, aud: Tuple[np.ndarray, int]):
         """
         Serialize the provided audio data and send it as a reply to the client.
 

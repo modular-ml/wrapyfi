@@ -5,6 +5,7 @@ import multiprocessing
 import time
 from collections import defaultdict
 import json
+from typing import Optional
 
 import zmq
 
@@ -16,8 +17,23 @@ ZEROMQ_POST_OPTS = ["SUBSCRIBE", "UNSUBSCRIBE", "LINGER", "ROUTER_HANDOVER", "RO
 
 
 class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
+    """
+    ZeroMQ PUB/SUB middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate``
+    method should be called to initialise the middleware. The ``deinit`` method should be called to deinitialise the
+    middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the
+    class is instantiated and when the program exits, respectively.
+    """
     class ZeroMQSharedMonitorData:
-        def __init__(self, use_multiprocessing=False):
+        """
+        Shared data class for the ZeroMQ PUB/SUB monitor. This class is used to share data between the main process and
+        the monitor listener process/thread.
+        """
+        def __init__(self, use_multiprocessing: bool = False):
+            """
+            Initialise the shared data class.
+
+            :param use_multiprocessing: bool: Whether to use multiprocessing or threading
+            """
             self.use_multiprocessing = use_multiprocessing
             if use_multiprocessing:
                 manager = multiprocessing.Manager()
@@ -29,33 +45,69 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                 self.shared_connections = {}
                 self.lock = threading.Lock()
 
-        def add_topic(self, topic):
+        def add_topic(self, topic: str):
+            """
+            Add a topic to the shared data class.
+
+            :param topic: str: The topic to add
+            """
             with self.lock:
                 self.shared_topics.append(topic)
 
-        def remove_topic(self, topic):
+        def remove_topic(self, topic: str):
+            """
+            Remove a topic from the shared data class.
+
+            :param topic: str: The topic to remove
+            """
             with self.lock:
                 if topic in self.shared_topics:
                     self.shared_topics.remove(topic)
 
         def get_topics(self):
+            """
+            Get the list of topics in the shared data class.
+
+            :return: list: The list of topics
+            """
             with self.lock:
                 return list(self.shared_topics)
 
-        def update_connection(self, topic, data):
+        def update_connection(self, topic: str, data: dict):
+            """
+            Update the connection data for a topic, e.g. the number of subscribers.
+
+            :param topic: str: The topic to update
+            :param data: dict: The connection data
+            """
             with self.lock:
                 self.shared_connections[topic] = data
 
-        def remove_connection(self, topic):
+        def remove_connection(self, topic: str):
+            """
+            Remove the connection data for a topic.
+
+            :param topic: str: The topic to remove
+            """
             with self.lock:
                 if topic in list(self.shared_connections.keys()):
                     del self.shared_connections[topic]
 
         def get_connections(self):
+            """
+            Get the connection data for all topics.
+
+            :return: dict: The connection data for all topics
+            """
             with self.lock:
                 return dict(self.shared_connections)
 
-        def is_connected(self, topic):
+        def is_connected(self, topic: str):
+            """
+            Check whether a topic is connected.
+
+            :param topic: str: The topic to check
+            """
             with self.lock:
                 if topic in list(self.shared_connections.keys()):
                     return True
@@ -64,6 +116,11 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
     @staticmethod
     def activate(**kwargs):
+        """
+        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialise the middleware.
+
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        """
         zeromq_post_kwargs = {}
         zeromq_pre_kwargs = {}
         for key, value in kwargs.items():
@@ -78,7 +135,14 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
         ZeroMQMiddlewarePubSub(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional[dict] = None, **kwargs):
+        """
+        Initialise the ZeroMQ PUB/SUB middleware. This method is automatically called when the class is instantiated.
+
+        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
+        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        """
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ PUB/SUB middleware")
@@ -123,9 +187,16 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             pass
                 
     @staticmethod
-    def proxy_thread(socket_pub_address="tcp://127.0.0.1:5555",
-                     socket_sub_address="tcp://127.0.0.1:5556",
-                     inproc_address="inproc://monitor"):
+    def proxy_thread(socket_pub_address: str = "tcp://127.0.0.1:5555",
+                     socket_sub_address: str = "tcp://127.0.0.1:5556",
+                     inproc_address: str = "inproc://monitor"):
+        """
+        Proxy thread for the ZeroMQ PUB/SUB proxy.
+
+        :param socket_pub_address: str: The address of the PUB socket
+        :param socket_sub_address: str: The address of the SUB socket
+        :param inproc_address: str: The address of the inproc socket (connections within the same process, for exchanging subscription data between the proxy and the monitor)
+        """
         context = zmq.Context.instance()
         xpub = context.socket(zmq.XPUB)
         xsub = context.socket(zmq.XSUB)
@@ -140,8 +211,16 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         zmq.proxy(xpub, xsub, monitor)
 
     @staticmethod
-    def subscription_monitor_thread(inproc_address="inproc://monitor", socket_sub_address="tcp://127.0.0.1:5556",
-                                    pubsub_monitor_topic="ZEROMQ/CONNECTIONS", verbose=False):
+    def subscription_monitor_thread(inproc_address: str = "inproc://monitor", socket_sub_address: str = "tcp://127.0.0.1:5556",
+                                    pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS", verbose: bool = False):
+        """
+        Subscription monitor thread for the ZeroMQ PUB/SUB proxy.
+
+        :param inproc_address: str: The address of the inproc socket (connections within the same process, for exchanging subscription data between the proxy and the monitor)
+        :param socket_sub_address: str: The address of the SUB socket
+        :param pubsub_monitor_topic: str: The topic to use for publishing subscription data
+        :param verbose: bool: Whether to print debug messages
+        """
         context = zmq.Context.instance()
         subscriber = context.socket(zmq.SUB)
         subscriber.connect(inproc_address)
@@ -188,9 +267,17 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             except Exception as e:
                 logging.error(f"[ZeroMQ BROKER] An error occurred in the ZeroMQ subscription monitor: {str(e)}")
 
-    def __init_proxy(self, socket_pub_address="tcp://127.0.0.1:5555", socket_sub_address="tcp://127.0.0.1:5556",
-                     pubsub_monitor_topic="ZEROMQ/CONNECTIONS",
+    def __init_proxy(self, socket_pub_address: str = "tcp://127.0.0.1:5555", socket_sub_address: str = "tcp://127.0.0.1:5556",
+                     pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
                      **kwargs):
+        """
+        Initialise the ZeroMQ PUB/SUB proxy and subscription monitor.
+
+        :param socket_pub_address: str: The address of the PUB socket
+        :param socket_sub_address: str: The address of the SUB socket
+        :param pubsub_monitor_topic: str: The topic to use for publishing subscription data
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        """
         inproc_address = "inproc://monitor"
 
         threading.Thread(target=self.proxy_thread,
@@ -204,9 +291,16 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                                  "pubsub_monitor_topic": pubsub_monitor_topic,
                                  "verbose": kwargs.get("verbose", False)}).start()
 
-    def __init_monitor_listener(self, socket_pub_address="tcp://127.0.0.1:5555", 
-                                pubsub_monitor_topic="ZEROMQ/CONNECTIONS",
-                                verbose=False, **kwargs):
+    def __init_monitor_listener(self, socket_pub_address: str = "tcp://127.0.0.1:5555", 
+                                pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
+                                verbose: bool = False, **kwargs):
+        """
+        Initialise the ZeroMQ PUB/SUB monitor listener.
+
+        :param socket_pub_address: str: The address of the PUB socket
+        :param pubsub_monitor_topic: str: The topic to use for publishing subscription data
+        :param verbose: bool: Whether to print debug messages
+        """
         try:
             context = zmq.Context()
             subscriber = context.socket(zmq.SUB)
@@ -243,9 +337,19 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
 
 class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
-
+    """
+    ZeroMQ REQ/REP middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate``
+    method should be called to initialise the middleware. The ``deinit`` method should be called to deinitialise the
+    middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the
+    class is instantiated and when the program exits, respectively.
+    """
     @staticmethod
     def activate(**kwargs):
+        """
+        Activate the ZeroMQ REQ/REP middleware. This method should be called to initialise the middleware.
+
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        """
         zeromq_post_kwargs = {}
         zeromq_pre_kwargs = {}
         for key, value in kwargs.items():
@@ -260,7 +364,15 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
         ZeroMQMiddlewareReqRep(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, *args, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional[dict] = None, *args, **kwargs):
+        """
+        Initialise the ZeroMQ REQ/REP middleware. This method is automatically called when the class is instantiated.
+
+        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
+        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
+        :param args: list: Positional arguments to be passed to the ZeroMQ initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        """
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ REQ/REP middleware")
@@ -285,7 +397,13 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_device(socket_rep_address="tcp://127.0.0.1:5559", socket_req_address="tcp://127.0.0.1:5560", **kwargs):
+    def __init_device(socket_rep_address: str = "tcp://127.0.0.1:5559", socket_req_address: str = "tcp://127.0.0.1:5560", **kwargs):
+        """
+        Initialise the ZeroMQ REQ/REP device broker.
+
+        :param socket_rep_address: str: The address of the REP socket
+        :param socket_req_address: str: The address of the REQ socket
+        """
         xrep = zmq.Context.instance().socket(zmq.XREP)
         try:
             xrep.bind(socket_rep_address)
@@ -308,7 +426,14 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
 
 class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
+    """
+    ZeroMQ parameter server middleware wrapper. This class is a singleton, so it can be instantiated only once. The
+    ``activate`` method should be called to initialise the middleware. The ``deinit`` method should be called to
+    deinitialise the middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically
+    called when the class is instantiated and when the program exits, respectively.
 
+    Note: This parameter server is experimental and not fully tested.
+    """
     @staticmethod
     def activate(**kwargs):
         zeromq_post_kwargs = {}
@@ -325,7 +450,15 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
         ZeroMQMiddlewareParamServer(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zeromq_proxy_kwargs=None, zeromq_post_kwargs=None, *args, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional = None, *args, **kwargs):
+        """
+        Initialise the ZeroMQ parameter server middleware. This method is automatically called when the class is
+        instantiated.
+
+        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
+        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        """
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
         logging.info("Initialising ZeroMQ Parameter Server")
@@ -365,8 +498,17 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
             pass
 
     @staticmethod
-    def __init_broadcaster(params, param_pub_address="tcp://127.0.0.1:5655", param_sub_address="tcp://127.0.0.1:5656",
+    def __init_broadcaster(params, param_pub_address: str = "tcp://127.0.0.1:5655", param_sub_address: str = "tcp://127.0.0.1:5656",
                            param_poll_interval=1, verbose=False, **kwargs):
+        """
+        Initialise the ZeroMQ parameter server broadcaster.
+
+        :param params: dict: The parameters to be broadcasted
+        :param param_pub_address: str: The address of the PUB socket
+        :param param_sub_address: str: The address of the SUB socket
+        :param param_poll_interval: int: The polling interval for the parameter server
+        :param verbose: bool: Whether to print debug messages
+        """
         update_trigger = False
         cached_params = {}
         root_topics = set()
@@ -428,7 +570,17 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
                     param_server, params, cached_params, root_topics, update_trigger)
 
     @staticmethod
-    def publish_params(param_server, params, cached_params, root_topics, update_trigger):
+    def publish_params(param_server, params: dict, cached_params: dict, root_topics: set, update_trigger: bool):
+        """
+        Publish parameters to the parameter server.
+
+        :param param_server: zmq.Socket: The parameter server socket
+        :param params: dict: The parameters to be published
+        :param cached_params: dict: The cached parameters. This is used to check whether the parameters have changed
+        :param root_topics: set: The root topics. This is used to check whether there are any active subscribers
+        :param update_trigger: bool: Whether to trigger an update of the parameters
+        :return: Tuple[bool, dict]: Whether to trigger an update of the parameters and the cached parameters
+        """
         # check if there are any subscribed clients before publishing updates
         if not root_topics:
             return None, None
@@ -448,7 +600,13 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         return update_trigger, cached_params
 
     @staticmethod
-    def __init_server(params, param_reqrep_address="tcp://127.0.0.1:5659", **kwargs):
+    def __init_server(params: dict, param_reqrep_address: str = "tcp://127.0.0.1:5659", **kwargs):
+        """
+        Initialise the ZeroMQ parameter server.
+
+        :param params: dict: The parameters to be published
+        :param param_reqrep_address: str: The address of the REQ/REP socket
+        """
         ctx = zmq.Context.instance()
         request_server = ctx.socket(zmq.REP)
         request_server.bind(param_reqrep_address)
@@ -506,5 +664,8 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
     @staticmethod
     def deinit():
+        """
+        Deinitialise the ZeroMQ parameter server.
+        """
         logging.info("Deinitialising ZeroMQ Parameter Server")
         zmq.Context.instance().destroy()

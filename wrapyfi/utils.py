@@ -62,8 +62,7 @@ def match_args(args: Union[list, tuple], kwargs: dict, src_args: Union[list, tup
     them with values from `src_args` and `src_kwargs` respectively, to dynamically modify the function call
     parameters using the source values.
 
-    :param args: Union[list, tuple]:
-        A list of arguments, potentially containing strings that indicate substitutable entries.
+    :param args: Union[list, tuple]: A list of arguments, potentially containing strings that indicate substitutable entries.
         Substitutable entries are prefixed with "$" and followed by either:
             - A digit (indicating an index to reference a value from `src_args`), or
             - Non-digit characters (indicating a key to reference a value from `src_kwargs`).
@@ -75,10 +74,9 @@ def match_args(args: Union[list, tuple], kwargs: dict, src_args: Union[list, tup
     :param src_kwargs: dict:
         A dictionary of source keyword arguments, intended to be referenced by substitutable entries within `args`
         and `kwargs`.
-    :return: Tuple[list, dict]:
-        A tuple containing:
-            - list: The new arguments, formed by substituting specified entries from `args` using `src_args` and `src_kwargs`.
-            - dict: The new keyword arguments, formed by substituting specified entries from `kwargs` using `src_args` and `src_kwargs`.
+    :return: Tuple[list, dict]: A tuple containing:
+        - list: The new arguments, formed by substituting specified entries from `args` using `src_args` and `src_kwargs`.
+        - dict: The new keyword arguments, formed by substituting specified entries from `kwargs` using `src_args` and `src_kwargs`.
     """
     new_args = []
     new_kwargs = {}

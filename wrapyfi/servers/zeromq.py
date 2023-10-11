@@ -2,7 +2,7 @@ import logging
 import json
 import time
 import os
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Tuple
 
 import numpy as np
 import cv2
@@ -60,7 +60,7 @@ class ZeroMQServer(Server):
 
     def close(self):
         """
-        Close the server
+        Close the server.
         """
         if hasattr(self, "_socket") and self._socket:
             if self._socket is not None:
@@ -93,7 +93,7 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
 
     def establish(self, **kwargs):
         """
-        Establish the connection to the server
+        Establish the connection to the server.
         """
         self._socket = zmq.Context().instance().socket(zmq.REP)
         for socket_property in ZeroMQMiddlewareReqRep().zeromq_kwargs.items():
@@ -202,11 +202,9 @@ class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
         :param name: str: Name of the server
         :param out_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for REQ/REP pattern. Default is 'tcp'
-        :param width: int: Width of the image. Default is -1 (use the width of the received image)
-        :param height: int: Height of the image. Default is -1 (use the height of the received image)
-        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
-        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
+        :param channels: int: Number of channels in the audio. Default is 1
+        :param rate: int: Sampling rate of the audio. Default is 44100
+        :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
         super().__init__(name, out_topic, carrier=carrier, deserializer_kwargs=deserializer_kwargs, **kwargs)
@@ -214,7 +212,7 @@ class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
         self.rate = rate
         self.chunk = chunk
 
-    def reply(self, aud):
+    def reply(self, aud: Tuple[np.ndarray, int]):
         """
         Serialize the provided audio data and send it as a reply to the client.
 

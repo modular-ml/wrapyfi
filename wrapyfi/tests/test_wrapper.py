@@ -10,6 +10,12 @@ class ZeroMQTestWrapper(unittest.TestCase):
     MWARE = "zeromq"
 
     def test_activate_communication(self):
+        """
+        Test the activate communication functionality of the middleware. When the ``activate_communication`` method is
+        called, the ``__WRAPYFI_INSTANCES`` attribute of the decorated function should be updated with the instance of
+        the class that called the method. Destroying the class instance should remove the instance from the list and the
+        the connection should no longer be active. The ``activate_communication`` method should also be callable multiple times on the same function.
+        """
         import wrapyfi.tests.tools.class_test as class_test
         Test = class_test.Test
         Test.close_all_instances()
@@ -51,6 +57,12 @@ class ZeroMQTestWrapper(unittest.TestCase):
         self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
 
     def test_close(self):
+        """
+        Test the close functionality of the middleware. When the ``close`` method is called, the instances should be reordered
+        in the ``__WRAPYFI_INSTANCES`` attribute of the decorated function. Destroying the class instance should remove the
+        instance from the list and the index of the connection should change. The ``close`` method should also be callable
+        multiple times on different instances of a class.
+        """
         import wrapyfi.tests.tools.class_test as class_test
         Test = class_test.Test
         Test.close_all_instances()
@@ -114,6 +126,10 @@ class ZeroMQTestWrapper(unittest.TestCase):
         self.assertNotIn("Test.exchange_object.3", Test._MiddlewareCommunicator__registry)
 
     def test_get_communicators(self):
+        """
+        Test the get communicators functionality of the middleware. When the ``get_communicators`` method is called, the
+        method should return a list of all available middleware wrappers.
+        """
         import wrapyfi.tests.tools.class_test as class_test
         # importlib.reload(class_test)
         Test = class_test.Test
@@ -125,14 +141,26 @@ class ZeroMQTestWrapper(unittest.TestCase):
 
 
 class ROS2TestWrapper(ZeroMQTestWrapper):
+    """
+    Test the ROS2 wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the ROS2 wrapper.
+    """
     MWARE = "ros2"
 
 
 class YarpTestWrapper(ZeroMQTestWrapper):
+    """
+    Test the YARP wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the YARP wrapper.
+    """
     MWARE = "yarp"
 
 
 class ROSTestWrapper(ZeroMQTestWrapper):
+    """
+    Test the ROS wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the ROS wrapper.
+    """
     MWARE = "ros"
 
 

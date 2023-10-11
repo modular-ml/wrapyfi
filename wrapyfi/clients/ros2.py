@@ -159,8 +159,8 @@ class ROS2ImageClient(ROS2Client):
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param width: int: The width of the image. Default is -1
-        :param height: int: The height of the image. Default is -1
+        :param width: int: The width of the image. Default is -1 (use the width of the received image)
+        :param height: int: The height of the image. Default is -1 (use the height of the received image)
         :param rgb: bool: Whether the image is RGB. Default is True
         :param fp: bool: Whether to utilize floating-point precision. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False

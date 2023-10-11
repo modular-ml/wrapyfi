@@ -17,14 +17,6 @@ Subpackages
 Submodules
 ----------
 
-examples.dummy module
----------------------
-
-.. automodule:: examples.dummy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 examples.hello\_world module
 ----------------------------
 
