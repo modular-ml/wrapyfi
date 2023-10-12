@@ -32,6 +32,6 @@ Wrapyfi is multi-middleware python package supporting ROS, ROS2, YARP and ZeroMQ
    :caption: Examples:
    :glob:
 
-   examples_docs/*
+   examples/*
 
    
