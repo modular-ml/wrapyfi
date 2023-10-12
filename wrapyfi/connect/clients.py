@@ -77,3 +77,9 @@ class Client(object):
         Internal method for awaiting a reply from the server in the background.
         """
         raise NotImplementedError
+
+    def close(self):
+        """
+        Close the connection.
+        """
+        raise NotImplementedError

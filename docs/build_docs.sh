@@ -1,7 +1,7 @@
 #!/bin/bash
 # remove the built doc directories (except for usage)
 rm -rf _build examples source
-# compile API documentation. index_API.rst shows how to list the code in index.
+# compile API documentation.
 sphinx-apidoc -o source ../wrapyfi
 # compile example documentation
 sphinx-apidoc -o examples ../examples

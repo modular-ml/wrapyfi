@@ -13,7 +13,7 @@ class FallbackPublisher(Publisher):
         Publisher.__init__(self, name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
         self.missing_middleware_object = missing_middleware_object
 
-    def establish(self, repeats=-1, **kwargs):
+    def establish(self, repeats: int = -1, **kwargs):
         return None
 
     def publish(self, obj):

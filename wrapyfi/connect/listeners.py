@@ -130,3 +130,9 @@ class Listener(object):
         Listen for incoming data.
         """
         raise NotImplementedError
+
+    def close(self):
+        """
+        Close the connection.
+        """
+        raise NotImplementedError

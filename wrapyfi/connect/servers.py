@@ -75,3 +75,9 @@ class Server(object):
         Reply to a client request.
         """
         raise NotImplementedError
+
+    def close(self):
+        """
+        Close the connection.
+        """
+        raise NotImplementedError

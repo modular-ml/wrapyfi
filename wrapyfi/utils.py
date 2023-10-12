@@ -112,8 +112,8 @@ def dynamic_module_import(modules: List[str], globals: dict):
         module_name = module_name.replace("/", ".")
         try:
             module = __import__(module_name, fromlist=['*'])
-        except ImportError:
-            # print(module_name + " could not be imported.")
+        except ImportError as e:
+            # print(module_name + " could not be imported.", e)
             continue
         if hasattr(module, '__all__'):
             all_names = module.__all__
