@@ -111,7 +111,6 @@ class YarpNativeObjectPublisher(YarpPublisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection

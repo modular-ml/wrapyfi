@@ -2,3 +2,4 @@ sphinx
 sphinx_rtd_theme
 myst_parser
 mdsplit
+pyyaml>=5.1.1

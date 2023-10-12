@@ -1,9 +1,9 @@
 import logging
 import json
 import time
-from typing import Optional, Literal
-import io
 import base64
+import io
+from typing import Optional, Literal
 
 import numpy as np
 import cv2
