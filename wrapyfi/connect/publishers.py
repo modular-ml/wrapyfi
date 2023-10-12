@@ -132,3 +132,8 @@ class Publisher(object):
         """
         raise NotImplementedError
 
+    def close(self):
+        """
+        Close the connection.
+        """
+        raise NotImplementedError

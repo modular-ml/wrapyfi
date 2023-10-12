@@ -12,7 +12,7 @@ class FallbackClient(Client):
         Client.__init__(self, name, in_topic, carrier=carrier, **kwargs)
         self.missing_middleware_object = missing_middleware_object
 
-    def establish(self, repeats=-1, **kwargs):
+    def establish(self, repeats: int = -1, **kwargs):
         return None
 
     def request(self, *args, **kwargs):
