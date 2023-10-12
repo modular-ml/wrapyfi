@@ -119,7 +119,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         """
         Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialize the middleware.
 
-        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
         """
         zeromq_post_kwargs = {}
         zeromq_pre_kwargs = {}
@@ -139,9 +139,9 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         """
         Initialize the ZeroMQ PUB/SUB middleware. This method is automatically called when the class is instantiated.
 
-        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
-        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
-        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialization function
+        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialization function (these are ZeroMQ options)
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
         """
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
@@ -276,7 +276,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         :param socket_pub_address: str: The address of the PUB socket
         :param socket_sub_address: str: The address of the SUB socket
         :param pubsub_monitor_topic: str: The topic to use for publishing subscription data
-        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
         """
         inproc_address = "inproc://monitor"
 
@@ -332,7 +332,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
     @staticmethod
     def deinit():
-        logging.info("Deinitialising ZeroMQ middleware")
+        logging.info("Deinitializing ZeroMQ middleware")
         zmq.Context.instance().destroy()
 
 
@@ -348,7 +348,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
         """
         Activate the ZeroMQ REQ/REP middleware. This method should be called to initialize the middleware.
 
-        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
         """
         zeromq_post_kwargs = {}
         zeromq_pre_kwargs = {}
@@ -368,10 +368,10 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
         """
         Initialize the ZeroMQ REQ/REP middleware. This method is automatically called when the class is instantiated.
 
-        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
-        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
-        :param args: list: Positional arguments to be passed to the ZeroMQ initialisation function
-        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialization function
+        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialization function (these are ZeroMQ options)
+        :param args: list: Positional arguments to be passed to the ZeroMQ initialization function
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
         """
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
@@ -421,7 +421,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
     @staticmethod
     def deinit():
-        logging.info("Deinitialising ZeroMQ middleware")
+        logging.info("Deinitializing ZeroMQ middleware")
         zmq.Context.instance().destroy()
 
 
@@ -455,9 +455,9 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         Initialize the ZeroMQ parameter server middleware. This method is automatically called when the class is
         instantiated.
 
-        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialisation function
-        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialisation function (these are ZeroMQ options)
-        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialisation function
+        :param zeromq_proxy_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ proxy initialization function
+        :param zeromq_post_kwargs: Optional[dict]: Keyword arguments to be passed to the ZeroMQ initialization function (these are ZeroMQ options)
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
         """
         self.zeromq_proxy_kwargs = zeromq_proxy_kwargs or {}
         self.zeromq_kwargs = zeromq_post_kwargs or {}
@@ -667,5 +667,5 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
         """
         Deinitialize the ZeroMQ parameter server.
         """
-        logging.info("Deinitialising ZeroMQ Parameter Server")
+        logging.info("Deinitializing ZeroMQ Parameter Server")
         zmq.Context.instance().destroy()

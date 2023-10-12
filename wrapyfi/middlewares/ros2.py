@@ -20,7 +20,7 @@ class ROS2Middleware(metaclass=SingletonOptimized):
         """
         Activate the ROS2 middleware. This method should be called to initialize the middleware.
 
-        :param kwargs: dict: Keyword arguments to be passed to the ROS2 initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the ROS2 initialization function
         """
         ROS2Middleware(**kwargs)
 
@@ -28,8 +28,8 @@ class ROS2Middleware(metaclass=SingletonOptimized):
         """
         Initialize the ROS2 middleware. This method is automatically called when the class is instantiated.
 
-        :param args: list: Positional arguments to be passed to the ROS2 initialisation function
-        :param kwargs: dict: Keyword arguments to be passed to the ROS2 initialisation function
+        :param args: list: Positional arguments to be passed to the ROS2 initialization function
+        :param kwargs: dict: Keyword arguments to be passed to the ROS2 initialization function
         """
         logging.info("Initialising ROS2 middleware")
         rclpy.init(args=[*args], **kwargs)
@@ -41,6 +41,6 @@ class ROS2Middleware(metaclass=SingletonOptimized):
         """
         Deinitialize the ROS2 middleware. This method is automatically called when the program exits.
         """
-        logging.info("Deinitialising ROS2 middleware")
+        logging.info("Deinitializing ROS2 middleware")
         rclpy.try_shutdown()
 

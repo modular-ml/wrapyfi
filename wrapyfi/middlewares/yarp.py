@@ -19,7 +19,7 @@ class YarpMiddleware(metaclass=SingletonOptimized):
         """
         Activate the YARP middleware. This method should be called to initialize the middleware.
 
-        :param kwargs: dict: Keyword arguments to be passed to the YARP initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the YARP initialization function
         """
         YarpMiddleware(**kwargs)
 
@@ -37,5 +37,5 @@ class YarpMiddleware(metaclass=SingletonOptimized):
         """
         Deinitialize the YARP middleware. This method is automatically called when the program exits.
         """
-        logging.info("Deinitialising YARP middleware")
+        logging.info("Deinitializing YARP middleware")
         yarp.Network.fini()

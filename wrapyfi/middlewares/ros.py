@@ -22,7 +22,7 @@ class ROSMiddleware(metaclass=SingletonOptimized):
         """
         Activate the ROS middleware. This method should be called to initialize the middleware.
 
-        :param kwargs: dict: Keyword arguments to be passed to the ROS initialisation function
+        :param kwargs: dict: Keyword arguments to be passed to the ROS initialization function
         """
         ROSMiddleware(**kwargs)
 
@@ -33,8 +33,8 @@ class ROSMiddleware(metaclass=SingletonOptimized):
         :param node_name: str: The name of the ROS node
         :param anonymous: bool: Whether the ROS node should be anonymous
         :param disable_signals: bool: Whether the ROS node should disable signals
-        :param args: list: Positional arguments to be passed to the ROS initialisation function
-        :param kwargs: dict: Keyword arguments to be passed to the ROS initialisation function
+        :param args: list: Positional arguments to be passed to the ROS initialization function
+        :param kwargs: dict: Keyword arguments to be passed to the ROS initialization function
         """
         logging.info("Initialising ROS middleware")
         rospy.init_node(node_name, anonymous=anonymous, disable_signals=disable_signals)
@@ -46,7 +46,7 @@ class ROSMiddleware(metaclass=SingletonOptimized):
         """
         Deinitialize the ROS middleware. This method is automatically called when the program exits.
         """
-        logging.info("Deinitialising ROS middleware")
+        logging.info("Deinitializing ROS middleware")
         rospy.signal_shutdown('Deinit')
 
 
