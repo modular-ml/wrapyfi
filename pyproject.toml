@@ -1,0 +1,39 @@
+
+[project]
+name = "wrapyfi"
+version = "0.4.20"
+description = "Wrapyfi is a wrapper for simplifying Middleware communication"
+readme = "README.md"
+authors = [
+    {name = "Fares Abawi", email = "f.abawi@outlook.com"},
+]
+maintainers = [
+    {name = "Fares Abawi", email = "f.abawi@outlook.com"},
+]
+requires-python = ">=3.6"
+dependencies = [
+    "numpy>=1.19.2",
+    "opencv-contrib-python>=4.2.0",
+    "pyyaml>=5.1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/fabawi/wrapyfi/blob/master/"
+Documentation = "https://wrapyfi.readthedocs.io/en/latest/"
+Source = "https://github.com/fabawi/wrapyfi/"
+Tracker = "https://github.com/fabawi/wrapyfi/issues"
+
+[project.optional-dependencies]
+docs = [
+    "myst_parser",
+    "sphinx",
+    "sphinx_rtd_theme",
+]
+pyzmq = [
+    "pyzmq",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+

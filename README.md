@@ -76,14 +76,15 @@ git clone https://github.com/fabawi/wrapyfi.git
 To install Wrapyfi using **pip**:
 
 ```
-pip install .
+pip install wrapyfi
 ```
 
 For immediate use, you can install pyzmq (default communicator) with Wrapyfi:
 
 ```
-pip install .[pyzmq]
+pip install wrapyfi[pyzmq]
 ```
+
 
 Most plugins require additional dependencies and should be installed separately. 
 Other middleware such as ROS are environment-specific and require dependencies that cannot be installed using pip. 
