@@ -33,7 +33,7 @@ def check_cv2():
 
 setuptools.setup(
     name             = 'wrapyfi',
-    version          = '0.4.19',
+    version          = '0.4.20',
     description      = 'Wrapyfi is a wrapper for simplifying Middleware communication',
     url              = 'https://github.com/fabawi/wrapyfi/blob/master/',
     project_urls={
