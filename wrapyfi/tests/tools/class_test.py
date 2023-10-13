@@ -1,6 +1,4 @@
-import logging
 import time
-import numpy as np
 
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
