@@ -28,7 +28,10 @@ Run:
 
 import argparse
 
-import jax.numpy as jnp
+try:
+    import jax.numpy as jnp
+except ImportError:
+    print("Install JAX before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

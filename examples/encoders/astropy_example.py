@@ -32,7 +32,10 @@ Run:
 import os
 import argparse
 
-from astropy.table import Table
+try:
+    from astropy.table import Table
+except ImportError:
+    print("Install Astropy before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

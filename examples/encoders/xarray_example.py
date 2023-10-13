@@ -29,9 +29,12 @@ Run:
 
 import argparse
 
-import numpy as np
-import xarray as xr
-import pandas as pd
+try:
+    import numpy as np
+    import pandas as pd
+    import xarray as xr
+except ImportError:
+    print("Install xarray, pandas, and NumPy before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

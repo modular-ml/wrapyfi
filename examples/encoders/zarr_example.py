@@ -29,8 +29,11 @@ Run:
 
 import argparse
 
-import zarr
-import numpy as np
+try:
+    import numpy as np
+    import zarr
+except ImportError:
+    print("Install zarr and NumPy before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

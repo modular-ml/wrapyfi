@@ -13,7 +13,7 @@ Demonstrations:
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
     - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
-    - pyarrow: Used for handling Apache Arrow arrays
+    - PyArrow: Used for handling Apache Arrow arrays
 
     Install using pip:
         ``pip install pyarrow``
@@ -27,8 +27,10 @@ Run:
 """
 
 import argparse
-
-import pyarrow as pa
+try:
+    import pyarrow as pa
+except ImportError:
+    print("Install PyArrow before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

@@ -30,7 +30,10 @@ Run:
 
 import argparse
 
-import mxnet
+try:
+    import mxnet
+except ImportError:
+    print("Install MXNet before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

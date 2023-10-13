@@ -13,7 +13,7 @@ Demonstrations:
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
     - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
-    - pint: Used for handling physical quantities with units
+    - Pint: Used for handling physical quantities with units
 
     Install using pip:
         ``pip install pint``
@@ -28,7 +28,10 @@ Run:
 
 import argparse
 
-import pint
+try:
+    import pint
+except ImportError:
+    print("Install Pint before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

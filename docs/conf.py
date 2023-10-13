@@ -87,7 +87,7 @@ with open('exclude_packages.json', 'r') as f:
     print(all_imported_modules_pre)
 # all_imported_modules = get_all_imports_in_package("wrapyfi")
 all_imported_modules = all_imported_modules_pre
-mock_imports = [mod for mod in all_imported_modules if 'wrapyfi.' not in mod]
+mock_imports = [mod for mod in all_imported_modules]
 autodoc_mock_imports = mock_imports
 # run from within an environment that has all requirements installed besides ROS2
 # autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
