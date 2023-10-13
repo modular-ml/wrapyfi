@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # generate pyproject.toml file
-pip install pdm
+python3 -m pip install pdm
 pdm import setup.py
 
 update_version_in_package_xml() {
@@ -23,6 +23,8 @@ update_version_in_package_xml() {
 }
 
 # UPDATE ROS & ROS2 INTERFACE VERSIONS
+#######################################################################################################################
+
 # get the version from pyproject.toml
 VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
 # check if the version was extracted correctly
@@ -34,7 +36,33 @@ fi
 update_version_in_package_xml "wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml"
 update_version_in_package_xml "wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml"
 
-# generate docs
+# GENERATE DOCUMENTATION
+#######################################################################################################################
+
+# compile docs with sphinx
 cd docs
+python3 -m pip install -r requirements.txt
 ./build_docs.sh
 cd ../
+
+# BUILD PACKAGE
+#######################################################################################################################
+
+# build the package resources and place them in a dist/* directory
+python3 -m pip install --upgrade build
+python3 -m build
+
+# UPLOAD TO PYPI
+#######################################################################################################################
+
+# update on pypi
+python3 -m pip install --upgrade twine
+# upload to rest repo
+#python3 -m twine upload --repository testpypi dist/*
+# upload to actual pypi
+python3 -m twine upload dist/*
+
+# when prompted for username and password, generate API token from pypi.org and set username to __token__ as shown below
+# [pypi]
+  #  username = __token__
+  #  password = pypi-******
