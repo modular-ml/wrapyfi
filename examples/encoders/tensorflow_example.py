@@ -27,8 +27,10 @@ Run:
 """
 
 import argparse
-
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    print("Install TensorFlow before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

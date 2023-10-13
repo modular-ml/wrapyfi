@@ -30,7 +30,10 @@ Run:
 
 import argparse
 
-import torch
+try:
+    import torch
+except ImportError:
+    print("Install PyTorch before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

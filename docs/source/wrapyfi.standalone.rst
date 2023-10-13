@@ -4,14 +4,6 @@ wrapyfi.standalone package
 Submodules
 ----------
 
-wrapyfi.standalone.dummy\_pub module
-------------------------------------
-
-.. automodule:: wrapyfi.standalone.dummy_pub
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 wrapyfi.standalone.zeromq\_param\_server module
 -----------------------------------------------
 

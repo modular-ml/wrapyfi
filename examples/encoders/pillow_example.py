@@ -1,20 +1,20 @@
 """
-A message publisher and listener for pillow images.
+A message publisher and listener for PIL (Pillow) images.
 
-This script demonstrates the capability to transmit native Python objects and pillow images in different formats using
+This script demonstrates the capability to transmit native Python objects and Pillow images in different formats using
 the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
 allowing message publishing and listening functionalities between processes or machines.
 
 Demonstrations:
     - Using the NativeObject message
-    - Transmitting a nested dummy Python object with native objects and pillow images
+    - Transmitting a nested dummy Python object with native objects and PIL (Pillow) images
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
     - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - NumPy: Used for creating image arrays (installed with Wrapyfi)
-    - pillow: Used for handling image objects
+    - PIL (Pillow): Used for handling image objects
 
     Install using pip:
         ``pip install pillow``
@@ -29,8 +29,11 @@ Run:
 
 import argparse
 
-import numpy as np
-from PIL import Image
+try:
+    import numpy as np
+    from PIL import Image
+except ImportError:
+    print("Install PIL (Pillow) and NumPy before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

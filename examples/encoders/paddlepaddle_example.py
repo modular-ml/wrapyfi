@@ -29,8 +29,10 @@ Run:
 """
 
 import argparse
-
-import paddle
+try:
+    import paddle
+except ImportError:
+    print("Install PaddlePaddle before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 

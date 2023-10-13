@@ -28,9 +28,12 @@ Run:
 
 import argparse
 
-import dask.array as da
-import dask.dataframe as dd
-import pandas as pd
+try:
+    import dask.array as da
+    import dask.dataframe as dd
+    import pandas as pd
+except ImportError:
+    print("Install DASK and pandas before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
