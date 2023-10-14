@@ -1,7 +1,7 @@
 import setuptools
 
 
-def check_cv2():
+def check_cv2(default_python="opencv-python"):
     UPGRADE_CV2 = False
     REQUIRED_CV2_VERSION = "4.2.0"
     try:
@@ -23,8 +23,8 @@ def check_cv2():
             else:
                 raise ImportError(f"Unknown OpenCV package installed. Please upgrade manually to version >={REQUIRED_CV2_VERSION}")
         else:
-            print("OpenCV not found. Will try to install opencv-contrib-python")
-            additional_packages = [f"opencv-contrib-python>={REQUIRED_CV2_VERSION}"]
+            print(f"OpenCV not found. Will try to install {default_python}")
+            additional_packages = [f"{default_python}>={REQUIRED_CV2_VERSION}"]
     else:
         print("OpenCV found. Will not install it")
         additional_packages = []
@@ -33,7 +33,7 @@ def check_cv2():
 
 setuptools.setup(
     name             = 'wrapyfi',
-    version          = '0.4.20',
+    version          = '0.4.21',
     description      = 'Wrapyfi is a wrapper for simplifying Middleware communication',
     url              = 'https://github.com/fabawi/wrapyfi/blob/master/',
     project_urls={
@@ -46,8 +46,12 @@ setuptools.setup(
     maintainer       = 'Fares Abawi',
     maintainer_email = 'f.abawi@outlook.com',
     packages         = setuptools.find_packages(),
-    extras_require   ={'docs': ['sphinx', 'sphinx_rtd_theme', 'myst_parser'], 'pyzmq': ['pyzmq']},
-    install_requires = ['pyyaml>=5.1.1', 'numpy>=1.19.2'] + check_cv2(),
+    extras_require   ={'docs': ['sphinx', 'sphinx_rtd_theme', 'myst_parser'], 
+                       'pyzmq': ['pyzmq>=19.0.0'],
+                       'numpy': ['numpy>=1.19.2'],
+                       'headless': ['wrapyfi[pyzmq]', 'wrapyfi[numpy]'] + check_cv2("opencv-python-headless"),
+                       'all': ['wrapyfi[pyzmq]', 'wrapyfi[numpy]'] + check_cv2("opencv-contrib-python")},
+    install_requires = ['pyyaml>=5.1.1'],
     python_requires  = '>=3.6',
     setup_requires   = ['cython>=0.29.1']
 )
