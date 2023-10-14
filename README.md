@@ -67,28 +67,45 @@ A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/m
 
 ## Installation
 
-Clone Wrapyfi:
+You can install Wrapyfi with **pip** or from source.
+
+### Pip
+
+To install all the necessary components for the majority of common uses of Wrapyfi (e.g., NativeObject, Image, Audio, etc.) using **pip**, this process installs both Wrapyfi and its dependencies, like NumPy and OpenCV (`opencv-contrib-python`, `opencv-headless`, and `opencv-python` are supported), that are essential for various workloads, along with ZeroMQ being the default middleware. This option is the best for users running Wrapyfi out of the box in a newly created environment (without any middleware installed beforehand), installing `numpy`, `opencv-contrib-python` and `pyzmq`:
 
 ```
-git clone https://github.com/fabawi/wrapyfi.git
+pip install wrapyfi[all]
 ```
 
-To install Wrapyfi using **pip**:
+*Note that most plugins require additional dependencies and should be installed separately.*
+
+Other middleware such as ROS are environment-specific and require dependencies that cannot be installed using pip. 
+Wrapyfi **could** and should be used within such environments with minimal requirements to avoid conflicts with existing NumPy and OpenCV packages:
 
 ```
 pip install wrapyfi
 ```
 
-For immediate use, you can install pyzmq (default communicator) with Wrapyfi:
+### Source
+
+Clone the current repository:
 
 ```
-pip install wrapyfi[pyzmq]
+git clone https://github.com/fabawi/wrapyfi.git
+cd wrapyfi
 ```
 
+You can choose to install minimal dependencies, for running a basic Wrapyfi script:
 
-Most plugins require additional dependencies and should be installed separately. 
-Other middleware such as ROS are environment-specific and require dependencies that cannot be installed using pip. 
-Wrapyfi should be used within such environments.
+```
+pip install .[all]
+```
+
+or install wrapyfi without NumPy, OpenCV, and ZeroMQ:
+
+```
+pip install .
+```
 
 ## Usage
 
