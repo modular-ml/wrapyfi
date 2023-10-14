@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# generate pyproject.toml file
+# generate pyproject.toml file, Check the pyproject.toml file again when dependencies are added or removed
 python3 -m pip install pdm
 pdm import setup.py
 
@@ -49,6 +49,7 @@ cd ../
 #######################################################################################################################
 
 # build the package resources and place them in a dist/* directory
+rm -rf dist
 python3 -m pip install --upgrade build
 python3 -m build
 

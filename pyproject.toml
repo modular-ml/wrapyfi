@@ -1,7 +1,7 @@
 
 [project]
 name = "wrapyfi"
-version = "0.4.21"
+version = "0.4.22"
 description = "Wrapyfi is a wrapper for simplifying Middleware communication"
 readme = "README.md"
 authors = [
@@ -12,8 +12,6 @@ maintainers = [
 ]
 requires-python = ">=3.6"
 dependencies = [
-    "numpy>=1.19.2",
-    "opencv-contrib-python>=4.2.0",
     "pyyaml>=5.1.1",
 ]
 
@@ -39,10 +37,12 @@ numpy = [
 headless = [
     "wrapyfi[numpy]",
     "wrapyfi[pyzmq]",
+    "opencv-python-headless>=4.2.0",
 ]
 all = [
     "wrapyfi[numpy]",
     "wrapyfi[pyzmq]",
+    "opencv-contrib-python>=4.2.0",
 ]
 
 [build-system]
