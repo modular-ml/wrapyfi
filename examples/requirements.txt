@@ -13,4 +13,5 @@ jaxlib==0.3.22 -f https://storage.googleapis.com/jax-releases/jax_releases.html
 zarr
 pint
 xarray
+pyarrow
 dask[complete]

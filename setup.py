@@ -12,6 +12,7 @@ def check_cv2(default_python="opencv-python"):
             UPGRADE_CV2 = True
             raise ImportError(f"OpenCV version must be at least {REQUIRED_CV2_VERSION}")
     except ImportError as e:
+        import pkg_resources
         if UPGRADE_CV2:
             print(e, "Will try to upgrade OpenCV")
             if "opencv-python" in [p.project_name for p in pkg_resources.working_set]:

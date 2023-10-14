@@ -56,6 +56,7 @@ python3 -m build
 #######################################################################################################################
 
 # update on pypi
+python3 -m pip -vvv install --upgrade --force-reinstall cffi
 python3 -m pip install --upgrade twine
 # upload to rest repo
 #python3 -m twine upload --repository testpypi dist/*
