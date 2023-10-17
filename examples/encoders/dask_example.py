@@ -53,8 +53,11 @@ class Notifier(MiddlewareCommunicator):
             'num_wings': [0, 2, 0, 0],
             'num_specimen_seen': [10, 2, 1, 8]
         }, index=['falcon', 'parrot', 'fish', 'dog'])
+
         ddf = dd.from_pandas(df, npartitions=2)
 
+        ds = pd.Series([1, 2, 3, 4, 5, 6, 7])
+        dds = dd.from_pandas(ds, npartitions=1)
         # Creating an example Dask Array
         darray = da.random.random((1000, 1000), chunks=(250, 250))
 
@@ -62,6 +65,7 @@ class Notifier(MiddlewareCommunicator):
             "message": msg,
             "dask_dataframe": ddf,
             "dask_array": darray,
+            "dask_series": dds,
         }
         return ret,
 
@@ -92,7 +96,7 @@ def main(args):
 
         # Compute and print the actual values of the Dask objects
         for key, value in msg_object.items():
-            if isinstance(value, (dd.DataFrame, da.Array)):
+            if isinstance(value, (dd.DataFrame, dd.Series, da.Array)):
                 print(f"{key} computed: \n{value.compute()}")
             else:
                 print(f"{key}: {value}")
