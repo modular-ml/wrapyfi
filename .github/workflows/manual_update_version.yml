@@ -14,6 +14,7 @@ jobs:
     - name: Install PDM
       run: |
         python3 -m pip install pdm
+        pdm add setuptools
         pdm import setup.py
 
     - name: Update ROS & ROS2 Interface Versions
