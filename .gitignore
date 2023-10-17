@@ -1,9 +1,14 @@
 *.pyc
 *.pyo
 build
+**/_build/
+**/__pycache__/
 MANIFEST
 dist
 *.swp
 .idea
+*.lock
 *.egg-info
 .venv
+.pdm-python
+package.xml.bak
