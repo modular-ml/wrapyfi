@@ -1,0 +1,61 @@
+name: Update version
+
+on:
+  workflow_dispatch: # This allows the workflow to be triggered manually.
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install PDM
+      run: |
+        python3 -m pip install pdm
+        pdm import setup.py
+
+    - name: Update ROS & ROS2 Interface Versions
+      run: |
+        VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
+        if [[ -z "$VERSION" ]]; then
+          echo "Failed to extract version from pyproject.toml"
+          exit 1
+        fi
+        sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml
+        sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml
+
+    - name: Generate Documentation
+      run: |
+        cd docs
+        python3 -m pip install -r requirements.txt
+        ./build_docs.sh
+        cd ../
+
+    - name: Build package
+      run: |
+        rm -rf dist
+        python3 -m pip install --upgrade build
+        python3 -m build
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.email "actions@github.com"
+
+    - name: Commit and Push Changes
+      run: |
+        git checkout -b bot_version_bump
+        git add -A
+        git commit -m "Automated version bump and other updates"
+        git push origin bot_version_bump
+
+    - name: Upload to PyPI
+      env:
+        PYPI_USERNAME: __token__ # Your PyPI token username
+        PYPI_PASSWORD: ${{ secrets.PYPI_API_TOKEN }} # Your PyPI token, stored as a GitHub secret
+      run: |
+        python3 -m pip -vvv install --upgrade --force-reinstall cffi
+        python3 -m pip install --upgrade twine
+        python3 -m twine upload dist/* --username $PYPI_USERNAME --password $PYPI_PASSWORD
