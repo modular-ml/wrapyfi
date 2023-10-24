@@ -363,7 +363,8 @@ class ROS2MessagePublisher(ROS2Publisher):
         self._msg_type = self.get_message_type(msg)
 
         self._publisher = self.create_publisher(self._msg_type, self.out_topic, qos_profile=self.queue_size)
-        return self.await_connection(self._publisher)
+        established = self.await_connection(self._publisher)
+        return self.check_establishment(established)
 
     def publish(self, msg):
         """
