@@ -335,18 +335,21 @@ class ROS2MessageListener(ROS2Listener):
         """
         Establish the subscriber.
         """
-        # Fetch the topic type
-        topic_type_str = self.get_topic_type(self.in_topic)
+        while True:
+            topic_type_str = self.get_topic_type(self.in_topic)
+            if not self.should_wait:
+                break
+            if topic_type_str:
+                break
         if not topic_type_str:
-            raise ValueError(f"Could not determine the type of topic {self.in_topic}")
+            return None
 
-        # Dynamically load the message type
         module_name, class_name = topic_type_str.rsplit('/', 1)
         module_name = module_name.replace('/', '.')
         MessageType = getattr(importlib.import_module(module_name), class_name)
 
-        # Create the subscription
-        self._subscriber = self.create_subscription(MessageType, self.in_topic, callback=self._message_callback)
+        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
+        self._subscriber = self.create_subscription(MessageType, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 
     def listen(self):

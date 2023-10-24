@@ -343,27 +343,26 @@ class ROS2MessagePublisher(ROS2Publisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats: Optional[int] = None, **kwargs):
+    def get_message_type(self, msg):
         """
-        Establish the connection.
+        Get the type of a specific message.
 
+        :param msg: ROS2 message object
+        :return: type: The type of the provided message
+        """
+        return type(msg)
+
+    def establish(self, msg, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection using the provided message to determine the type.
+
+        :param msg: ROS2Message: Message to determine the type.
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
-        # Fetch the topic type dynamically
-        topic_type_str = self.get_topic_type(self.out_topic)
-        if not topic_type_str:
-            # If the topic does not yet exist, you might want to default to a known type or handle this case differently
-            raise ValueError(f"Could not determine the type of topic {self.out_topic}")
+        self._msg_type = self.get_message_type(msg)
 
-        # Dynamically load the message type
-        module_name, class_name = topic_type_str.rsplit('/', 1)
-        module_name = module_name.replace('/', '.')
-        MessageType = getattr(importlib.import_module(module_name), class_name)
-
-        # Create the publisher
-        self._publisher = self.create_publisher(MessageType, self.out_topic, qos_profile=self.queue_size)
-        self._msg_type = MessageType
+        self._publisher = self.create_publisher(self._msg_type, self.out_topic, qos_profile=self.queue_size)
         return self.await_connection(self._publisher)
 
     def publish(self, msg):
@@ -372,14 +371,14 @@ class ROS2MessagePublisher(ROS2Publisher):
 
         :param msg: ROS2Message: Message to publish. This should be formatted according to the expected message type.
         """
+        if not self._publisher:
+            self.establish(msg)
+
         if not self.established:
-            established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
+            established = self.establish(msg, repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return
             else:
                 time.sleep(0.2)
-
-        if not isinstance(msg, self._msg_type):
-            raise TypeError(f"Data should be of type {self._msg_type}, but got {type(msg)}")
 
         self._publisher.publish(msg)
