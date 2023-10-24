@@ -218,7 +218,7 @@ All messages are transmitted using the rclpy python bindings as topic messages
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
 * **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
-* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator [*planned for Wrapyfi v0.5*]
+* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator
 
 *(ZeroMQ)*:
 
