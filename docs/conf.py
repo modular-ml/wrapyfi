@@ -15,14 +15,16 @@ def get_project_info_from_setup():
     name_match = re.search(r"name\s*=\s*['\"]([^'\"]*)['\"]", content)
     version_match = re.search(r"version\s*=\s*['\"]([^'\"]*)['\"]", content)
     url_match = re.search(r"url\s*=\s*['\"]([^'\"]*)['\"]", content)
+    author_match = re.search(r"author\s*=\s*['\"]([^'\"]*)['\"]", content)
     
     if not name_match or not version_match or not url_match:
-        raise RuntimeError("Unable to find name, version, or url string.")
+        raise RuntimeError("Unable to find name, version, url, or author string.")
         
     return {
         'name': name_match.group(1),
         'version': version_match.group(1),
-        'url': url_match.group(1)
+        'url': url_match.group(1),
+        'author': author_match.group(1)
     }
 
 
@@ -99,6 +101,7 @@ project = project_info['name']
 release = project_info['version']
 version = '.'.join(release.split('.')[:2])
 url = project_info['url']
+author = project_info['author']
 
 # modify the latex cover page for pdf generation
 latex_elements = {
