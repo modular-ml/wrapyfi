@@ -259,7 +259,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection.
 
@@ -389,9 +389,9 @@ class ROSMessagePublisher(ROSPublisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, obj=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, obj=None, **kwargs):
         """
-        Establish the connection.
+        Establish the connection and import the message requirements.
 
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :param obj: object: Object to establish the connection to

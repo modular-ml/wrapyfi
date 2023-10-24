@@ -3,8 +3,7 @@ import sys
 import json
 import time
 import os
-import base64
-import io
+import importlib
 from typing import Optional, Tuple
 
 import numpy as np
@@ -182,7 +181,7 @@ class ROS2ImagePublisher(ROS2Publisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection.
 
@@ -260,7 +259,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         if not self.should_wait:
             PublisherWatchDog().add_publisher(self)
 
-    def establish(self, repeats=None, **kwargs):
+    def establish(self, repeats: Optional[int] = None, **kwargs):
         """
         Establish the connection.
 
@@ -323,3 +322,63 @@ class ROS2PropertiesPublisher(ROS2Publisher):
     def __init__(self, name, out_topic, **kwargs):
         super().__init__(name, out_topic, **kwargs)
         raise NotImplementedError
+
+
+@Publishers.register("ROS2Message", "ros2")
+class ROS2MessagePublisher(ROS2Publisher):
+
+    def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
+        """
+        The ROS2MessagePublisher using the ROS2 message type determined dynamically.
+
+        :param name: str: Name of the publisher
+        :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param queue_size: int: Queue size for the publisher. Default is 5
+        """
+        super().__init__(name, out_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        self._publisher = None
+        self._msg_type = None
+
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
+
+    def get_message_type(self, msg):
+        """
+        Get the type of a specific message.
+
+        :param msg: ROS2 message object
+        :return: type: The type of the provided message
+        """
+        return type(msg)
+
+    def establish(self, msg, repeats: Optional[int] = None, **kwargs):
+        """
+        Establish the connection using the provided message to determine the type.
+
+        :param msg: ROS2Message: Message to determine the type.
+        :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
+        :return: bool: True if connection established, False otherwise
+        """
+        self._msg_type = self.get_message_type(msg)
+
+        self._publisher = self.create_publisher(self._msg_type, self.out_topic, qos_profile=self.queue_size)
+        return self.await_connection(self._publisher)
+
+    def publish(self, msg):
+        """
+        Publish the data to the middleware.
+
+        :param msg: ROS2Message: Message to publish. This should be formatted according to the expected message type.
+        """
+        if not self._publisher:
+            self.establish(msg)
+
+        if not self.established:
+            established = self.establish(msg, repeats=WATCHDOG_POLL_REPEAT)
+            if not established:
+                return
+            else:
+                time.sleep(0.2)
+
+        self._publisher.publish(msg)

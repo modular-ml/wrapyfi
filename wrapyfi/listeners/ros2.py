@@ -5,6 +5,7 @@ import time
 import os
 from typing import Optional
 import sys
+import importlib
 
 import numpy as np
 import cv2
@@ -204,17 +205,17 @@ class ROS2ImageListener(ROS2Listener):
         except queue.Empty:
             return None
 
-    def _message_callback(self, data):
+    def _message_callback(self, msg):
         """
         Callback for the subscriber.
 
-        :param data: sensor_msgs.msg.Image: The received message
+        :param msg: sensor_msgs.msg.Image: The received message
         """
         try:
             if self.jpg:
-                self._queue.put((data.format, data.data), block=False)
+                self._queue.put((msg.format, msg.data), block=False)
             else:
-                self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+                self._queue.put((msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data), block=False)
         except queue.Full:
             logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
@@ -284,14 +285,14 @@ class ROS2AudioChunkListener(ROS2Listener):
         except queue.Empty:
             return None, self.rate
 
-    def _message_callback(self, data):
+    def _message_callback(self, msg):
         """
         Callback for the subscriber.
 
-        :param data: wrapyfi_ros2_interfaces.msg.ROS2AudioMessage: The received message
+        :param msg: wrapyfi_ros2_interfaces.msg.ROS2AudioMessage: The received message
         """
         try:
-            self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data), block=False)
+            self._queue.put((msg.chunk_size, msg.channels, msg.sample_rate, msg.encoding, msg.is_bigendian, msg.data), block=False)
         except queue.Full:
             logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
 
@@ -303,3 +304,77 @@ class ROS2PropertiesListener(ROS2Listener):
         raise NotImplementedError
 
 
+@Listeners.register("ROS2Message", "ros2")
+class ROS2MessageListener(ROS2Listener):
+
+    def __init__(self, name: str, in_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
+        """
+        The ROS2MessageListener using the ROS2 message type inferred from the message type. Supports standard ROS2 msgs.
+
+        :param name: str: Name of the subscriber
+        :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
+        :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
+        :param queue_size: int: Size of the queue for the subscriber. Default is 5
+        """
+        super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
+
+    def get_topic_type(self, topic_name):
+        """
+        Get the type of a specific topic.
+
+        :param topic_name: str: Name of the topic to get its type
+        :return: str or None: The topic type as a string, or None if the topic does not exist
+        """
+        topic_names_and_types = self.get_topic_names_and_types()
+        for name, types in topic_names_and_types:
+            if name == topic_name:
+                return types[0]
+        return None
+
+    def establish(self):
+        """
+        Establish the subscriber.
+        """
+        while True:
+            topic_type_str = self.get_topic_type(self.in_topic)
+            if not self.should_wait:
+                break
+            if topic_type_str:
+                break
+        if not topic_type_str:
+            return None
+
+        module_name, class_name = topic_type_str.rsplit('/', 1)
+        module_name = module_name.replace('/', '.')
+        MessageType = getattr(importlib.import_module(module_name), class_name)
+
+        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
+        self._subscriber = self.create_subscription(MessageType, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
+        self.established = True
+
+    def listen(self):
+        """
+        Listen for a message.
+
+        :return: ROS2Message: The received message as a ROS2 message object
+        """
+        if not self.established:
+            self.establish()
+        try:
+            rclpy.spin_once(self, timeout_sec=WAIT[self.should_wait])
+            data = self._queue.get(block=self.should_wait)
+
+            return data
+        except queue.Empty:
+            return None
+
+    def _message_callback(self, msg):
+        """
+        Callback for the subscriber.
+
+        :param msg: ROS2Message: The received message
+        """
+        try:
+            self._queue.put(msg, block=False)
+        except queue.Full:
+            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
