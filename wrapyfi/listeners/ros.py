@@ -392,7 +392,7 @@ class ROSMessageListener(ROSListener):
 
     def establish(self):
         """
-        Establish the subscriber
+        Establish the subscriber.
         """
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._topic_type, topic_str, _ = rostopic.get_topic_class(self.in_topic, blocking=self.should_wait)
