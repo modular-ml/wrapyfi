@@ -317,6 +317,7 @@ class ROS2MessageListener(ROS2Listener):
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         """
         super().__init__(name, in_topic, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
 
     def get_topic_type(self, topic_name):
         """
@@ -348,7 +349,6 @@ class ROS2MessageListener(ROS2Listener):
         module_name = module_name.replace('/', '.')
         MessageType = getattr(importlib.import_module(module_name), class_name)
 
-        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = self.create_subscription(MessageType, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)
         self.established = True
 

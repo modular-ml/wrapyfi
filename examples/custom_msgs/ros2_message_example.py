@@ -74,7 +74,8 @@ def main(args):
 
     while True:
         my_string_message, my_pose_message = ros2_message.send_message()
-        print("Method result:", my_string_message, my_pose_message)
+        if my_string_message is not None or my_pose_message is not None:
+            print("Method result:", my_string_message, my_pose_message)
 
 
 if __name__ == "__main__":
