@@ -19,10 +19,10 @@ Requirements:
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard input and transmits message
-        ``python3 ros_message_example.py --mode publish``
+        ``python3 ros2_message_example.py --mode publish``
 
     # On machine 2 (or process 2): Listener waits for message and prints the received ROS2 messages
-        ``python3 ros_message_example.py --mode listen``
+        ``python3 ros2_message_example.py --mode listen``
 """
 
 import argparse
