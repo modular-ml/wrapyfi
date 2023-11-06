@@ -1,13 +1,13 @@
 """
-A message publisher and listener for native Python objects, NumPy Arrays, and Pandas Series/Dataframes.
+A message publisher and listener for native Python objects, NumPy Arrays, and pandas Series/Dataframes.
 
-This script demonstrates the capability to transmit native Python objects, NumPy arrays, and Pandas series/dataframes using
+This script demonstrates the capability to transmit native Python objects, NumPy arrays, and pandas series/dataframes using
 the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
 allowing message publishing and listening functionalities between processes or machines.
 
 Demonstrations:
     - Using the NativeObject message
-    - Transmitting a nested dummy Python object with native objects, NumPy arrays, and Pandas series/dataframes
+    - Transmitting a nested dummy Python object with native objects, NumPy arrays, and pandas series/dataframes
     - Applying the PUB/SUB pattern with mirroring
 
 Requirements:
@@ -44,7 +44,7 @@ class Notifier(MiddlewareCommunicator):
         carrier="tcp", should_wait=True
     )
     def exchange_object(self, mware=None):
-        """Exchange messages with NumPy arrays, Pandas series/dataframes, and other native Python objects."""
+        """Exchange messages with NumPy arrays, pandas series/dataframes, and other native Python objects."""
         msg = input("Type your message: ")
 
         ret = {
@@ -59,7 +59,7 @@ class Notifier(MiddlewareCommunicator):
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects, NumPy arrays, and Pandas series/dataframes.")
+    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects, NumPy arrays, and pandas series/dataframes.")
     parser.add_argument(
         "--mode", type=str, default="publish",
         choices={"publish", "listen"},

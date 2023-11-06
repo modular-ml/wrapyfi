@@ -11,7 +11,7 @@ Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
     - Dask: A flexible library for parallel computing in Python (refer to https://docs.dask.org/en/latest/install.html for installation instructions)
     - Pandas: A data structures library for data analysis, time series, and statistics (refer to https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html for installation instructions)
-        Note: If Dask or Pandas is not available, HAVE_DASK will be set to False and
+        Note: If Dask or pandas is not available, HAVE_DASK will be set to False and
         the plugin will be registered with no types.
 
     You can install the necessary packages using pip:
