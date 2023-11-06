@@ -9,12 +9,12 @@ conversion of pandas data (if available) between its original and encoded forms.
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - Pandas: A data structures library for data analysis, time series, and statistics (refer to https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html for installation instructions)
+    - pandas: A data structures library for data analysis, time series, and statistics (refer to https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html for installation instructions)
         Note: If pandas is not available, HAVE_PANDAS will be set to False and
         the plugin will be registered with no types.
 
     You can install the necessary packages using pip:
-        ``pip install "pandas<2.0"``  # Basic installation of Pandas
+        ``pip install "pandas<2.0"``  # Basic installation of pandas
 """
 
 import io
