@@ -38,7 +38,7 @@ class ROS2Publisher(Publisher, Node):
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("[ROS2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+            logging.warning("[ROS 2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
@@ -59,7 +59,7 @@ class ROS2Publisher(Publisher, Node):
         connected = False
         if out_topic is None:
             out_topic = self.out_topic
-        logging.info(f"[ROS2] Waiting for topic subscriber: {out_topic}")
+        logging.info(f"[ROS 2] Waiting for topic subscriber: {out_topic}")
         if repeats is None:
             if self.should_wait:
                 repeats = -1
@@ -71,7 +71,7 @@ class ROS2Publisher(Publisher, Node):
                 if connected:
                     break
                 time.sleep(0.02)
-        logging.info(f"[ROS2] Topic subscriber connected: {out_topic}")
+        logging.info(f"[ROS 2] Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):
@@ -270,7 +270,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
             from wrapyfi_ros2_interfaces.msg import ROS2AudioMessage
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2AudioMessage. "
+            logging.error("[ROS 2] Could not import ROS2AudioMessage. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")

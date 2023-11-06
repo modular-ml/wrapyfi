@@ -32,7 +32,7 @@ class ROS2Client(Client, Node):
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning(
-                "[ROS2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+                "[ROS 2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
@@ -83,7 +83,7 @@ class ROS2NativeObjectClient(ROS2Client):
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2NativeObjectService. "
+            logging.error("[ROS 2] Could not import ROS2NativeObjectService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -92,7 +92,7 @@ class ROS2NativeObjectClient(ROS2Client):
         self._req_msg = ROS2NativeObjectService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('[ROS2] Service not available, waiting again...')
+            logging.info('[ROS 2] Service not available, waiting again...')
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -108,7 +108,7 @@ class ROS2NativeObjectClient(ROS2Client):
         try:
             self._request(*args, **kwargs)
         except Exception as e:
-            logging.error("[ROS2] Service call failed: %s" % e)
+            logging.error("[ROS 2] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -132,7 +132,7 @@ class ROS2NativeObjectClient(ROS2Client):
                     obj = json.loads(msg.response, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
                     self._queue.put(obj, block=False)
                 except Exception as e:
-                    logging.error("[ROS2] Service call failed: %s" % e)
+                    logging.error("[ROS 2] Service call failed: %s" % e)
                 break
 
     def _await_reply(self) -> Any:
@@ -145,7 +145,7 @@ class ROS2NativeObjectClient(ROS2Client):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because queue is full. "
+            logging.warning(f"[ROS 2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None
 
@@ -199,7 +199,7 @@ class ROS2ImageClient(ROS2Client):
             from wrapyfi_ros2_interfaces.srv import ROS2ImageService, ROS2CompressedImageService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2ImageService. "
+            logging.error("[ROS 2] Could not import ROS2ImageService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -212,7 +212,7 @@ class ROS2ImageClient(ROS2Client):
             self._req_msg = ROS2ImageService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('[ROS2] Service not available, waiting again...')
+            logging.info('[ROS 2] Service not available, waiting again...')
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -228,7 +228,7 @@ class ROS2ImageClient(ROS2Client):
         try:
             self._request(*args, **kwargs)
         except Exception as e:
-            logging.error("[ROS2] Service call failed: %s" % e)
+            logging.error("[ROS 2] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -256,7 +256,7 @@ class ROS2ImageClient(ROS2Client):
                         self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data),
                                         block=False)
                 except Exception as e:
-                    logging.error("[ROS2] Service call failed: %s" % e)
+                    logging.error("[ROS 2] Service call failed: %s" % e)
                 break
 
     def _await_reply(self):
@@ -285,7 +285,7 @@ class ROS2ImageClient(ROS2Client):
                     img = img.squeeze(axis=2)
             return img
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because queue is full. "
+            logging.warning(f"[ROS 2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None
 
@@ -328,7 +328,7 @@ class ROS2AudioChunkClient(ROS2Client):
             from wrapyfi_ros2_interfaces.srv import ROS2AudioService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2AudioService. "
+            logging.error("[ROS 2] Could not import ROS2AudioService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -337,7 +337,7 @@ class ROS2AudioChunkClient(ROS2Client):
         self._req_msg = ROS2AudioService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('[ROS2] Service not available, waiting again...')
+            logging.info('[ROS 2] Service not available, waiting again...')
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -353,7 +353,7 @@ class ROS2AudioChunkClient(ROS2Client):
         try:
             self._request(*args, **kwargs)
         except Exception as e:
-            logging.error("[ROS2] Service call failed: %s" % e)
+            logging.error("[ROS 2] Service call failed: %s" % e)
         return self._await_reply()
 
     def _request(self, *args, **kwargs):
@@ -377,7 +377,7 @@ class ROS2AudioChunkClient(ROS2Client):
                     self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data),
                                         block=False)
                 except Exception as e:
-                    logging.error("[ROS2] Service call failed: %s" % e)
+                    logging.error("[ROS 2] Service call failed: %s" % e)
                 break
 
     def _await_reply(self):
@@ -399,7 +399,7 @@ class ROS2AudioChunkClient(ROS2Client):
             # aud = aud / 32767.0
             return aud, rate
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because queue is full. "
+            logging.warning(f"[ROS 2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
             return None
 

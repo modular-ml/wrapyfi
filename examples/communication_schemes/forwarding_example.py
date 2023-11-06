@@ -19,11 +19,11 @@ Run:
     by setting the --mware_... argument but it should be consistent on all machines or processes)
         ``python3 forwarding_example.py --mware_chain_A zeromq --mode_chain_A publish --mode_chain_B disable``
 
-    # On machine 2 (or process 2): Mode Chain A: Listener [ZeroMQ], Chain B: Publisher [ROS2] (chain A & B can have different middleware
+    # On machine 2 (or process 2): Mode Chain A: Listener [ZeroMQ], Chain B: Publisher [ROS 2] (chain A & B can have different middleware
     by setting the --mware_... argument but it should be consistent on all machines or processes)
         ``python3 forwarding_example.py --mware_chain_A zeromq --mode_chain_A listen --mware_chain_B ros2 --mode_chain_B publish``
 
-    # On machine 3 (or process 3): Mode Chain A: Disabled, Chain B: Listener [ROS2] (chain A & B can have different middleware
+    # On machine 3 (or process 3): Mode Chain A: Disabled, Chain B: Listener [ROS 2] (chain A & B can have different middleware
     by setting the --mware_... argument but it should be consistent on all machines or processes)
         ``python3 forwarding_example.py --mode_chain_A disable --mware_chain_B ros2 --mode_chain_B listen``
 """

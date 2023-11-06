@@ -41,7 +41,7 @@ class ROS2Listener(Listener, Node):
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("[ROS2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+            logging.warning("[ROS 2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
 
@@ -119,7 +119,7 @@ class ROS2NativeObjectListener(ROS2Listener):
         try:
             self._queue.put(msg.data, block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS 2] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("Image", "ros2")
@@ -217,7 +217,7 @@ class ROS2ImageListener(ROS2Listener):
             else:
                 self._queue.put((msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data), block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS 2] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("AudioChunk", "ros2")
@@ -253,7 +253,7 @@ class ROS2AudioChunkListener(ROS2Listener):
             from wrapyfi_ros2_interfaces.msg import ROS2AudioMessage
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2AudioMessage. "
+            logging.error("[ROS 2] Could not import ROS2AudioMessage. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -294,7 +294,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         try:
             self._queue.put((msg.chunk_size, msg.channels, msg.sample_rate, msg.encoding, msg.is_bigendian, msg.data), block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS 2] Discarding data because listener queue is full: {self.in_topic}")
 
 
 @Listeners.register("Properties", "ros2")
@@ -377,4 +377,4 @@ class ROS2MessageListener(ROS2Listener):
         try:
             self._queue.put(msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(f"[ROS 2] Discarding data because listener queue is full: {self.in_topic}")
