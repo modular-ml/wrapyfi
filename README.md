@@ -13,7 +13,7 @@ Wrapyfi is a middleware communication wrapper for transmitting data across nodes
 altering the operation pipeline of your Python scripts. Wrapyfi introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
-Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
+Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
 
 To integrate Wrapyfi with your scripts, add the decorators describing the transmitting and listening method parameters.
 

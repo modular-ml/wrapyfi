@@ -34,7 +34,7 @@ class ROS2Server(Server, Node):
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning(
-                "[ROS2] ROS 2 currently does not support explicit carrier setting for REQ/REP pattern. Using TCP.")
+                "[ROS 2] ROS 2 currently does not support explicit carrier setting for REQ/REP pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
 
@@ -89,7 +89,7 @@ class ROS2NativeObjectServer(ROS2Server):
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2NativeObjectService. "
+            logging.error("[ROS 2] Could not import ROS2NativeObjectService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -123,7 +123,7 @@ class ROS2NativeObjectServer(ROS2Server):
             [args, kwargs] = json.loads(request.request, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except Exception as e:
-            logging.error("[ROS2] Service call failed %s" % e)
+            logging.error("[ROS 2] Service call failed %s" % e)
             return [], {}
 
     @staticmethod
@@ -150,7 +150,7 @@ class ROS2NativeObjectServer(ROS2Server):
             self._rep_msg.response = obj_str
             ROS2NativeObjectServer.SEND_QUEUE.put(self._rep_msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because queue is full. "
+            logging.warning(f"[ROS 2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
 
 
@@ -206,7 +206,7 @@ class ROS2ImageServer(ROS2Server):
             from wrapyfi_ros2_interfaces.srv import ROS2ImageService, ROS2CompressedImageService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2NativeObjectService. "
+            logging.error("[ROS 2] Could not import ROS2NativeObjectService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -243,7 +243,7 @@ class ROS2ImageServer(ROS2Server):
             [args, kwargs] = json.loads(request.request, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except Exception as e:
-            logging.error("[ROS2] Service call failed %s" % e)
+            logging.error("[ROS 2] Service call failed %s" % e)
             return [], {}
 
     @staticmethod
@@ -285,7 +285,7 @@ class ROS2ImageServer(ROS2Server):
             self._rep_msg.response = img_msg
             ROS2ImageServer.SEND_QUEUE.put(self._rep_msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because queue is full. "
+            logging.warning(f"[ROS 2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")
 
 
@@ -325,7 +325,7 @@ class ROS2AudioChunkServer(ROS2Server):
             from wrapyfi_ros2_interfaces.srv import ROS2AudioService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS2] Could not import ROS2AudioService. "
+            logging.error("[ROS 2] Could not import ROS2AudioService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
@@ -357,7 +357,7 @@ class ROS2AudioChunkServer(ROS2Server):
             [args, kwargs] = json.loads(request.request, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
             return args, kwargs
         except Exception as e:
-            logging.error("[ROS2] Service call failed %s" % e)
+            logging.error("[ROS 2] Service call failed %s" % e)
             return [], {}
 
     @staticmethod
@@ -403,5 +403,5 @@ class ROS2AudioChunkServer(ROS2Server):
             self._rep_msg.response = aud_msg
             ROS2AudioChunkServer.SEND_QUEUE.put(self._rep_msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS2] Discarding data because queue is full. "
+            logging.warning(f"[ROS 2] Discarding data because queue is full. "
                             f"This happened due to bad synchronization in {self.__name__}")

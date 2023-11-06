@@ -19,16 +19,16 @@ Requirements:
         ``pip install numpy``
 
 Run:
-    # On machine 1 (or process 1): Mode: Publisher sends messages through channels A [ZeroMQ], B [ROS2], and C [YARP]
+    # On machine 1 (or process 1): Mode: Publisher sends messages through channels A [ZeroMQ], B [ROS 2], and C [YARP]
         ``python3 channeling_example.py --mode publish --mware_A zeromq --mware_B ros2 --mware_C yarp``
 
-    # On machine 2 (or process 2): Mode: Listener waits for message from channels A [ZeroMQ], B [ROS2], and C [YARP]
+    # On machine 2 (or process 2): Mode: Listener waits for message from channels A [ZeroMQ], B [ROS 2], and C [YARP]
         ``python3 channeling_example.py --mode listen --mware_A zeromq --mware_B ros2 --mware_C yarp``
 
     # On machine 3 (or process 3): Mode: Listener waits for message from channel C [YARP]
         ``python3 channeling_example.py --mode listen --mware_C yarp``
 
-    # On machine 4 (or process 4) [OPTIONAL]: Mode: Listener waits for message from channel B [ROS2]
+    # On machine 4 (or process 4) [OPTIONAL]: Mode: Listener waits for message from channel B [ROS 2]
         ``python3 channeling_example.py --mode listen --mware_B ros2``
 """
 
