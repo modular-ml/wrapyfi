@@ -69,7 +69,7 @@ Methods with a single return should be followed by a comma e.g., return encapsul
 
 Each of the list's returns is encapsulated with its own publisher and listener, with the named arguments transmitted as 
 a single dictionary within the list. Notice that `encapsulated_a` returns a list of length 3, therefore, the first decorator contains 
-3 list configurations as well. This is useful especially when transmitting multiple images or audio chunks over YARP, ROS, and ROS2.
+3 list configurations as well. This is useful especially when transmitting multiple images or audio chunks over YARP, ROS, and ROS 2.
 Note that by using a single `NativeObject` as a `<Data structure type>`, the same 
 can be achieved. However, the implementation of the `NativeObject` for most middleware serializes the 
 objects as strings before transmission. The `NativeObject` may result in a greater overhead and should only be used when multiple nesting depths are 

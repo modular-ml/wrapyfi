@@ -43,7 +43,7 @@ Note that the iCub package is not needed for Wrapyfi to work and does not have t
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
 
-* For installing ROS2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
+* For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
 We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
@@ -279,7 +279,7 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 ## Middleware
 * [x] **YARP**
 * [x] **ROS**
-* [x] **ROS2**
+* [x] **ROS 2**
 * [x] **ZeroMQ** (beta feature: `should_wait` trigger introduced with event monitoring)
 
 

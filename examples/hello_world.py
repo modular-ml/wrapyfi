@@ -6,7 +6,7 @@ using the ``--mware`` argument. The default is ZeroMQ, but YARP, ROS, and ROS 2 
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
 
 Run:
     # Alternative 1: PUB/SUB mode

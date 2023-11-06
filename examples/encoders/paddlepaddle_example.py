@@ -14,7 +14,7 @@ Demonstrations:
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - PaddlePaddle: Used for handling and creating tensors (refer to https://www.paddlepaddle.org.cn/en/install/quick for installation instructions)
 
     Install using pip:
