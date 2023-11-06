@@ -16,7 +16,7 @@ Demonstrations:
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - OpenCV: Used for handling and creating images (installed with Wrapyfi)
     - sounddevice, soundfile: Used for handling audio
 

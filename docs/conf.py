@@ -91,7 +91,7 @@ with open('exclude_packages.json', 'r') as f:
 all_imported_modules = all_imported_modules_pre
 mock_imports = [mod for mod in all_imported_modules]
 autodoc_mock_imports = mock_imports
-# run from within an environment that has all requirements installed besides ROS2
+# run from within an environment that has all requirements installed besides ROS 2
 # autodoc_mock_imports = ["rclpy", "rclpy.node", "Parameter", "Node"]
 
 # extract project info

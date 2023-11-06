@@ -12,7 +12,7 @@ Demonstrations:
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - iCub Robot and Simulator: Ensure the robot and its simulator are installed and configured.
         When running in simulation mode, the `iCub_SIM` must be running in a standalone terminal
         (refer to the Wrapyfi documentation for installation instructions)

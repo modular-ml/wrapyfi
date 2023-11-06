@@ -40,7 +40,7 @@ All messages are transmitted using the rospy python bindings as topic messages
                   [geometry_msgs](http://wiki.ros.org/geometry_msgs), and [sensor_msgs](http://wiki.ros.org/sensor_msgs) can be directly 
                   returned by the method do not need to be converted to native types
 
-*(ROS2)*: 
+*(ROS 2)*: 
 
 ```{warning}
 ROS 2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS 2 Audio. 
@@ -100,7 +100,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros_interfaces.msg.ROSAudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 
-*(ROS2)*:
+*(ROS 2)*:
 
 ```{warning}
 ROS 2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 

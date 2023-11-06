@@ -13,7 +13,7 @@ Demonstrations:
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - ROS2, rclpy: Used for handling and creating ROS 2 messages (refer to the Wrapyfi documentation for installation instructions)
+    - ROS 2, rclpy: Used for handling and creating ROS 2 messages (refer to the Wrapyfi documentation for installation instructions)
 
     Ensure ROS 2 is installed and the required message types are available.
 
@@ -43,7 +43,7 @@ class Notifier(MiddlewareCommunicator):
         should_wait=True
     )
     def send_message(self):
-        """Exchange ROS 2 messages over ROS2."""
+        """Exchange ROS 2 messages over ROS 2."""
         msg = input("Type your message: ")
         quat = Quaternion()
         quat.x = 0.1

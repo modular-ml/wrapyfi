@@ -12,7 +12,7 @@ Demonstrations:
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - NumPy: Used for creating arrays (installed with Wrapyfi)
     - xarray, pandas: Used for creating and handling DataArrays
 

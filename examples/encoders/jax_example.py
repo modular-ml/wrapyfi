@@ -12,7 +12,7 @@ Demonstrations:
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
     - JAX: Used for handling and creating arrays (refer to https://jax.readthedocs.io/en/latest/installation.html for installation instructions)
 
     Install using pip:
