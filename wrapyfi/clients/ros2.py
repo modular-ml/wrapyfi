@@ -26,13 +26,13 @@ class ROS2Client(Client, Node):
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
-        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
+        :param ros2_kwargs: dict: Additional kwargs for the ROS 2 middleware
         :param kwargs: dict: Additional kwargs for the client
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning(
-                "[ROS2] ROS2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+                "[ROS2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
@@ -57,7 +57,7 @@ class ROS2NativeObjectClient(ROS2Client):
                  serializer_kwargs: Optional[dict] = None,
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
+        The NativeObject listener using the ROS 2 String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
 
         :param name: str: Name of the client
@@ -77,14 +77,14 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def establish(self):
         """
-        Establish the client's connection to the ROS2 service.
+        Establish the client's connection to the ROS 2 service.
         """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2NativeObjectService. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -97,11 +97,11 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def request(self, *args, **kwargs):
         """
-        Send a request to the ROS2 service.
+        Send a request to the ROS 2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
-        :return: Any: The response from the ROS2 service
+        :return: Any: The response from the ROS 2 service
         """
         if not self.established:
             self.establish()
@@ -113,7 +113,7 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def _request(self, *args, **kwargs):
         """
-        Internal method to send a request to the ROS2 service.
+        Internal method to send a request to the ROS 2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -137,9 +137,9 @@ class ROS2NativeObjectClient(ROS2Client):
 
     def _await_reply(self) -> Any:
         """
-        Wait for and return the reply from the ROS2 service.
+        Wait for and return the reply from the ROS 2 service.
 
-        :return: Any: The response from the ROS2 service
+        :return: Any: The response from the ROS 2 service
         """
         try:
             reply = self._queue.get(block=True)
@@ -155,7 +155,7 @@ class ROS2ImageClient(ROS2Client):
     def __init__(self, name: str, in_topic: str, width: int = -1, height: int = -1,
                  rgb: bool = True, fp: bool = False, jpg: bool = False, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The Image client using the ROS2 Image message parsed to a numpy array.
+        The Image client using the ROS 2 Image message parsed to a numpy array.
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -193,14 +193,14 @@ class ROS2ImageClient(ROS2Client):
 
     def establish(self):
         """
-        Establish the client's connection to the ROS2 service.
+        Establish the client's connection to the ROS 2 service.
         """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2ImageService, ROS2CompressedImageService
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2ImageService. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -217,11 +217,11 @@ class ROS2ImageClient(ROS2Client):
 
     def request(self, *args, **kwargs):
         """
-        Send a request to the ROS2 service.
+        Send a request to the ROS 2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
-        :return: Any: The response from the ROS2 service
+        :return: Any: The response from the ROS 2 service
         """
         if not self.established:
             self.establish()
@@ -233,7 +233,7 @@ class ROS2ImageClient(ROS2Client):
 
     def _request(self, *args, **kwargs):
         """
-        Internal method to send a request to the ROS2 service.
+        Internal method to send a request to the ROS 2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -261,9 +261,9 @@ class ROS2ImageClient(ROS2Client):
 
     def _await_reply(self):
         """
-        Wait for and return the reply from the ROS2 service.
+        Wait for and return the reply from the ROS 2 service.
 
-        :return: np.array: The received image from the ROS2 service
+        :return: np.array: The received image from the ROS 2 service
         """
         try:
             if self.jpg:
@@ -296,7 +296,7 @@ class ROS2AudioChunkClient(ROS2Client):
                  channels: int = 1, rate: int = 44100, chunk: int = -1,
                  serializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The AudioChunk client using the ROS2 Audio message parsed to a numpy array.
+        The AudioChunk client using the ROS 2 Audio message parsed to a numpy array.
 
         :param name: str: Name of the client
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -322,14 +322,14 @@ class ROS2AudioChunkClient(ROS2Client):
 
     def establish(self):
         """
-        Establish the client's connection to the ROS2 service.
+        Establish the client's connection to the ROS 2 service.
         """
         try:
             from wrapyfi_ros2_interfaces.srv import ROS2AudioService
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2AudioService. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -342,11 +342,11 @@ class ROS2AudioChunkClient(ROS2Client):
 
     def request(self, *args, **kwargs):
         """
-        Send a request to the ROS2 service.
+        Send a request to the ROS 2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
-        :return: Any: The response from the ROS2 service
+        :return: Any: The response from the ROS 2 service
         """
         if not self.established:
             self.establish()
@@ -358,7 +358,7 @@ class ROS2AudioChunkClient(ROS2Client):
 
     def _request(self, *args, **kwargs):
         """
-        Internal method to send a request to the ROS2 service.
+        Internal method to send a request to the ROS 2 service.
 
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
@@ -382,7 +382,7 @@ class ROS2AudioChunkClient(ROS2Client):
 
     def _await_reply(self):
         """
-        Wait for and return the reply from the ROS2 service.
+        Wait for and return the reply from the ROS 2 service.
 
         :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """

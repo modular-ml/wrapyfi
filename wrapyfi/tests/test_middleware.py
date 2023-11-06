@@ -47,8 +47,8 @@ class ZeroMQTestMiddleware(unittest.TestCase):
 
 class ROS2TestMiddleware(ZeroMQTestMiddleware):
     """
-    Test the ROS2 wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
-    are also run for the ROS2 wrapper.
+    Test the ROS 2 wrapper. This test class inherits from the ZeroMQ test class, so all tests from the ZeroMQ test class
+    are also run for the ROS 2 wrapper.
     """
     MWARE = "ros2"
 

@@ -2,7 +2,7 @@
 This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the
 functionality of the middleware using the PUB/SUB pattern and the REQ/REP pattern. The example can be run on a single
 machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected
-using the ``--mware`` argument. The default is ZeroMQ, but YARP, ROS, and ROS2 are also supported.
+using the ``--mware`` argument. The default is ZeroMQ, but YARP, ROS, and ROS 2 are also supported.
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)

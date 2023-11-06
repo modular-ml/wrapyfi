@@ -43,8 +43,8 @@ Note that the iCub package is not needed for Wrapyfi to work and does not have t
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
 
-* For installing ROS2, follow the [ROS2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
-We recommend installing ROS2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
+* For installing ROS2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
+We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
@@ -61,7 +61,7 @@ A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/m
 
 * YARP >= v3.3.2 
 * ROS Noetic Ninjemys
-* ROS2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
+* ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
 
 

@@ -17,7 +17,7 @@ jobs:
         pdm add setuptools
         pdm import setup.py
 
-    - name: Update ROS & ROS2 Interface Versions
+    - name: Update ROS & ROS 2 Interface Versions
       run: |
         VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
         if [[ -z "$VERSION" ]]; then

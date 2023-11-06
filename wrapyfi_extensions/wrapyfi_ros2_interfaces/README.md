@@ -1,21 +1,21 @@
-# Compiling ROS2 interfaces
+# Compiling ROS 2 interfaces
 
 **WARNING**: These instructions are located in 
 https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros2_interfaces
 
-To run the Wrapyfi ROS2 services and transmit audio messages, you need to compile the ROS2 interfaces. 
-ROS2 must already be installed on your system, with all its build dependencies. 
+To run the Wrapyfi ROS 2 services and transmit audio messages, you need to compile the ROS 2 interfaces. 
+ROS 2 must already be installed on your system, with all its build dependencies. 
 You can find the installation instructions [here](https://docs.ros.org/en/humble/Installation.html) 
 or install using [Robostack](https://robostack.github.io/GettingStarted.html).
 
 ## Prerequisites
 
-- ROS2 Galactic/Humble
+- ROS 2 Galactic/Humble
 - Python 3.6
 
 ## Compiling
 
-1. Copy the `wrapyfi_ros2_interfaces` folder to your ROS2 workspace (assumed to be `~/ros2_ws`).
+1. Copy the `wrapyfi_ros2_interfaces` folder to your ROS 2 workspace (assumed to be `~/ros2_ws`).
 
     ```bash
     # from the current directory 
@@ -24,7 +24,7 @@ or install using [Robostack](https://robostack.github.io/GettingStarted.html).
     
     ```
 
-2. Compile the ROS2 interfaces:
+2. Compile the ROS 2 interfaces:
     
     ```bash
     cd ~/ros2_ws
@@ -43,13 +43,13 @@ or install using [Robostack](https://robostack.github.io/GettingStarted.html).
     
     Replacing VERSION 3.5 with the correct version of cmake.
 
-3. Source the ROS2 workspace:
+3. Source the ROS 2 workspace:
 
     ```bash
     source ~/ros2_ws/install/setup.bash
     ```
 
-4. Verify that the ROS2 Native object service interface is compiled:
+4. Verify that the ROS 2 Native object service interface is compiled:
     
     ```bash
     ros2 interface show wrapyfi_ros2_interfaces/srv/ROS2NativeObjectService
@@ -63,7 +63,7 @@ or install using [Robostack](https://robostack.github.io/GettingStarted.html).
     string response
     ```
 
-5. Verify that the ROS2 Image service interface is compiled:
+5. Verify that the ROS 2 Image service interface is compiled:
         
     ```bash
     ros2 interface show wrapyfi_ros2_interfaces/srv/ROS2ImageService
@@ -98,7 +98,7 @@ or install using [Robostack](https://robostack.github.io/GettingStarted.html).
     
     ```
 
-6. Verify that the ROS2 Audio service interface is compiled:
+6. Verify that the ROS 2 Audio service interface is compiled:
         
     ```bash
     ros2 interface show wrapyfi_ros2_interfaces/srv/ROS2AudioService
@@ -127,5 +127,5 @@ or install using [Robostack](https://robostack.github.io/GettingStarted.html).
     
     ```
    
-     Run your Wrapyfi enabled script from the same terminal. Now you can use the REQ/REP pattern (server/client) in Wrapyfi, and transmit ROS2 audio messages.
+     Run your Wrapyfi enabled script from the same terminal. Now you can use the REQ/REP pattern (server/client) in Wrapyfi, and transmit ROS 2 audio messages.
      
