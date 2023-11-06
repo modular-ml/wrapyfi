@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>wrapyfi_ros_interfaces</name>
-  <version>0.4.27</version>
+  <version>0.4.28</version>
   <description>The wrapyfi_ros_interfaces package</description>
 
   <maintainer email="fares.abawi@outlook.com">Fares Abawi</maintainer>
