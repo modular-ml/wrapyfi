@@ -33,12 +33,12 @@ class ROS2Publisher(Publisher, Node):
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
         :param queue_size: int: Queue size for the publisher. Default is 5
-        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
+        :param ros2_kwargs: dict: Additional kwargs for the ROS 2 middleware
         :param kwargs: dict: Additional kwargs for the publisher
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+            logging.warning("[ROS2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
@@ -92,7 +92,7 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
     def __init__(self, name, out_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, serializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The NativeObject publisher using the ROS2 String message assuming a combination of python native objects
+        The NativeObject publisher using the ROS 2 String message assuming a combination of python native objects
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string.
 
         :param name: str: Name of the publisher
@@ -147,7 +147,7 @@ class ROS2ImagePublisher(ROS2Publisher):
     def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The ImagePublisher using the ROS2 Image message assuming a numpy array as input.
+        The ImagePublisher using the ROS 2 Image message assuming a numpy array as input.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -239,7 +239,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
     def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunkPublisher using the ROS2 Audio message assuming a numpy array as input.
+        The AudioChunkPublisher using the ROS 2 Audio message assuming a numpy array as input.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -271,7 +271,7 @@ class ROS2AudioChunkPublisher(ROS2Publisher):
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2AudioMessage. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -329,7 +329,7 @@ class ROS2MessagePublisher(ROS2Publisher):
 
     def __init__(self, name: str, out_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
-        The ROS2MessagePublisher using the ROS2 message type determined dynamically.
+        The ROS2MessagePublisher using the ROS 2 message type determined dynamically.
 
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
@@ -347,7 +347,7 @@ class ROS2MessagePublisher(ROS2Publisher):
         """
         Get the type of a specific message.
 
-        :param msg: ROS2 message object
+        :param msg: ROS 2 message object
         :return: type: The type of the provided message
         """
         return type(msg)

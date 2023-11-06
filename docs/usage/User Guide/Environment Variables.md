@@ -21,7 +21,7 @@ This can be achieved by setting:
 * `WRAPYFI_ZEROMQ_PARAM_PUB_PORT`: The parameter server pub-socket port. Defaults to 5655 (**currently not supported**)
 * `WRAPYFI_ZEROMQ_PARAM_SUB_PORT`: The parameter server sub-socket port. Defaults to 5656 (**currently not supported**)
 
-ROS and ROS2 queue sizes can be set by:
+ROS and ROS 2 queue sizes can be set by:
 
 * `WRAPYFI_ROS_QUEUE_SIZE`: Size of the queue buffer. Defaults to 5
 * `WRAPYFI_ROS2_QUEUE_SIZE`: Size of the queue buffer. Defaults to 5

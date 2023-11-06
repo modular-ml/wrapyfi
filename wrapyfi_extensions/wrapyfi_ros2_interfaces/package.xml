@@ -3,7 +3,7 @@
 <package format="3">
   <name>wrapyfi_ros2_interfaces</name>
   <version>0.4.26</version>
-  <description>Wrapyfi ROS2 interfaces</description>
+  <description>Wrapyfi ROS 2 interfaces</description>
   <maintainer email="fares.abawi@outlook.com">Fares Abawi</maintainer>
   <license>MIT</license>
 

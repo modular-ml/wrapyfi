@@ -22,7 +22,7 @@ update_version_in_package_xml() {
     echo "Version updated to $VERSION in $PACKAGE_XML_PATH"
 }
 
-# UPDATE ROS & ROS2 INTERFACE VERSIONS
+# UPDATE ROS & ROS 2 INTERFACE VERSIONS
 #######################################################################################################################
 
 # get the version from pyproject.toml

@@ -43,8 +43,8 @@ All messages are transmitted using the rospy python bindings as topic messages
 *(ROS2)*: 
 
 ```{warning}
-ROS2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS2 Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+ROS 2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS 2 Audio. 
+Refer to [these instructions for compiling Wrapyfi ROS 2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as topic messages
@@ -53,7 +53,7 @@ All messages are transmitted using the rclpy python bindings as topic messages
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](<Plugins.md#data-structure-types>) using `std_msgs.msg.String`
 * **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
-* **ROS2Message**: Transmits and receives a single [ROS2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator
+* **ROS2Message**: Transmits and receives a single [ROS 2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator
 
 *(ZeroMQ)*:
 
@@ -103,8 +103,8 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 *(ROS2)*:
 
 ```{warning}
-ROS2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
-Refer to [these instructions for compiling Wrapyfi ROS2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+ROS 2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
+Refer to [these instructions for compiling Wrapyfi ROS 2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as services.

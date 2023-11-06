@@ -28,13 +28,13 @@ class ROS2Server(Server, Node):
 
         :param name: str: Name of the server
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
-        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
+        :param ros2_kwargs: dict: Additional kwargs for the ROS 2 middleware
         :param kwargs: dict: Additional kwargs for the server
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning(
-                "[ROS2] ROS2 currently does not support explicit carrier setting for REQ/REP pattern. Using TCP.")
+                "[ROS2] ROS 2 currently does not support explicit carrier setting for REQ/REP pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
 
@@ -90,7 +90,7 @@ class ROS2NativeObjectServer(ROS2Server):
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2NativeObjectService. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -129,7 +129,7 @@ class ROS2NativeObjectServer(ROS2Server):
     @staticmethod
     def _service_callback(request, _response):
         """
-        Callback for the ROS2 service.
+        Callback for the ROS 2 service.
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message
@@ -207,7 +207,7 @@ class ROS2ImageServer(ROS2Server):
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2NativeObjectService. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -249,7 +249,7 @@ class ROS2ImageServer(ROS2Server):
     @staticmethod
     def _service_callback(request, _response):
         """
-        Callback for the ROS2 service.
+        Callback for the ROS 2 service.
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message
@@ -326,7 +326,7 @@ class ROS2AudioChunkServer(ROS2Server):
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2AudioService. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -363,7 +363,7 @@ class ROS2AudioChunkServer(ROS2Server):
     @staticmethod
     def _service_callback(request, _response):
         """
-        Callback for the ROS2 service.
+        Callback for the ROS 2 service.
 
         :param request: ROS2NativeObjectService.Request: The request message
         :param _response: ROS2NativeObjectService.Response: The response message

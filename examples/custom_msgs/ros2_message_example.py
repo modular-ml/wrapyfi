@@ -1,27 +1,27 @@
 """
-A message publisher and listener for ROS2 messages using Wrapyfi.
+A message publisher and listener for ROS 2 messages using Wrapyfi.
 
-This script demonstrates the capability to transmit ROS2 messages, specifically
+This script demonstrates the capability to transmit ROS 2 messages, specifically
 geometry_msgs/Pose and std_msgs/String, using the MiddlewareCommunicator within
 the Wrapyfi library. The communication follows the PUB/SUB pattern allowing
 message publishing and listening functionalities between processes or machines.
 
 Demonstrations:
-    - Using the ROS2 message
-    - Transmitting std_msgs/String and geometry_msgs/Pose ROS2 messages
+    - Using the ROS 2 message
+    - Transmitting std_msgs/String and geometry_msgs/Pose ROS 2 messages
     - Applying the PUB/SUB pattern with channeling and mirroring
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - ROS2, rclpy: Used for handling and creating ROS2 messages (refer to the Wrapyfi documentation for installation instructions)
+    - ROS2, rclpy: Used for handling and creating ROS 2 messages (refer to the Wrapyfi documentation for installation instructions)
 
-    Ensure ROS2 is installed and the required message types are available.
+    Ensure ROS 2 is installed and the required message types are available.
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard input and transmits message
         ``python3 ros2_message_example.py --mode publish``
 
-    # On machine 2 (or process 2): Listener waits for message and prints the received ROS2 messages
+    # On machine 2 (or process 2): Listener waits for message and prints the received ROS 2 messages
         ``python3 ros2_message_example.py --mode listen``
 """
 
@@ -43,7 +43,7 @@ class Notifier(MiddlewareCommunicator):
         should_wait=True
     )
     def send_message(self):
-        """Exchange ROS2 messages over ROS2."""
+        """Exchange ROS 2 messages over ROS2."""
         msg = input("Type your message: ")
         quat = Quaternion()
         quat.x = 0.1

@@ -36,12 +36,12 @@ class ROS2Listener(Listener, Node):
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
         :param should_wait: bool: Whether the subscriber should wait for the publisher to transmit a message. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
-        :param ros2_kwargs: dict: Additional kwargs for the ROS2 middleware
+        :param ros2_kwargs: dict: Additional kwargs for the ROS 2 middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
-            logging.warning("[ROS2] ROS2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+            logging.warning("[ROS2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
         if "carrier" in kwargs:
             del kwargs["carrier"]
 
@@ -69,7 +69,7 @@ class ROS2NativeObjectListener(ROS2Listener):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  deserializer_kwargs: Optional[dict] = None, **kwargs):
         """
-        The NativeObject listener using the ROS2 String message assuming the data is serialized as a JSON string.
+        The NativeObject listener using the ROS 2 String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a native object.
 
         :param name: str: Name of the subscriber
@@ -128,7 +128,7 @@ class ROS2ImageListener(ROS2Listener):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE,
                  width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
         """
-        The Image listener using the ROS2 Image message parsed to a numpy array.
+        The Image listener using the ROS 2 Image message parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -226,7 +226,7 @@ class ROS2AudioChunkListener(ROS2Listener):
     def __init__(self, name: str, in_topic: str, should_wait: bool = True,
                  queue_size: int = QUEUE_SIZE, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
         """
-        The AudioChunk listener using the ROS2 Audio message parsed to a numpy array.
+        The AudioChunk listener using the ROS 2 Audio message parsed to a numpy array.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -254,7 +254,7 @@ class ROS2AudioChunkListener(ROS2Listener):
         except ImportError:
             import wrapyfi
             logging.error("[ROS2] Could not import ROS2AudioMessage. "
-                          "Make sure the ROS2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
                           wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
             sys.exit(1)
@@ -309,7 +309,7 @@ class ROS2MessageListener(ROS2Listener):
 
     def __init__(self, name: str, in_topic: str, should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
         """
-        The ROS2MessageListener using the ROS2 message type inferred from the message type. Supports standard ROS2 msgs.
+        The ROS2MessageListener using the ROS 2 message type inferred from the message type. Supports standard ROS 2 msgs.
 
         :param name: str: Name of the subscriber
         :param in_topic: str: Name of the input topic preceded by '/' (e.g. '/topic')
@@ -356,7 +356,7 @@ class ROS2MessageListener(ROS2Listener):
         """
         Listen for a message.
 
-        :return: ROS2Message: The received message as a ROS2 message object
+        :return: ROS2Message: The received message as a ROS 2 message object
         """
         if not self.established:
             self.establish()
