@@ -34,11 +34,19 @@ jobs:
         ./build_docs.sh
         cd ../
 
+    - name: Prepare PyPI-specific README
+      run: |
+        cp README.md README.pypi.md
+        sed -i 's|<sub style="white-space: pre-wrap;">|<div style="white-space: pre-wrap; font-family: monospace;">|g' README.pypi.md
+        sed -i 's|</sub>|</div>|g' README.pypi.md
+
     - name: Build package
       run: |
         rm -rf dist
         python3 -m pip install --upgrade build
+        mv README.pypi.md README.md
         python3 -m build
+        git checkout -- README.md
 
     - name: Configure Git
       run: |
