@@ -121,7 +121,7 @@ e.g., with YARP
 </tr>
 <tr>
 <td>
-<div style="white-space: pre-wrap;">
+<sub style="white-space: pre-wrap;">
 
 ```python
 # Just your usual Python class
@@ -149,10 +149,10 @@ while True:
     print(my_message)
 ```
     
-</div>
+</sub>
 </td>
 <td>
-<div style="white-space: pre-wrap;">
+<sub style="white-space: pre-wrap;">
 
 ```python
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
@@ -180,7 +180,7 @@ while True:
     print(my_message)
 ```
     
-</div>
+</sub>
 </td>
 </tr>
 </table>
@@ -198,7 +198,7 @@ e.g., with ROS
 </tr>
 <tr>
 <td>
-<div style="white-space: pre-wrap;">
+<sub style="white-space: pre-wrap;">
 
 ```python
 # Just your usual Python class
@@ -228,10 +228,10 @@ while True:
     print(my_message)
 ```
     
-</div>
+</sub>
 </td>
 <td>
-<div style="white-space: pre-wrap;">
+<sub style="white-space: pre-wrap;">
 
 ```python
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
@@ -261,7 +261,7 @@ while True:
     print(my_message)
 ```
     
-</div>
+</sub>
 </td>
 </tr>
 </table>
