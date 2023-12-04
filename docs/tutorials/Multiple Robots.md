@@ -1,5 +1,9 @@
 # Tutorial: Multiple Robot Control using the Forwarding Scheme
 
+
+
+https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4
+
 <p align="center">
     <video width="630" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex2-1.mp4"></video>
 </p>
