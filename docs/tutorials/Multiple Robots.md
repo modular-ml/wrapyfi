@@ -1,11 +1,13 @@
 # Tutorial: Multiple Robot Control using the Forwarding Scheme
 
+<p align="center">
+    <video width="630" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex2-1.mp4"></video>
+</p>
+
 This tutorial demonstrates how to use the Wrapyfi framework to run a facial expression recognition model on multiple robots. The facial expression recognition model is executed on four machines, each having a GPU. 
 The model recognizes 8 facial expressions which are propagated to the Pepper and iCub robots. The expression categories are displayed by changing the Pepper robot's eye and shoulder LED colors---or 
 \textit{robotic facial expressions}---by changing the iCub robot's eyebrow and mouth LED patterns. The image input received by the model is acquired from the Pepper and iCub robots' cameras by simply 
-**forwarding** the images to the facial expression recognition model (check out the [forwarding scheme](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) for more details on forwarding).
- 
-
+**forwarding** the images to the facial expression recognition model (check out the [forwarding scheme](<../usage/User%20Guide/Communication%20Schemes.md#forwarding>) for more details on forwarding).
 
 ### Methodology
 
