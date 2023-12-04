@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/fabawi/wrapyfi/blob/master/"
+Homepage = "https://github.com/fabawi/wrapyfi/blob/main/"
 Documentation = "https://wrapyfi.readthedocs.io/en/latest/"
 Source = "https://github.com/fabawi/wrapyfi/"
 Tracker = "https://github.com/fabawi/wrapyfi/issues"

@@ -1,7 +1,7 @@
 # Compiling ROS 2 interfaces
 
 **WARNING**: These instructions are located in 
-[https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros2_interfaces](https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros2_interfaces)
+[https://github.com/fabawi/wrapyfi/blob/main/wrapyfi_extensions/wrapyfi_ros2_interfaces](https://github.com/fabawi/wrapyfi/blob/main/wrapyfi_extensions/wrapyfi_ros2_interfaces)
 
 To run the Wrapyfi ROS 2 services and transmit audio messages, you need to compile the ROS 2 interfaces. 
 ROS 2 must already be installed on your system, with all its build dependencies. 

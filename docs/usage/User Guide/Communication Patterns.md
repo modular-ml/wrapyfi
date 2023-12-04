@@ -26,7 +26,7 @@ All messages are transmitted using the yarp python bindings
 
 ```{warning}
 ROS requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
 ```
 
 All messages are transmitted using the rospy python bindings as topic messages
@@ -44,7 +44,7 @@ All messages are transmitted using the rospy python bindings as topic messages
 
 ```{warning}
 ROS 2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS 2 Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS 2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS 2 services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as topic messages
@@ -89,7 +89,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS requires a custom service to handle audio. This service must be compiled first before using Wrapyfi with ROS Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
 ```
 
 All messages are transmitted using the rospy python bindings as services.
@@ -104,7 +104,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS 2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
-Refer to [these instructions for compiling Wrapyfi ROS 2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS 2 services](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as services.

@@ -1,7 +1,7 @@
 # Compiling ROS interfaces
 
 **WARNING**: These instructions are located in 
-[https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros_interfaces](https://github.com/fabawi/wrapyfi/blob/master/wrapyfi_extensions/wrapyfi_ros_interfaces)
+[https://github.com/fabawi/wrapyfi/blob/main/wrapyfi_extensions/wrapyfi_ros_interfaces](https://github.com/fabawi/wrapyfi/blob/main/wrapyfi_extensions/wrapyfi_ros_interfaces)
 
 To transmit audio messages, you need to compile the ROS interfaces. 
 ROS must already be installed on your system, with all its build dependencies. 

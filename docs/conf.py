@@ -74,7 +74,7 @@ autodoc_default_options = {
     'undoc-members': True,
     'exclude-members': '__weakref__'
 }
-master_doc = 'index'
+main_doc = 'index'
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static'] 
 html_css_files = ['wide_theme.css'] 
@@ -110,7 +110,7 @@ latex_elements = {
 \pretitle{%
   \begin{center}
   \vspace{\droptitle}
-  \includegraphics[width=60mm]{../resources/wrapyfi.png}\\[\bigskipamount]
+  \includegraphics[width=60mm]{../assets/wrapyfi.png}\\[\bigskipamount]
   \Large{\textbf{''' + project + '''}}\\
   \normalsize{v''' + release + '''}
 }

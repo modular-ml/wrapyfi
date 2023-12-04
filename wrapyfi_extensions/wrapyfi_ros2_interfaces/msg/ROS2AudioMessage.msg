@@ -1,4 +1,4 @@
-# Based on https://github.com/ros-drivers/audio_common/blob/master/audio_common_msgs/msg/AudioInfo.msg
+# Based on https://github.com/ros-drivers/audio_common/blob/main/audio_common_msgs/msg/AudioInfo.msg
 
 std_msgs/Header header
 
