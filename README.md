@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="460" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/master/resources/wrapyfi.png">
+  <img width="460" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/wrapyfi.png">
 </p>
 
 
@@ -37,7 +37,7 @@ Please refer to the following [paper](https://arxiv.org/abs/2302.09648) when cit
 
 Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
 
-* Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/yarp/README.md).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
+* Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
@@ -49,7 +49,7 @@ We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
-A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi/standalone/zeromq_proxy_broker.py)
+A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/standalone/zeromq_proxy_broker.py)
 
 
 #### Compatibility
@@ -272,7 +272,7 @@ while True:
 Run `roscore` from the command line. Now execute the Python script above (with Wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
 Note that the server's command line will not show the message until the client's command line has been used to send a request. The arguments are passed from the client to the server and the server's response is passed back to the client.
 
-For more examples of usage, refer to the [user guide](docs/usage.md). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/master/examples) for trying out Wrapyfi. 
+For more examples of usage, refer to the [user guide](docs/usage.md). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/main/examples) for trying out Wrapyfi. 
 
 # Supported Formats
 

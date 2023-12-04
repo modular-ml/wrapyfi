@@ -72,7 +72,7 @@ class ReqRep(MiddlewareCommunicator):
         obj = {"message": msg, "args": args, "kwargs": kwargs}
 
         # read image from file
-        img = cv2.imread("../../resources/wrapyfi.png")
+        img = cv2.imread("../../assets/wrapyfi.png")
         img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
         cv2.putText(img, msg,
                     ((img.shape[1] - cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][0]) // 2,
@@ -96,7 +96,7 @@ class ReqRep(MiddlewareCommunicator):
         """Exchange messages with sounddevice audio chunks and other native Python objects."""
         obj = {"message": msg, "args": args, "kwargs": kwargs}
         # read audio from file
-        aud = sf.read("../../resources/sound_test.wav", dtype="float32")
+        aud = sf.read("../../assets/sound_test.wav", dtype="float32")
         # aud = (np.mean(aud[0], axis=1), aud[1])
         return obj, aud
 

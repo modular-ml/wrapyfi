@@ -15,11 +15,11 @@ more resources than a single publisher can provide.
 
 #### Mirroring Example
 
-In the [mirroring_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/mirroring_example.py), 
+In the [mirroring_example.py](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes/mirroring_example.py), 
 the module transmits a user input message from the publisher to a listener (PUB/SUB pattern), and displays the message along with other native 
 objects on the listener and publisher side. Similarly, we transmit a user input message from the server to a client (REQ/REP pattern),
 when the client requests the message from the server. The example can be run from the 
-[examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+[examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
 
 ### Forwarding
@@ -31,10 +31,10 @@ between them, effectively chaining the communication. The chain can be extended 
 
 #### Forwarding Example
 
-In the [forwarding_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/forwarding_example.py),
+In the [forwarding_example.py](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes/forwarding_example.py),
 the module constantly publishes a string from `chain_A` to a listener on `chain_A`. The `chain_A` listener then forwards the message by publishing to `chain_B`. 
 The string is then forwarded to a third instances which listens exclusively to `chain_B`, without needing to support the middleware used by `chain_A`.
-The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
 
 ### Channeling
@@ -47,11 +47,11 @@ selectively filter out what is needed and operate on that partial return.
 
 #### Channeling Example
 
-In the [channeling_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/channeling_example.py),
+In the [channeling_example.py](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes/channeling_example.py),
 the module constantly publishes three data types (**NativeObject**, **Image**, and **AudioChunk**) over one or more middlware. The listeners 
 can then choose to receive one or more of these data types, depending on the middleware they support. When `--mware_...` for one of the
 channels is not provided, it automatically disables the topic for that channel/s and returns a `None` type value. 
-The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
 
 

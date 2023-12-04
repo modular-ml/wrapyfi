@@ -49,8 +49,8 @@ class Notifier(MiddlewareCommunicator):
         ret = {
             "message": msg,
             "pillow_random": Image.fromarray(imarray.astype('uint8')).convert('RGBA'),
-            "pillow_png": Image.open("../../resources/wrapyfi.png"),
-            "pillow_jpg": Image.open("../../resources/wrapyfi.jpg")
+            "pillow_png": Image.open("../../assets/wrapyfi.png"),
+            "pillow_jpg": Image.open("../../assets/wrapyfi.jpg")
         }
         return ret,
 

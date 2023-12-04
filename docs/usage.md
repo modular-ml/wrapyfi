@@ -191,7 +191,7 @@ All messages are transmitted using the yarp python bindings
 
 ```{warning}
 ROS requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
 ```
 
 All messages are transmitted using the rospy python bindings as topic messages
@@ -209,7 +209,7 @@ All messages are transmitted using the rospy python bindings as topic messages
 
 ```{warning}
 ROS 2 requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS 2 Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS 2 services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS 2 services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as topic messages
@@ -254,7 +254,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS requires a custom service to handle audio. This service must be compiled first before using Wrapyfi with ROS Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
 ```
 
 All messages are transmitted using the rospy python bindings as services.
@@ -269,7 +269,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS 2 requires custom services to handle arbitrary messages. These services must be compiled first before using Wrapyfi in this mode. 
-Refer to [these instructions for compiling Wrapyfi ROS 2 services](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS 2 services](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md).
 ```
 
 All messages are transmitted using the rclpy python bindings as services.
@@ -318,11 +318,11 @@ more resources than a single publisher can provide.
 
 #### Mirroring Example
 
-In the [mirroring_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/mirroring_example.py), 
+In the [mirroring_example.py](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes/mirroring_example.py), 
 the module transmits a user input message from the publisher to a listener (PUB/SUB pattern), and displays the message along with other native 
 objects on the listener and publisher side. Similarly, we transmit a user input message from the server to a client (REQ/REP pattern),
 when the client requests the message from the server. The example can be run from the 
-[examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+[examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
 
 ### Forwarding
@@ -334,10 +334,10 @@ between them, effectively chaining the communication. The chain can be extended 
 
 #### Forwarding Example
 
-In the [forwarding_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/forwarding_example.py),
+In the [forwarding_example.py](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes/forwarding_example.py),
 the module constantly publishes a string from `chain_A` to a listener on `chain_A`. The `chain_A` listener then forwards the message by publishing to `chain_B`. 
 The string is then forwarded to a third instances which listens exclusively to `chain_B`, without needing to support the middleware used by `chain_A`.
-The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
 
 ### Channeling
@@ -350,16 +350,16 @@ selectively filter out what is needed and operate on that partial return.
 
 #### Channeling Example
 
-In the [channeling_example.py](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes/channeling_example.py),
+In the [channeling_example.py](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes/channeling_example.py),
 the module constantly publishes three data types (**NativeObject**, **Image**, and **AudioChunk**) over one or more middlware. The listeners 
 can then choose to receive one or more of these data types, depending on the middleware they support. When `--mware_...` for one of the
 channels is not provided, it automatically disables the topic for that channel/s and returns a `None` type value. 
-The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/master/examples/communication_schemes) directory.
+The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
 
 ## Plugins
 
-The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi/plugins). Plugins can be added by:
+The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/plugins). Plugins can be added by:
 * Creating a derived class that inherits from the base class `wrapyfi.utils.Plugin`
 * Overriding the `encode` method for converting the object to a `json` serializable string. Deserializing the string is performed within the overridden `decode` method
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
@@ -369,9 +369,9 @@ The **NativeObject** message type supports structures beyond native python objec
 
 #### Plugin Example
 
-An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/astropy_example.py).
+An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/astropy_example.py).
 In the example, we append the example's directory to the `WRAPYFI_PLUGINS_PATH` environment variable and import the plugin. 
-The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/plugins) directory
+The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins) directory
 is then used to encode and decode the custom object (from within the `examples/encoders/` directory): 
 
 ```
@@ -485,7 +485,7 @@ This can be achieved by setting:
 * `WRAPYFI_ZEROMQ_SOCKET_SUB_PORT`: The sub-socket port (listening port for the broker). Defaults to 5556
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC`: The topic name for the pub-sub monitor. Defaults to "ZEROMQ/CONNECTIONS"
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN`: Either spawn the pub-sub monitor listener as a "process" or "thread". Defaults to "process"
-* `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](https://github.com/fabawi/wrapyfi/tree/master/wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
+* `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
 * `WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL`: Polling interval in milliseconds for the parameter server. Defaults to 1 (**currently not supported**)
 * `WRAPYFI_ZEROMQ_PARAM_REQREP_PORT`: The parameter server request-reply port. Defaults to 5659 (**currently not supported**)

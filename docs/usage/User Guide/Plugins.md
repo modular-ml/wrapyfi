@@ -10,9 +10,9 @@ The **NativeObject** message type supports structures beyond native python objec
 
 #### Plugin Example
 
-An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/astropy_example.py).
+An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/astropy_example.py).
 In the example, we append the example's directory to the `WRAPYFI_PLUGINS_PATH` environment variable and import the plugin. 
-The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/master/examples/encoders/plugins) directory
+The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins) directory
 is then used to encode and decode the custom object (from within the `examples/encoders/` directory): 
 
 ```
