@@ -1,12 +1,10 @@
 # Tutorial: Multiple Robot Control using the Forwarding Scheme
 
-
-
-https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4
-
 <p align="center">
-    <video width="630" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex2-1.mp4"></video>
+    <video width="630" height="300" controls autoplay><source type="video/mp4" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex2-1.mp4"></video>
 </p>
+
+[Video: https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4](https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4)
 
 This tutorial demonstrates how to use the Wrapyfi framework to run a facial expression recognition model on multiple robots. The facial expression recognition model is executed on four machines, each having a GPU. 
 The model recognizes 8 facial expressions which are propagated to the Pepper and iCub robots. The expression categories are displayed by changing the Pepper robot's eye and shoulder LED colors---or 
@@ -16,10 +14,13 @@ The model recognizes 8 facial expressions which are propagated to the Pepper and
 ### Methodology
 
 <p align="center">
+  <a id="figure-1"></a>
   <img width="460" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/wrapyfi_hri_ex2-1.png">
+  <br>
+  <em>Fig 1: Facial expression recognition for updating the affective cues on the Pepper and iCub robots.</em>
 </p>
 
-Siqueira et al.~\citeyear{siqueira2020efficient} presented a neural model for facial expression recognition, relying on an ensemble of convolutional branches with shared parameters. The model provides inference in real-time settings, owing to its relatively small number of parameters across ensembles, 
+Siqueira et al. [(2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) presented a neural model for facial expression recognition, relying on an ensemble of convolutional branches with shared parameters. The model provides inference in real-time settings, owing to its relatively small number of parameters across ensembles, 
 unimodal visual input, and non-sequential structure. For the last timestep $n$, a majority vote is cast on the output categories resulting from each ensemble branch $\text{e}_i$:
 
 ```math
@@ -41,9 +42,9 @@ $N=6$ corresponding to the number of visual frames acquired by the model per sec
 \end{align}
 ```
 
-resulting in the emotion category $\text{k}_t$ being transmitted from the inference script running the facial expression recognition model to the managing script executed on PC:A. The managing script is responsible for forwarding data to and from the model and robot interfaces.
-We execute the inference script on four machines. The shared layer weights are loaded on an NVIDIA GeForce GTX 970 (denoted by PC:A in~\autoref{fig:wrapyfi_ex_fer}) with 4 GB VRAM. Machines S:1, S:2, and S:3 share similar specifications, each with an NVIDIA GeForce GTX 1050 Ti having 4~GB VRAM. 
-We distribute nine ensembles among the three machines in equal proportions and broadcast their latent representation tensors using ZeroMQ. The PyTorch-based inference script is executed on PC:A, S:1, S:2, and S:3, all having their tensors mapped to a GPU. 
+resulting in the emotion category $\text{k}_t$ being transmitted from the inference script running the facial expression recognition model to the managing script executed on **PC:A**. The managing script is responsible for forwarding data to and from the model and robot interfaces.
+We execute the inference script on four machines. The shared layer weights are loaded on an NVIDIA GeForce GTX 970 (denoted by **PC:A** in [**Figure 1**](#figure-1)) with 4 GB VRAM. Machines **S:1**, **S:2**, and **S:3** share similar specifications, each with an NVIDIA GeForce GTX 1050 Ti having 4~GB VRAM. 
+We distribute nine ensembles among the three machines in equal proportions and broadcast their latent representation tensors using ZeroMQ. The PyTorch-based inference script is executed on **PC:A**, **S:1**, **S:2**, and **S:3**, all having their tensors mapped to a GPU. 
 
 Depending on the experimental condition, images arrive directly from each robot's camera:
 * The iCub robot image arrives from the left eye camera having a size of $320\times240$ pixels and is transmitted over YARP at 30 FPS. 
