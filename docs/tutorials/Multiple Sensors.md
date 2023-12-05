@@ -27,27 +27,30 @@ The 6D rotation matrix utilized in their approach is highly efficient for repres
     \mathbf{p}_x & = [\text{p}_1, \text{p}_2, \text{p}_3]
     \quad \quad
     %
-    \mathbf{p}_y = [\text{p}_4, \text{p}_5, \text{p}_6]\tag{5}
+    \mathbf{p}_y = [\text{p}_4, \text{p}_5, \text{p}_6]
     \quad & \quad \quad
 \end{align}
+```
 
 resulting in a rotation matrix $\mathbf{R}$:
-```
+
 
 ```math
 \begin{align}
-    \mathbf{r}_{x} & = \frac{\mathbf{p}_{x}}{\sqrt{\sum_{l=1}^{3} \text{p}_{x,l}^2}}\tag{6}
+    \mathbf{r}_{x} & = \frac{\mathbf{p}_{x}}{\sqrt{\sum_{l=1}^{3} \text{p}_{x,l}^2}}
     \\
-    \mathbf{r}_{z} & = \frac{\mathbf{r}_{x} \times \mathbf{p}_{y}}{\sqrt{\sum_{l=1}^{3} {(\text{r}_{x,l} \times \text{p}_{y,l})}^2}}\tag{7}
+    \mathbf{r}_{z} & = \frac{\mathbf{r}_{x} \times \mathbf{p}_{y}}{\sqrt{\sum_{l=1}^{3} {(\text{r}_{x,l} \times \text{p}_{y,l})}^2}}
 \end{align}
 ```
 
 ```math
 \begin{align}
-    \mathbf{r}_{y} & = \frac{\mathbf{r}_{z} \times \mathbf{r}_{x}}{\sqrt{\sum_{l=1}^{3} {(\text{r}_{z,l} \times \text{r}_{x,l})}^2}}\tag{8}
+    \mathbf{r}_{y} & = \frac{\mathbf{r}_{z} \times \mathbf{r}_{x}}{\sqrt{\sum_{l=1}^{3} {(\text{r}_{z,l} \times \text{r}_{x,l})}^2}}
 \end{align}
+```
 
-\begin{align*}
+```math
+\begin{align}
     \mathbf{R} & = 
     \begin{bmatrix}
     \vert & \vert & \vert
@@ -63,7 +66,7 @@ resulting in a rotation matrix $\mathbf{R}$:
     \text{R}_{21} & \text{R}_{22} & \text{R}_{23}
     \\
     \text{R}_{31} & \text{R}_{32} & \text{R}_{33}
-    \end{bmatrix}\tag{9}
+    \end{bmatrix}
     \\
 \end{align}
 ```
@@ -79,13 +82,13 @@ which is utilized to acquire the Euler angles following the standard order (roll
     \begin{cases}
         1, & \text{if } \alpha\geq 10^{-6}\\
         0, & \text{otherwise}
-    \end{cases}\tag{10}
+    \end{cases}
     \\
-    \phi_M & = (1 - \beta) \cdot \atantwo(\text{R}_{12}, \text{R}_{11})
+    \phi_M & = (1 - \beta) \cdot atan2(\text{R}_{12}, \text{R}_{11})
     \\
-    \theta_M & = (1 - \beta) \cdot \atantwo(\text{R}_{23}, \text{R}_{33}) + \beta \cdot \atantwo(-\text{R}_{32}, \text{R}_{22})
+    \theta_M & = (1 - \beta) \cdot atan2(\text{R}_{23}, \text{R}_{33}) + \beta \cdot atan2(-\text{R}_{32}, \text{R}_{22})
     \\
-    \psi_M & = \atantwo(-\text{R}_{13}, \alpha)\tag{11}
+    \psi_M & = atan2(-\text{R}_{13}, \alpha)
 \end{align}
 ```
 
