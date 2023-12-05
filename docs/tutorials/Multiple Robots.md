@@ -43,7 +43,7 @@ $N=6$ corresponding to the number of visual frames acquired by the model per sec
 ```
 
 resulting in the emotion category $\text{k}_t$ being transmitted from the inference script running the facial expression recognition model to the managing script executed on **PC:A**. The managing script is responsible for forwarding data to and from the model and robot interfaces.
-We execute the inference script on four machines. The shared layer weights are loaded on an NVIDIA GeForce GTX 970 (denoted by **PC:A** in [**Figure 1**](#figure-1)) with 4 GB VRAM. Machines **S:1**, **S:2**, and **S:3** share similar specifications, each with an NVIDIA GeForce GTX 1050 Ti having 4~GB VRAM. 
+We execute the inference script on four machines. The shared layer weights are loaded on an NVIDIA GeForce GTX 970 (denoted by **PC:A** in [**Figure 1**](#figure-1)) with 4 GB VRAM. Machines **S:1**, **S:2**, and **S:3** share similar specifications, each with an NVIDIA GeForce GTX 1050 Ti having 4GB VRAM. 
 We distribute nine ensembles among the three machines in equal proportions and broadcast their latent representation tensors using ZeroMQ. The PyTorch-based inference script is executed on **PC:A**, **S:1**, **S:2**, and **S:3**, all having their tensors mapped to a GPU. 
 
 Depending on the experimental condition, images arrive directly from each robot's camera:
