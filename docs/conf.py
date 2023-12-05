@@ -83,6 +83,8 @@ extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'm
 source_suffix = ['.rst', '.md']
 exclude_patterns = ["_build"]
 
+myst_enable_extensions = ["dollarmath", "amsmath"]
+
 # mock all libraries except for the ones that are installed
 with open('exclude_packages.json', 'r') as f:
     all_imported_modules_pre = set(x for x in json.load(f) if x is not None)
