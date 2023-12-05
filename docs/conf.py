@@ -79,7 +79,7 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static'] 
 html_css_files = ['wide_theme.css'] 
 
-extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'myst_parser', 'link_modifier']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'myst_parser', 'link_modifier', 'sphinx.ext.mathjax']
 source_suffix = ['.rst', '.md']
 exclude_patterns = ["_build"]
 
