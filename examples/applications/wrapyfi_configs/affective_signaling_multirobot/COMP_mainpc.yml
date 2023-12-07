@@ -1,0 +1,11 @@
+ExperimentController:
+    listen_facial_expressions_esr9: "disable"
+    publish_facial_expressions_icub: "disable"
+    publish_facial_expressions_pepper: "disable"
+    listen_image_webcam: "listen"
+    listen_image_pepper_cam: "disable"
+    listen_image_icub_cam: "disable"
+    publish_esr9_cam: "publish"
+    forward_image_webcam: "none"
+    forward_image_pepper_cam: "listen"
+    forward_image_icub_cam: "listen"

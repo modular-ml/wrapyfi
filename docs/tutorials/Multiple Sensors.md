@@ -6,11 +6,11 @@
 
 [Video: https://github.com/fabawi/wrapyfi/assets/4982924/6c83ef06-1d77-482d-a75f-45ad5ed81596](https://github.com/fabawi/wrapyfi/assets/4982924/6c83ef06-1d77-482d-a75f-45ad5ed81596)
 
-This tutorial demonstrates how to use the Wrapyfi framework to run a head pose estimation and acquire head orientation from inertial measurement unit (IMU) readings to mirror the movements of an actor on the iCub robot 
+This tutorial demonstrates how to use the Wrapyfi framework to run a head pose estimation model and/or acquire head orientation from inertial measurement unit (IMU) readings to mirror the movements of an actor on the iCub robot 
 in a near-real-time setting. Under the model-controlled condition, the iCub robot's movements are actuated by a vision-based head pose estimation model. Under the IMU-controlled condition, the orientation readings arrived instead from an IMU attached to a wearable eye tracker.
 Switching between the sources of movement estimation can be done by **channeling** the coordinates to the robot (check out the [channeling scheme](<../usage/User%20Guide/Communication%20Schemes.md#channeling>) for more details on channeling).
 
-### Methodology
+## Methodology
 
 <p align="center">
   <a id="figure-1"></a>

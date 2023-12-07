@@ -11,7 +11,7 @@ The model recognizes 8 facial expressions which are propagated to the Pepper and
 \textit{robotic facial expressions}---by changing the iCub robot's eyebrow and mouth LED patterns. The image input received by the model is acquired from the Pepper and iCub robots' cameras by simply 
 **forwarding** the images to the facial expression recognition model (check out the [forwarding scheme](<../usage/User%20Guide/Communication%20Schemes.md#forwarding>) for more details on forwarding).
 
-### Methodology
+## Methodology
 
 <p align="center">
   <a id="figure-1"></a>
@@ -50,3 +50,65 @@ Depending on the experimental condition, images arrive directly from each robot'
 * The iCub robot image arrives from the left eye camera having a size of $320\times240$ pixels and is transmitted over YARP at 30 FPS. 
 * The Pepper robot image arrives from the top camera having a size of $640\times480$ pixels and is transmitted over ROS at 24 FPS.
 The image is directly forwarded to the facial expression model, resulting in a predicted emotion returned to the corresponding robot's LED interface.
+
+## Pre-requisites:
+* Installing [Wrapyfi](<../usage/Installation.md>)
+* Installing [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
+* **when using the Pepper robot**:
+  * [ROS](http://wiki.ros.org/ROS/Installation)
+  * [DOCKER with Naoqi]
+* **when using the iCub robot**:
+  * [YARP](https://www.yarp.it/install.html)
+  * [ICUB Software]
+  * 
+
+Throughout this tutorial, we assume that all repositories are cloned into the `~\Code` directory.
+
+Before proceeding, we must clone the Wrapyfi interfaces repository: 
+
+```bash
+cd ~/Code
+git clone https://github.com/modular-ml/wrapyfi-interfaces.git
+```
+
+and add it to the `PYTHONPATH` environment variable:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
+```
+
+## Modifying the FER Model
+
+To integrate Wrapyfi into the [facial expression recognition model](https://github.com/siqueira-hc/Efficient-Facial-Feature-Learning-with-Wide-Ensemble-based-Convolutional-Neural-Networks), we first need to modify the model to accept and return data from and to the robot interfaces.
+
+
+
+
+### Receiving Images from the Robot Interfaces
+
+The model acquires images using OpenCV's VideoCapture class. We modify the model to receive images from the robot interfaces by replacing the VideoCapture class with a class that receives and returns images from any middleware supported by Wrapyfi. The modified class is defined in the
+[Wrapyfi video interface](https://github.com/modular-ml/wrapyfi-interfaces/blob/main/wrapyfi_interfaces/io/video/interface.py). This interface is identical to the VideoCapture class, except that it receives and returns images from any middleware supported by Wrapyfi.
+
+The interface is used to receive images from the robot interfaces by passing the middleware name and topic name to the interface constructor:
+
+```python
+from wrapyfi_interfaces.io.video.interface import VideoInterface
+
+cap = VideoInterface("/icub/cam/left", mware="yarp")
+```
+
+In the example above, the interface receives images from the iCub robot's left eye camera over YARP. Note that here we replace the VideoCapture source with the topic name to which the robot's framework publishes the images. 
+Similarly, we can receive images from the Pepper robot's top camera over ROS by passing the topic name to the interface constructor:
+
+```python
+cap = VideoInterface("/pepper/camera/front/camera/image_raw", mware="ros")
+```
+
+Getting the return value from the interface is identical to the VideoCapture class:
+
+```python
+ret, frame = cap.read()
+```
+
+with every call to `cap.read()` returning a boolean value `ret` indicating whether the frame was successfully read, and the image `frame` itself. 
+
