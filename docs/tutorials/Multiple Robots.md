@@ -1,4 +1,4 @@
-# Tutorial: Multiple Robot Control using the Forwarding Scheme
+# Tutorial: Multiple Robot Control using the Mirroring and Forwarding Schemes
 
 <p align="center">
     <video width="630" height="300" controls autoplay><source type="video/mp4" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex2-1.mp4"></video>
@@ -43,10 +43,19 @@ $N=6$ corresponding to the number of visual frames acquired by the model per sec
 ```
 
 resulting in the emotion category $\text{k}_t$ being transmitted from the inference script running the facial expression recognition model to the managing script executed on **PC:A**. The managing script is responsible for forwarding data to and from the model and robot interfaces.
-We execute the inference script on four machines. The shared layer weights are loaded on an NVIDIA GeForce GTX 970 (denoted by **PC:A** in [**Figure 1**](#figure-1)) with 4 GB VRAM. Machines **S:1**, **S:2**, and **S:3** share similar specifications, each with an NVIDIA GeForce GTX 1050 Ti having 4GB VRAM. 
-We distribute nine ensembles among the three machines in equal proportions and broadcast their latent representation tensors using ZeroMQ. The PyTorch-based inference script is executed on **PC:A**, **S:1**, **S:2**, and **S:3**, all having their tensors mapped to a GPU. 
+We execute the inference script on three-six machines:
+* **PC:A**: Running the application manager and forwarding messages to and from the FER model. 
+* **S:1**: Running the FER model and forwarding messages to and from the application manager.
+* **PC:ICUB**: Running the iCub robot control workflow.
+* **PC:PEPPER**: Running the Pepper robot control workflow.
+* **PC:WEBCAM**: Running the webcam interface for acquiring images from the webcam.
 
-Depending on the experimental condition, images arrive directly from each robot's camera:
+At least one of either two robot PCs (**PC:ICUB** and **PC:PEPPER**) must be running for the application to work. 
+The webcam interface (**PC:WEBCAM**) is optional and is only needed if we want to acquire images from a webcam rather than a robots. 
+We note that all machine scripts can be executed on a single machine, but we distribute them across multiple machines to demonstrate 
+the flexibility of the Wrapyfi framework.
+
+Images arrive directly from each robot's camera:
 * The iCub robot image arrives from the left eye camera having a size of $320\times240$ pixels and is transmitted over YARP at 30 FPS. 
 * The Pepper robot image arrives from the top camera having a size of $640\times480$ pixels and is transmitted over ROS at 24 FPS.
 The image is directly forwarded to the facial expression model, resulting in a predicted emotion returned to the corresponding robot's LED interface.
@@ -119,40 +128,38 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 ### Sending the Recognized Emotion to the Robot Interfaces
 [TODO]
 
-### Distributing the Ensemble Branches
-[TODO]
 
 ## Running the Application
 
 <details>
 
-  <summary>**Easy: iCub simulation only; running all scripts on a single machine**</summary>
+  <summary><b><font color="green">Easy</font>: iCub simulation only; running all scripts on a single machine</b></summary>
 
-  Start the yapserver to enable communication with the iCub robot:
+  Start the yapserver to enable communication with the iCub robot (on any machine):
   
   ```bash
   yarpserver
   ```
 
-  Start the iCub simulator:
+  Start the iCub simulator (on **PC:ICUB**):
     
   ```bash
   iCub_SIM
   ```
 
-  The facial expressions shown on the iCub's face are not enabled by default when running the iCub simulator, so we need to start the iCubFaceExpressions module to enable them:
+  The facial expressions shown on the iCub's face are not enabled by default when running the iCub simulator, so we need to start the iCubFaceExpressions module to enable them (on **PC:ICUB**):
   
   ```bash 
   simFaceExpressions
   ```
 
-  Start the iCub emotion interface to receive the facial expressions a specific port/topic:
+  Start the iCub emotion interface to receive the facial expressions a specific port/topic (on **PC:ICUB**):
   
   ```bash
   emotionInterface --name /icubSim/face/emotions --context faceExpressions --from emotions.ini
   ```
 
-  Connect the iCub simulator ports to the iCub emotion interface:
+  Connect the iCub simulator ports to the iCub emotion interface (on **PC:ICUB**):
   
   ```bash
   yarp connect /face/eyelids /icubSim/face/eyelids
@@ -160,7 +167,7 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
   yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
   ```
   
-  Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot:
+  Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
   ```bash 
   cd $HOME/Code/wrapyfi-interfaces
@@ -170,14 +177,15 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
   --facial_expressions_port "/control_interface/facial_expressions_icub"
   ```
   
-  Start the camera interface to receive images from the webcam and forward them to the application controller:
+  Start the camera interface to receive images from the webcam and forward them to the application controller (on **PC:WEBCAM**):
 
   ```bash
   cd $HOME/Code/wrapyfi/examples/applications
   python wrapyfi_interfaces/io/video/interface.py --mware yarp --cap_source "0" --fps 30 --cap_feed_port "/control_interface/image_webcam" --img_width 320 --img_height 240 --jpg
   ```
   
-  Start two mirrored instances of the application controller:
+  Start two mirrored instances of the application controller (on **PC:A** and **PC:ICUB**, respectively):
+
 
   ```bash
   # The first instance is responsible for running the application workflow
@@ -194,7 +202,9 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
   we do so to separate the application workflow from the robot control workflows. In this example, where we run a single 
   robot, the utility of such separation is not apparent. If we were to merge the workflows in the main configuration 
   `COMP_mainpc.yml` file, then we must also run the workflow for **robot A** when wanting to run **robot B** only.
-
+  
+  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized emotion to the application controller (on **S:1**):
+  
   ```bash
   cd $HOME/Code/wrapyfi-examples_esr9/
   export PYTHONPATH=$HOME/Code/wrapyfi-interfaces:$PYTHONPATH
