@@ -38,7 +38,7 @@ class ExperimentController(MiddlewareCommunicator):
     @MiddlewareCommunicator.register("Image", "$_mware", "ExperimentController", "$_topic",
                                      width="$_width", height="$_height", rgb=True, fp=False, should_wait=False,
                                      jpg=True)
-    def listen_image_webcam(self, _mware="ros2", _width=WEBCAM_WIDTH, _height=WEBCAM_HEIGHT,
+    def listen_image_webcam(self, _mware=DEFAULT_COMMUNICATOR, _width=WEBCAM_WIDTH, _height=WEBCAM_HEIGHT,
                             _topic="/control_interface/image_webcam"):  # dynamic topic according to corresponding API
         return None,
 

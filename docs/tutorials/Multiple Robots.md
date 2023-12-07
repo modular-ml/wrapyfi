@@ -63,8 +63,11 @@ The image is directly forwarded to the facial expression model, resulting in a p
   * 
 
 Throughout this tutorial, we assume that all repositories are cloned into the `~\Code` directory.
+**Wrapyfi should also be cloned into the `~\Code` directory in order to access the examples.**
 
-Before proceeding, we must clone the Wrapyfi interfaces repository: 
+Additionally, cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository is needed 
+since it provides dedicated interfaces for communicating with the robots, acquiring and publishing webcam images, 
+and providing message structures for standardizing exchanges between applications: 
 
 ```bash
 cd ~/Code
@@ -112,3 +115,89 @@ ret, frame = cap.read()
 
 with every call to `cap.read()` returning a boolean value `ret` indicating whether the frame was successfully read, and the image `frame` itself. 
 
+
+### Sending the Recognized Emotion to the Robot Interfaces
+[TODO]
+
+### Distributing the Ensemble Branches
+[TODO]
+
+## Running the Application
+
+<details>
+
+  <summary>**Easy: iCub simulation only; running all scripts on a single machine**</summary>
+
+  Start the yapserver to enable communication with the iCub robot:
+  
+  ```bash
+  yarpserver
+  ```
+
+  Start the iCub simulator:
+    
+  ```bash
+  iCub_SIM
+  ```
+
+  The facial expressions shown on the iCub's face are not enabled by default when running the iCub simulator, so we need to start the iCubFaceExpressions module to enable them:
+  
+  ```bash 
+  simFaceExpressions
+  ```
+
+  Start the iCub emotion interface to receive the facial expressions a specific port/topic:
+  
+  ```bash
+  emotionInterface --name /icubSim/face/emotions --context faceExpressions --from emotions.ini
+  ```
+
+  Connect the iCub simulator ports to the iCub emotion interface:
+  
+  ```bash
+  yarp connect /face/eyelids /icubSim/face/eyelids
+  yarp connect /face/image/out /icubSim/texture/face
+  yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
+  ```
+  
+  Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot:
+  
+  ```bash 
+  cd $HOME/Code/wrapyfi-interfaces
+  python3 wrapyfi_interfaces/robots/icub_head/interface.py \
+  --simulation --get_cam_feed \
+  --control_expressions \
+  --facial_expressions_port "/control_interface/facial_expressions_icub"
+  ```
+  
+  Start the camera interface to receive images from the webcam and forward them to the application controller:
+
+  ```bash
+  cd $HOME/Code/wrapyfi/examples/applications
+  python wrapyfi_interfaces/io/video/interface.py --mware yarp --cap_source "0" --fps 30 --cap_feed_port "/control_interface/image_webcam" --img_width 320 --img_height 240 --jpg
+  ```
+  
+  Start two mirrored instances of the application controller:
+
+  ```bash
+  # The first instance is responsible for running the application workflow
+  cd $HOME/Code/wrapyfi/examples/applications
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python3 affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/COMP_mainpc.yml --cam_source webcam
+  ```
+
+  ```bash
+  # The second instance is responsible for running the robot (iCub) control workflow
+  cd $HOME/Code/wrapyfi/examples/applications
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python3 affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/OPT_icubpc.yml --cam_source webcam
+  ```
+  **Note**: running two instances is not necessary if we configure a single script to handle all exchanges; however, 
+  we do so to separate the application workflow from the robot control workflows. In this example, where we run a single 
+  robot, the utility of such separation is not apparent. If we were to merge the workflows in the main configuration 
+  `COMP_mainpc.yml` file, then we must also run the workflow for **robot A** when wanting to run **robot B** only.
+
+  ```bash
+  cd $HOME/Code/wrapyfi-examples_esr9/
+  export PYTHONPATH=$HOME/Code/wrapyfi-interfaces:$PYTHONPATH
+  python main_esr9.py webcam -w "/control_interface/image_esr9" -d -s 2 -b --frames 10 --max_frames 10 --video_mware yarp --facial_expressions_mware yarp --facial_expressions_port "/control_interface/facial_expressions_esr9" --face_detection 3 --img_width 320 --img_height 240 --jpg
+  ```
+</details>
