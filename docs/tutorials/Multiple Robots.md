@@ -6,10 +6,13 @@
 
 [Video: https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4](https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4)
 
-This tutorial demonstrates how to use the Wrapyfi framework to run a facial expression recognition model on multiple robots. The facial expression recognition model is executed on four machines, each having a GPU. 
+This tutorial demonstrates how to use the Wrapyfi framework to run a facial expression recognition (FER) model on multiple robots. The facial expression recognition model is executed on four machines, each having a GPU. 
 The model recognizes 8 facial expressions which are propagated to the Pepper and iCub robots. The expression categories are displayed by changing the Pepper robot's eye and shoulder LED colors---or 
 \textit{robotic facial expressions}---by changing the iCub robot's eyebrow and mouth LED patterns. The image input received by the model is acquired from the Pepper and iCub robots' cameras by simply 
 **forwarding** the images to the facial expression recognition model (check out the [forwarding scheme](<../usage/User%20Guide/Communication%20Schemes.md#forwarding>) for more details on forwarding).
+We also provide a simple application manager that handles the communication between the model and the robots. The application manager is responsible for forwarding images to the FER model, 
+and transmitting recognized facial expressions to the robots. The application manager itself is composed of mirrored (check out the [mirroring scheme](<../usage/User%20Guide/Communication%20Schemes.md#mirroring>) 
+instances running on one or several machines, depending on the configuration. 
 
 ## Methodology
 
@@ -42,8 +45,10 @@ $N=6$ corresponding to the number of visual frames acquired by the model per sec
 \end{align}
 ```
 
-resulting in the emotion category $\text{k}_t$ being transmitted from the inference script running the facial expression recognition model to the managing script executed on **PC:A**. The managing script is responsible for forwarding data to and from the model and robot interfaces.
-We execute the inference script on three-six machines:
+resulting in the emotion category $\text{k}_t$ being transmitted from the inference script running the facial expression recognition model to the application manager executed on **PC:A**. 
+The application manager manages exchanges to and from the model and robot interfaces.
+
+We execute the application on three to six machines, depending on the configuration:
 * **PC:A**: Running the application manager and forwarding messages to and from the FER model. 
 * **S:1**: Running the FER model and forwarding messages to and from the application manager.
 * **PC:ICUB**: Running the iCub robot control workflow.
@@ -59,35 +64,6 @@ Images arrive directly from each robot's camera:
 * The iCub robot image arrives from the left eye camera having a size of $320\times240$ pixels and is transmitted over YARP at 30 FPS. 
 * The Pepper robot image arrives from the top camera having a size of $640\times480$ pixels and is transmitted over ROS at 24 FPS.
 The image is directly forwarded to the facial expression model, resulting in a predicted emotion returned to the corresponding robot's LED interface.
-
-## Pre-requisites:
-* Installing [Wrapyfi](<../usage/Installation.md>)
-* Installing [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
-* **when using the Pepper robot**:
-  * [ROS](http://wiki.ros.org/ROS/Installation)
-  * [DOCKER with Naoqi]
-* **when using the iCub robot**:
-  * [YARP](https://www.yarp.it/install.html)
-  * [ICUB Software]
-  * 
-
-Throughout this tutorial, we assume that all repositories are cloned into the `~\Code` directory.
-**Wrapyfi should also be cloned into the `~\Code` directory in order to access the examples.**
-
-Additionally, cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository is needed 
-since it provides dedicated interfaces for communicating with the robots, acquiring and publishing webcam images, 
-and providing message structures for standardizing exchanges between applications: 
-
-```bash
-cd ~/Code
-git clone https://github.com/modular-ml/wrapyfi-interfaces.git
-```
-
-and add it to the `PYTHONPATH` environment variable:
-
-```bash
-export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
-```
 
 ## Modifying the FER Model
 
@@ -128,6 +104,34 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 ### Sending the Recognized Emotion to the Robot Interfaces
 [TODO]
 
+## Pre-requisites:
+* Installing [Wrapyfi](<../usage/Installation.md>)
+* Installing [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
+* **when using the Pepper robot**:
+  * [ROS](http://wiki.ros.org/ROS/Installation)
+  * [DOCKER with Naoqi]
+* **when using the iCub robot**:
+  * [YARP](https://www.yarp.it/install.html)
+  * [ICUB Software]
+  * 
+
+Throughout this tutorial, we assume that all repositories are cloned into the `~\Code` directory.
+**Wrapyfi should also be cloned into the `~\Code` directory in order to access the examples.**
+
+Additionally, cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository is needed 
+since it provides dedicated interfaces for communicating with the robots, acquiring and publishing webcam images, 
+and providing message structures for standardizing exchanges between applications: 
+
+```bash
+cd ~/Code
+git clone https://github.com/modular-ml/wrapyfi-interfaces.git
+```
+
+and add it to the `PYTHONPATH` environment variable:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
+```
 
 ## Running the Application
 

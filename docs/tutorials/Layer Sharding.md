@@ -25,7 +25,7 @@ To integrate Wrapyfi into the [facial expression recognition model](https://gith
 
 [TODO]
 
-## A) Distributing the Transformer Blocks of the Llama LLM
+## B) Distributing the Transformer Blocks of the Llama LLM
 
 [TODO]
 
