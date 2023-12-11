@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   examples.applications
    examples.communication_patterns
    examples.communication_schemes
    examples.custom_msgs

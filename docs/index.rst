@@ -28,11 +28,18 @@ Wrapyfi is multi-middleware python package supporting ROS, ROS 2, YARP and ZeroM
    yarp_install_lnk.md
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Examples:
    :glob:
 
-   examples/*
+   examples.md
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Tutorials:
+   :glob:
+
+   tutorials.md
 
 .. toctree::
    :maxdepth: 2
@@ -40,3 +47,4 @@ Wrapyfi is multi-middleware python package supporting ROS, ROS 2, YARP and ZeroM
    :glob:
 
    source/*
+

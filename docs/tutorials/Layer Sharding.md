@@ -33,7 +33,21 @@ To integrate Wrapyfi into the [facial expression recognition model](https://gith
 
 <details>
 
-  <summary><b><font color="green">Easy</font>: Ensembles on a single machine</b></summary>
+  <summary><b><font color="green">Easy</font>: FER Ensembles on a single machine  (horizontal)</b></summary>
+
+  [TODO]
+</details>
+
+<details>
+
+  <summary><b><font color="orange">Intermediate</font>: FER Ensembles on a multiple machine (horizontal)</b></summary>
+
+  [TODO]
+</details>
+
+<details>
+
+  <summary><b><font color="orange">Intermediate</font>: LLM Transformer blocks on a multiple machine (vertical)</b></summary>
 
   [TODO]
 </details>

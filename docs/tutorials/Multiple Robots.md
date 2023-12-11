@@ -6,7 +6,7 @@
 
 [Video: https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4](https://github.com/fabawi/wrapyfi/assets/4982924/a7ca712a-ffe8-40cb-9e78-b37d57dd27a4)
 
-This tutorial demonstrates how to use the Wrapyfi framework to run a facial expression recognition (FER) model on multiple robots. The facial expression recognition model is executed on four machines, each having a GPU. 
+This tutorial demonstrates how to use the Wrapyfi framework to run a facial expression recognition (FER) model on multiple robots. 
 The model recognizes 8 facial expressions which are propagated to the Pepper and iCub robots. The expression categories are displayed by changing the Pepper robot's eye and shoulder LED colors---or 
 \textit{robotic facial expressions}---by changing the iCub robot's eyebrow and mouth LED patterns. The image input received by the model is acquired from the Pepper and iCub robots' cameras by simply 
 **forwarding** the images to the facial expression recognition model (check out the [forwarding scheme](<../usage/User%20Guide/Communication%20Schemes.md#forwarding>) for more details on forwarding).
@@ -107,9 +107,21 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 ## Pre-requisites:
 * Installing [Wrapyfi](<../usage/Installation.md>)
 * Installing [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
-* **when using the Pepper robot**:
-  * [ROS](http://wiki.ros.org/ROS/Installation)
-  * [DOCKER with Naoqi]
+* Installing the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9)
+* **when using the Pepper robot with NAOqi 2.5**:
+  * [ROS Noetic](http://wiki.ros.org/ROS/Installation) 
+    **or** 
+    [Robostack bundling of ROS Noetic in a mamba or micromamba environment](https://robostack.github.io/GettingStarted.html)
+    * After installing ros, create a workspace and compile [Pepper Camera](https://github.com/pallgeuer/pepper_camera):
+    
+    ```bash
+    mkdir -p ~/catkin_ws/src
+    ```
+    
+    * Install the camera info manager for the Pepper camera on local system: `sudo apt install ros-noetic-camera-info-manager` 
+    **or** 
+    within a Robostack env: `micromamba install -c robostack ros-noetic-camera-info-manager`
+  * [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/pallgeuer/pepper-ros-docker)
 * **when using the iCub robot**:
   * [YARP](https://www.yarp.it/install.html)
   * [ICUB Software]
@@ -214,4 +226,10 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
   export PYTHONPATH=$HOME/Code/wrapyfi-interfaces:$PYTHONPATH
   python main_esr9.py webcam -w "/control_interface/image_esr9" -d -s 2 -b --frames 10 --max_frames 10 --video_mware yarp --facial_expressions_mware yarp --facial_expressions_port "/control_interface/facial_expressions_esr9" --face_detection 3 --img_width 320 --img_height 240 --jpg
   ```
+</details>
+
+<details>
+
+  <summary><b><font color="orange">Intermediate</font>: iCub & Pepper; running scripts on multiple machine</b></summary>
+
 </details>

@@ -1,4 +1,4 @@
-# Tutorial: Switching between Sensors using the Channeling Scheme
+# Tutorial: Switching between Sensors using the Mirroring and Channeling Schemes
 
 <p align="center">
     <video width="630" height="300" controls autoplay><source type="video/mp4" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex1-1.mp4"></video>
