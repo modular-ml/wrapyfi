@@ -4,6 +4,7 @@
     <video width="630" height="300" controls autoplay><source type="video/mp4" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex1-1.mp4"></video>
 </p>
 
+
 [Video: https://github.com/fabawi/wrapyfi/assets/4982924/6c83ef06-1d77-482d-a75f-45ad5ed81596](https://github.com/fabawi/wrapyfi/assets/4982924/6c83ef06-1d77-482d-a75f-45ad5ed81596)
 
 This tutorial demonstrates how to use the Wrapyfi framework to run a head pose estimation model and/or acquire head orientation from inertial measurement unit (IMU) readings to mirror the movements of an actor on the iCub robot 
