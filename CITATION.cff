@@ -12,11 +12,11 @@ preferred-citation:
     given-names: "Di"
   - family-names: "Wermter"
     given-names: "Stefan"
-  title: "Wrapyfi: A Wrapper for Message-Oriented and Robotics Middleware"
-  journal: "arXiv preprint arXiv:2302.09648"
+  title: "Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware"
+  journal: "Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction"
   publisher: 
-    name: "The Open Journal"
-  version: 0.4.12
+    name: "Association for Computing Machinery"
+  version: 0.4.29
   doi: 10.48550/arXiv.2302.09648
-  date-released: 2023-02-23
+  date-released: 2023-12-12
   url: "https://github.com/fabawi/wrapyfi"
