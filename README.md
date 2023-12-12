@@ -22,14 +22,14 @@ To integrate Wrapyfi with your scripts, add the decorators describing the transm
 Please refer to the following [paper](https://arxiv.org/abs/2302.09648) when citing Wrapyfi in academic work:
 
 ```
-@article{abawi2023wrapyfi,
+@inproceedings{abawi2023wrapyfi,
   author = {Abawi, Fares and Allgeuer, Philipp and Fu, Di and Wermter, Stefan},
-  title = {{Wrapyfi: A Wrapper for Message-Oriented and Robotics Middleware}},
-  journal = {arXiv preprint arXiv:2302.09648},
-  publisher = {arXiv},
+  title = {{Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware}},
+  booktitle = {Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction},
+  publisher = {Association for Computing Machinery},
   doi = {10.48550/ARXIV.2302.09648},
   url = {https://arxiv.org/abs/2302.09648},
-  year = {2023}
+  year = {2024}
 }
 ```
 
