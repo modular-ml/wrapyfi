@@ -21,7 +21,7 @@ Requirements:
     - Pexpect: To control the facial expressions using RPC
 
     Install using pip:
-    ``pip install scipy pexpect``
+    ``pip install "scipy==1.9.0" pexpect``
 
 Run:
     # For the list of keyboard controls, refer to the comments in Keyboard Controls.

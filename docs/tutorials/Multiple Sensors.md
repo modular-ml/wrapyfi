@@ -1,4 +1,4 @@
-# Tutorial: Switching between Sensors using the Channeling Scheme
+# Tutorial: Switching between Sensors using the Mirroring and Channeling Schemes
 
 <p align="center">
     <video width="630" height="300" controls autoplay><source type="video/mp4" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/tutorials/vid_demo_ex1-1.mp4"></video>
@@ -6,11 +6,11 @@
 
 [Video: https://github.com/fabawi/wrapyfi/assets/4982924/6c83ef06-1d77-482d-a75f-45ad5ed81596](https://github.com/fabawi/wrapyfi/assets/4982924/6c83ef06-1d77-482d-a75f-45ad5ed81596)
 
-This tutorial demonstrates how to use the Wrapyfi framework to run a head pose estimation and acquire head orientation from inertial measurement unit (IMU) readings to mirror the movements of an actor on the iCub robot 
+This tutorial demonstrates how to use the Wrapyfi framework to run a head pose estimation model and/or acquire head orientation from inertial measurement unit (IMU) readings to mirror the movements of an actor on the iCub robot 
 in a near-real-time setting. Under the model-controlled condition, the iCub robot's movements are actuated by a vision-based head pose estimation model. Under the IMU-controlled condition, the orientation readings arrived instead from an IMU attached to a wearable eye tracker.
 Switching between the sources of movement estimation can be done by **channeling** the coordinates to the robot (check out the [channeling scheme](<../usage/User%20Guide/Communication%20Schemes.md#channeling>) for more details on channeling).
 
-### Methodology
+## Methodology
 
 <p align="center">
   <a id="figure-1"></a>
@@ -100,7 +100,7 @@ The gaze coordinates are inferred using the Pupil Core [(Kassner et al., 2014)](
 * The ICM-20948 attached to the Pupil Core. Readings from the IMU are filtered using the Mahony algorithm [(Mahony et al., 2008)](https://ieeexplore.ieee.org/document/4608934) running on the RP2040 with a sampling frequency of 50 Hz. Both the IMU and the Pupil Core are connected to **PC:E** running the IMU interface, and the Pupil Capture software interfacing directly with the eye tracker. Since the Pupil interface communicate directly over ZeroMQ, we choose ZeroMQ for transmitting the IMU readings as well. In order to mirror the participant's head movement, we invert the values of the roll $\phi$ and yaw $\psi$. However, there may be an offset between orientation as measured by the IMU and the orientation of the participant relative to the robot. To correct this offset, we ask the participant to look straight at the robot and use the readings from 6DRepNet to shift the readings from the IMU.
 
  
-The managing script running on **PC:A** initializes the experiment by transmitting a trigger over ZeroMQ. **PC:E** receives the trigger, starting the video feed, which is directly transmitted to **S:4** over ROS 2. To select the most suited middleware for this task, we evaluate the transmission latency of the 6DRepNet and IMU orientation coordinates with all four middleware. Two participants conducted five trials each, performing cyclic head rotations on $\theta$, $\psi$, and $\phi$---corresponding to the x,y, and z axes---independently. 
+The application manager running on **PC:A** initializes the experiment by transmitting a trigger over ZeroMQ. **PC:E** receives the trigger, starting the video feed, which is directly transmitted to **S:4** over ROS 2. To select the most suited middleware for this task, we evaluate the transmission latency of the 6DRepNet and IMU orientation coordinates with all four middleware. Two participants conducted five trials each, performing cyclic head rotations on $\theta$, $\psi$, and $\phi$---corresponding to the x,y, and z axes---independently. 
 
 <p align="center">
   <a id="figure-2"></a>
