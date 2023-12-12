@@ -2,13 +2,13 @@
 
 <p align="center">
   <a id="figure-1"></a>
-  <img width="460" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/evaluation/native_object_benchmarks_latest.png">
+  <img width="640" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/evaluation/native_object_benchmarks_latest.png">
   <br>
   <em>Fig 1: Latency between publishing and receiving 200$\times$200 tensors of ones transmitted using each middleware independently with blocking methods. The transmitted tensors include those of Tensorflow, JAX, MXNet, PyTorch, and PaddlePaddle. 2000 trials are conducted with a publishing rate of 100 Hz for each middleware and plugin combination. Latency indicates the time difference between transmission and reception including de/serialization.</em>
 </p>
 
 We measure the transmission latency over multiple trials to assess the effectiveness of Wrapyfi in supporting different 
-frameworks and libraries. The results shown in[**Figure 1**](#figure-1) do not reflect the performances of the 
+frameworks and libraries. The results shown in [**Figure 1**](#figure-1) do not reflect the performances of the 
 middleware or libraries themselves but rather those of our serialization and deserialization mechanisms within the given 
 environment. The evaluation was conducted in publishing and subscribing modes on the same machine with an 
 Intel Core i9-11900 running at 2.5 GHz, with 64 GB RAM and an NVIDIA GeForce RTX 3080 Ti GPU with 12 GB VRAM. 
