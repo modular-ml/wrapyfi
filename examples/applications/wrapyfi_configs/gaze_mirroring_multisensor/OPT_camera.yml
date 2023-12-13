@@ -1,0 +1,7 @@
+ExperimentController:
+    listen_orientation_sixdrepnet_waveshareimu: "disable"
+    publish_orientation_icub: "disable"
+    listen_gaze_pupil: "disable"
+    publish_gaze_icub: "disable"
+    listen_image_webcam: "listen"
+    publish_sixdrepnet_cam: "publish"
