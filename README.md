@@ -6,6 +6,13 @@
 
 <hl/>
 
+
+[![webpage](https://custom-icon-badges.demolab.com/badge/Page-blue.svg?logo=globe&logoColor=white)](http://software.knowledge-technology.info/#wrapyfi "webpage link")
+[![paper](https://custom-icon-badges.demolab.com/badge/Paper-blue.svg?logo=paper_sheet&logoColor=white)](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf "page link")
+[![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv-blue.svg?logo=arxiv-logomark-small&logoColor=white)](https://arxiv.org/abs/2302.09648 "arXiv link")
+
+
+[![License](https://custom-icon-badges.demolab.com/github/license/denvercoder1/custom-icon-badges?logo=law&logoColor=white)](https://github.com/fabawi/wrapyfi/blob/main/LICENSE "license MIT")
 [![Documentation Status](https://readthedocs.org/projects/wrapyfi/badge/?version=latest)](https://wrapyfi.readthedocs.io/en/latest/?badge=latest)
 
 
@@ -19,15 +26,15 @@ To integrate Wrapyfi with your scripts, add the decorators describing the transm
 
 # Attribution
 
-Please refer to the following [paper](https://arxiv.org/abs/2302.09648) when citing Wrapyfi in academic work:
+Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf) when citing Wrapyfi in academic work:
 
 ```
 @inproceedings{abawi2023wrapyfi,
   author = {Abawi, Fares and Allgeuer, Philipp and Fu, Di and Wermter, Stefan},
   title = {{Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware}},
-  booktitle = {Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction},
-  publisher = {Association for Computing Machinery},
-  doi = {10.48550/ARXIV.2302.09648},
+  booktitle = {Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction (HRI '24)},
+  publisher = {Association for Computing Machinery (ACM)},
+  doi = {10.1145/3610977.3637471},
   url = {https://arxiv.org/abs/2302.09648},
   year = {2024}
 }

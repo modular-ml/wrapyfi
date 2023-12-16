@@ -131,7 +131,7 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
 * [ROS Noetic](http://wiki.ros.org/ROS/Installation) 
   **or** 
   [Robostack bundling of ROS Noetic in a mamba or micromamba environment](https://robostack.github.io/GettingStarted.html)
-  * After installing ros, create a workspace and compile [Pepper Camera](https://github.com/pallgeuer/pepper_camera):
+  * After installing ros, create a workspace and compile [Pepper Camera](https://github.com/modular-ml/pepper_camera):
     
   ```bash
   mkdir -p ~/catkin_ws/src
@@ -140,7 +140,7 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
   * Install the camera info manager for the Pepper camera on local system: `sudo apt install ros-noetic-camera-info-manager` 
   **or** 
   within a Robostack env: `micromamba install -c robostack ros-noetic-camera-info-manager`
-* [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/pallgeuer/pepper-ros-docker)
+* [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/modular-ml/pepper-ros-docker)
 
 ### When using the iCub Robot:
 * [YARP](https://www.yarp.it/install.html)
