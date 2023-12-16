@@ -7,7 +7,7 @@
 <hl/>
 
 
-[![webpage](https://custom-icon-badges.demolab.com/badge/Page-blue.svg?logo=globe&logoColor=white)](http://software.knowledge-technology.info/#wrapyfi "webpage link")
+[![webpage](https://custom-icon-badges.demolab.com/badge/Page-blue.svg?logo=globe&logoColor=white)](https://www.inf.uni-hamburg.de/en/inst/ab/wtm/research/software.html#wrapyfi "webpage link")
 [![paper](https://custom-icon-badges.demolab.com/badge/Paper-blue.svg?logo=paper_sheet&logoColor=white)](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf "page link")
 [![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv-blue.svg?logo=arxiv-logomark-small&logoColor=white)](https://arxiv.org/abs/2302.09648 "arXiv link")
 
