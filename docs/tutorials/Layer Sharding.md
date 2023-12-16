@@ -1,4 +1,4 @@
-# Tutorial: Horizontal and Vertical Layer Sharding
+# Tutorial: Model Parallelism through Horizontal and Vertical Layer Sharding
 
 
 This tutorial demonstrates how to use the Wrapyfi to shard a neural network across multiple machines. 
