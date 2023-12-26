@@ -13,7 +13,7 @@ preferred-citation:
   - family-names: "Wermter"
     given-names: "Stefan"
   title: "Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware"
-  book-title: "Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction"
+  journal: "Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction"
   publisher: 
     name: "Association for Computing Machinery"
   doi: 10.1145/3610977.3637471
