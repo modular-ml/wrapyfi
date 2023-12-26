@@ -9,9 +9,12 @@
 
 [![webpage](https://custom-icon-badges.demolab.com/badge/Page-blue.svg?logo=globe&logoColor=white)](https://www.inf.uni-hamburg.de/en/inst/ab/wtm/research/software.html#wrapyfi "webpage link")
 [![paper](https://custom-icon-badges.demolab.com/badge/Paper-blue.svg?logo=paper_sheet&logoColor=white)](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf "paper link")
-[![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv:2302.09648-blue.svg?logo=arxiv-logomark-small)](https://arxiv.org/abs/2302.09648 "arXiv link")
-[![doi](https://custom-icon-badges.demolab.com/badge/10.1145/3610977.3637471-blue.svg?logo=doi_logo)](https://doi.org/10.1145/3610977.3637471 "doi link")
-[![paperswithcode](https://custom-icon-badges.demolab.com/badge/wrapyfi-blue.svg?logo=paperwithcode)](https://cs.paperswithcode.com/paper/wrapyfi-a-wrapper-for-message-oriented-and "paperswithcode link")
+[![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv:2302.09648-lightyellow.svg?logo=arxiv-logomark-small)](https://arxiv.org/abs/2302.09648 "arXiv link")
+[![doi](https://custom-icon-badges.demolab.com/badge/10.1145/3610977.3637471-lightyellow.svg?logo=doi_logo)](https://doi.org/10.1145/3610977.3637471 "doi link")
+
+[![researchgate](https://custom-icon-badges.demolab.com/badge/ResearchGate-white.svg?logo=researchgate)](https://www.researchgate.net/publication/376582189_Wrapyfi_A_Python_Wrapper_for_Integrating_Robots_Sensors_and_Applications_across_Multiple_Middleware "researchgate link")
+[![paperswithcode](https://custom-icon-badges.demolab.com/badge/Papers%20With%20Code-white.svg?logo=paperwithcode)](https://cs.paperswithcode.com/paper/wrapyfi-a-wrapper-for-message-oriented-and "paperswithcode link")
+[![modularml](https://custom-icon-badges.demolab.com/badge/Modular%20ML-white.svg?logo=modularml)](https://modular.ml/#wrap "modularml link")
 
 [![License](https://custom-icon-badges.demolab.com/github/license/denvercoder1/custom-icon-badges?logo=law&logoColor=white)](https://github.com/fabawi/wrapyfi/blob/main/LICENSE "license MIT")
 [![Documentation Status](https://readthedocs.org/projects/wrapyfi/badge/?version=latest)](https://wrapyfi.readthedocs.io/en/latest/?badge=latest)
