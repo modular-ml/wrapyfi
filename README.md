@@ -11,6 +11,7 @@
 [![paper](https://custom-icon-badges.demolab.com/badge/Paper-blue.svg?logo=paper_sheet&logoColor=white)](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf "paper link")
 [![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv:2302.09648-blue.svg?logo=arxiv-logomark-small)](https://arxiv.org/abs/2302.09648 "arXiv link")
 [![doi](https://custom-icon-badges.demolab.com/badge/10.1145/3610977.3637471-blue.svg?logo=doi_logo)](https://doi.org/10.1145/3610977.3637471 "doi link")
+[![paperswithcode](https://custom-icon-badges.demolab.com/badge/wrapyfi-blue.svg?logo=paperwithcode)](https://cs.paperswithcode.com/paper/wrapyfi-a-wrapper-for-message-oriented-and "paperswithcode link")
 
 [![License](https://custom-icon-badges.demolab.com/github/license/denvercoder1/custom-icon-badges?logo=law&logoColor=white)](https://github.com/fabawi/wrapyfi/blob/main/LICENSE "license MIT")
 [![Documentation Status](https://readthedocs.org/projects/wrapyfi/badge/?version=latest)](https://wrapyfi.readthedocs.io/en/latest/?badge=latest)
