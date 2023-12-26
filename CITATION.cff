@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 preferred-citation:
-  type: article
+  type: inproceedings
   authors:
   - family-names: "Abawi"
     given-names: "Fares"
@@ -13,10 +13,11 @@ preferred-citation:
   - family-names: "Wermter"
     given-names: "Stefan"
   title: "Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware"
-  journal: "Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction"
-  publisher: 
+  booktitle: "Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction"
+  organization: 
     name: "Association for Computing Machinery"
+  doi: https://doi.org/10.1145/3610977.3637471
+  year: 2024
   version: 0.4.29
-  doi: 10.48550/arXiv.2302.09648
   date-released: 2023-12-12
   url: "https://github.com/fabawi/wrapyfi"
