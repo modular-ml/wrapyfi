@@ -33,14 +33,15 @@ To integrate Wrapyfi with your scripts, add the decorators describing the transm
 Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf) when citing Wrapyfi in academic work:
 
 ```
-@inproceedings{abawi2023wrapyfi,
+@inproceedings{abawi2024wrapyfi,
+  title = {Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware},
   author = {Abawi, Fares and Allgeuer, Philipp and Fu, Di and Wermter, Stefan},
-  title = {{Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware}},
-  booktitle = {Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction (HRI '24)},
-  publisher = {Association for Computing Machinery (ACM)},
+  booktitle = {ACM/IEEE Conference on Human-Robot Interaction (HRI '24)},
+  year = {2024},
+  organization = {ACM},
+  isbn = {79-8-4007-0322-5},
   doi = {10.1145/3610977.3637471},
-  url = {https://github.com/fabawi/wrapyfi},
-  year = {2024}
+  url = {https://github.com/fabawi/wrapyfi}
 }
 ```
 
