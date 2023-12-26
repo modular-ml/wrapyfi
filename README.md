@@ -10,7 +10,7 @@
 [![webpage](https://custom-icon-badges.demolab.com/badge/Page-blue.svg?logo=globe&logoColor=white)](https://www.inf.uni-hamburg.de/en/inst/ab/wtm/research/software.html#wrapyfi "webpage link")
 [![paper](https://custom-icon-badges.demolab.com/badge/Paper-blue.svg?logo=paper_sheet&logoColor=white)](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf "page link")
 [![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv-blue.svg?logo=arxiv-logomark-small&logoColor=white)](https://arxiv.org/abs/2302.09648 "arXiv link")
-
+[![doi](https://custom-icon-badges.demolab.com/badge/10.1145/3610977.3637471-blue.svg?logo=doi_logo)](https://doi.org/10.1145/3610977.3637471 "doi link")
 
 [![License](https://custom-icon-badges.demolab.com/github/license/denvercoder1/custom-icon-badges?logo=law&logoColor=white)](https://github.com/fabawi/wrapyfi/blob/main/LICENSE "license MIT")
 [![Documentation Status](https://readthedocs.org/projects/wrapyfi/badge/?version=latest)](https://wrapyfi.readthedocs.io/en/latest/?badge=latest)
@@ -35,7 +35,7 @@ Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm
   booktitle = {Proceedings of the 2024 ACM/IEEE International Conference on Human-Robot Interaction (HRI '24)},
   publisher = {Association for Computing Machinery (ACM)},
   doi = {10.1145/3610977.3637471},
-  url = {https://arxiv.org/abs/2302.09648},
+  url = {https://github.com/fabawi/wrapyfi},
   year = {2024}
 }
 ```
