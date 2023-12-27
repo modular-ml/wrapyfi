@@ -49,7 +49,7 @@ A message publisher and listener for PIL (Pillow) images.
 ## [DASK](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.dask_example)
 A message publisher and listener for native Python objects and Dask Arrays/Dataframes.
 
-## [Numpy and pandas](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.numpy_pandas_example)
+## [NumPy and pandas](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.numpy_pandas_example)
 A message publisher and listener for native Python objects, NumPy Arrays, and pandas Series/Dataframes.
 
 ## [PyArrow](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.pyarrow_example)
@@ -83,5 +83,5 @@ This script demonstrates the capability to control the iCub robot’s head and v
 
 # Sensors
 
-## [Camera and Microphone](https://wrapyfi.readthedocs.io/en/latest/examples/examples.sensors.html#module-examples.sensors.cam_mic)
+## [Camera and microphone](https://wrapyfi.readthedocs.io/en/latest/examples/examples.sensors.html#module-examples.sensors.cam_mic)
 This script demonstrates the capability to transmit audio and video streams using the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern allowing message publishing and listening functionalities between processes or machines.
