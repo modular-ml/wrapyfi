@@ -36,7 +36,7 @@ Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm
 @inproceedings{abawi2024wrapyfi,
   title = {Wrapyfi: A Python Wrapper for Integrating Robots, Sensors, and Applications across Multiple Middleware},
   author = {Abawi, Fares and Allgeuer, Philipp and Fu, Di and Wermter, Stefan},
-  booktitle = {ACM/IEEE Conference on Human-Robot Interaction (HRI '24)},
+  booktitle = {Proceedings of the ACM/IEEE Conference on Human-Robot Interaction (HRI '24)},
   year = {2024},
   organization = {ACM},
   isbn = {79-8-4007-0322-5},
