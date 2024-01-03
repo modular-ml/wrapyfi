@@ -226,7 +226,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   ```bash 
   cd $HOME/Code/wrapyfi-interfaces
-  python3 wrapyfi_interfaces/robots/icub_head/interface.py \
+  python wrapyfi_interfaces/robots/icub_head/interface.py \
   --simulation --get_cam_feed \
   --control_expressions \
   --facial_expressions_port "/control_interface/facial_expressions_icub"
@@ -245,13 +245,13 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   ```bash
   # The first instance is responsible for running the application workflow
   cd $HOME/Code/wrapyfi/examples/applications
-  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python3 affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/COMP_mainpc.yml --cam_source webcam
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/COMP_mainpc.yml --cam_source webcam
   ```
 
   ```bash
   # The second instance is responsible for running the robot (iCub) control workflow
   cd $HOME/Code/wrapyfi/examples/applications
-  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python3 affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/OPT_icubpc.yml --cam_source webcam
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/OPT_icubpc.yml --cam_source webcam
   ```
   **Note**: running two instances is not necessary if we configure a single script to handle all exchanges; however, 
   we do so to separate the application workflow from the robot control workflows. In this example, where we run a single 
