@@ -282,7 +282,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarpserver
   ```
 
-  Ensure every PC is configured to detect `yarpserver`:
+  **Note**: Ensure every PC is configured to detect `yarpserver`:
   ```bash
   yarp detect <IP of machine running yarpserver> 10000
   ```
@@ -325,7 +325,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   roscore
   ```
 
-  Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI:
+  **Note**: Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI:
   
   ```bash
   export ROS_MASTER_URI=<IP of machine running roscore -- PC:PEPPER>
