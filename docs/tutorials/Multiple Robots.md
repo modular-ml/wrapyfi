@@ -351,7 +351,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 		roslaunch pepper_extra pepper_wrapyfi.launch ip:=<IP of Pepper> 
    ```
 
-  Call the ROS services on the Pepper robot to start them within the docker container. The robot should transition to an idle mode without movement and speak out (on **PC:PEPPER**)::
+  Call the ROS services on the Pepper robot to start them within the docker container. The robot should transition to an idle mode without movement and speak out (on **PC:PEPPER**):
 
   ```bash
   docker exec -it pepperdock bash -i
