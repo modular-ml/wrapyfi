@@ -105,9 +105,12 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 [TODO]
 
 ## Pre-requisites:
-* Installing [Wrapyfi](<../usage/Installation.md>)
-* Installing [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
-* Installing the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9)
+
+**Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems.
+
+* Install [Wrapyfi](<../usage/Installation.md>)
+* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
+* Install the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9)
 
 Throughout this tutorial, we assume that all repositories are cloned into the `~\Code` directory.
 **Wrapyfi should also be cloned into the `~\Code` directory in order to access the examples.**
@@ -157,12 +160,28 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
   catkin_make
   ```
   
-* [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/modular-ml/pepper-ros-docker)
-
+* [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/modular-ml/pepper-ros-docker):
+  * Install [Docker](https://docs.docker.com/engine/install/ubuntu/)
+  * Clone the [Pepper ROS Docker](https://github.com/modular-ml/pepper-ros-docker) repository:
+  ```bash
+  cd ~/Code
+  git clone https://github.com/modular-ml/pepper-ros-docker.git
+  ```
+  * Build the Pepper ROS Docker image:
+  ```bash
+  cd pepper-ros-docker
+  docker build . -t minimal-pepper-ros-driver
+  ```
+  
 ### When using the iCub Robot:
-* [YARP](https://www.yarp.it/install.html)
-* [ICUB Software]
-*
+
+* Install [YARP](https://yarp.it/latest//install_yarp_linux.html) and [iCub Software](https://icub-tech-iit.github.io/documentation/sw_installation/) on local system following our [recommended instructions](https://wrapyfi.readthedocs.io/en/latest/yarp_install_lnk.html)
+**or**
+within a mamba or micromamba environment using the [robotology-superbuild](https://github.com/robotology/robotology-superbuild/blob/master/doc/conda-forge.md): 
+* Activate and source YARP ([step 5 in installing YARP](https://wrapyfi.readthedocs.io/en/latest/yarp_install_lnk.html#installing-yarp)) on local system
+**or**
+activate the robotology-superbuild env: `micromamba activate robotologyenv`
+* Install the [Pexpect](https://pexpect.readthedocs.io/en/stable/) Python package: `pip install pexpect`
 
 ## Running the Application
 
