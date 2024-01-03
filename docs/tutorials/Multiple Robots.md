@@ -282,7 +282,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarpserver
   ```
 
-  **Note**: Ensure every PC is configured to detect `yarpserver`:
+  **Note**: Ensure every PC is configured to detect `yarpserver` (excluding **PC:PEPPER**):
   ```bash
   yarp detect <IP of machine running yarpserver> 10000
   ```
