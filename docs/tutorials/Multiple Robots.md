@@ -128,18 +128,35 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
 ```
 
 ### When Using the Pepper Robot with NAOqi 2.5:
-* [ROS Noetic](http://wiki.ros.org/ROS/Installation) 
+* [ROS](https://wiki.ros.org/noetic) and Interfaces:
+  * Install [ROS Noetic](http://wiki.ros.org/ROS/Installation) 
   **or** 
   [Robostack bundling of ROS Noetic in a mamba or micromamba environment](https://robostack.github.io/GettingStarted.html)
-  * After installing ros, create a workspace and compile [Pepper Camera](https://github.com/modular-ml/pepper_camera):
-    
-  ```bash
-  mkdir -p ~/catkin_ws/src
-  ```
-    
   * Install the camera info manager for the Pepper camera on local system: `sudo apt install ros-noetic-camera-info-manager` 
   **or** 
   within a Robostack env: `micromamba install -c robostack ros-noetic-camera-info-manager`
+  * Activate and source ROS on local system: `source /opt/ros/noetic/setup.bash`
+  **or**
+  activate the Robostack env: `micromamba activate ros_env`
+  * Clone the [Pepper Camera](https://github.com/modular-ml/pepper_camera) package:
+  ```bash
+  cd ~/Code
+  git clone https://github.com/modular-ml/pepper_camera.git
+  ```
+  * Install the Pepper Camera dependencies on local system: `sudo apt install libgstreamer1.0-dev gstreamer1.0-tools`
+  **or**
+  within a Robostack env: `micromamba install gst-plugins-base gst-plugins-good gstreamer -c conda-forge`
+  * Create a ROS workspace and link the Pepper Camera resources into it:
+  ```bash
+  mkdir -p ~/catkin_ws/src
+  cd ~/pepper_ros_ws
+  ln -s ~/Code/pepper_camera src/pepper_camera
+  ```
+  * Compile the ROS node using catkin:
+  ```bash
+  catkin_make
+  ```
+  
 * [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/modular-ml/pepper-ros-docker)
 
 ### When using the iCub Robot:
