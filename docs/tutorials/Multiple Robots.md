@@ -51,9 +51,10 @@ The application manager manages exchanges to and from the model and robot interf
 We execute the application on three to six machines, depending on the configuration:
 * **PC:A**: Running the application manager and forwarding messages to and from the FER model. 
 * **S:1**: Running the FER model and forwarding messages to and from the application manager.
+* **PC:104**: Running on the physical iCub robot (*only needed when running the physical robot*).
 * **PC:ICUB**: Running the iCub robot control workflow.
 * **PC:PEPPER**: Running the Pepper robot control workflow.
-* **PC:WEBCAM**: Running the webcam interface for acquiring images from the webcam.
+* **PC:WEBCAM**: Running the webcam interface for acquiring images from the webcam (*only needed when running the simulated robot*).
 
 At least one of either two robot PCs (**PC:ICUB** and **PC:PEPPER**) must be running for the application to work. 
 The webcam interface (**PC:WEBCAM**) is optional and is only needed if we want to acquire images from a webcam rather than a robots. 
@@ -108,7 +109,7 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 
 **Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems.
 
-* Install [Wrapyfi](<../usage/Installation.md>)
+* Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation)
 * Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
 * Install the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9)
 
@@ -120,14 +121,14 @@ since it provides dedicated interfaces for communicating with the robots, acquir
 and providing message structures for standardizing exchanges between applications: 
 
 ```bash
-cd ~/Code
+cd $HOME/Code
 git clone https://github.com/modular-ml/wrapyfi-interfaces.git
 ```
 
 and add it to the `PYTHONPATH` environment variable:
 
 ```bash
-export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
+export PYTHONPATH=$PYTHONPATH:$HOME/Code/wrapyfi-interfaces
 ```
 
 ### When Using the Pepper Robot with NAOqi 2.5:
@@ -143,7 +144,7 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
   activate the Robostack env: `micromamba activate ros_env`
   * Clone the [Pepper Camera](https://github.com/modular-ml/pepper_camera) package:
   ```bash
-  cd ~/Code
+  cd $HOME/Code
   git clone https://github.com/modular-ml/pepper_camera.git
   ```
   * Install the Pepper Camera dependencies on local system: `sudo apt install libgstreamer1.0-dev gstreamer1.0-tools`
@@ -151,20 +152,20 @@ export PYTHONPATH=$PYTHONPATH:~/Code/wrapyfi-interfaces
   within a Robostack env: `micromamba install gst-plugins-base gst-plugins-good gstreamer -c conda-forge`
   * Create a ROS workspace and link the Pepper Camera resources into it:
   ```bash
-  mkdir -p ~/catkin_ws/src
-  cd ~/pepper_ros_ws
-  ln -s ~/Code/pepper_camera src/pepper_camera
+  mkdir -p $HOME/catkin_ws/src
+  cd $HOME/pepper_ros_ws
+  ln -s $HOME/Code/pepper_camera src/pepper_camera
   ```
   * Compile the ROS node using catkin:
   ```bash
   catkin_make
   ```
   
-* [DOCKER with NAOqi & ROS Kinetic - Python 2.7](https://github.com/modular-ml/pepper-ros-docker):
+* [Docker with NAOqi & ROS Kinetic - Python 2.7](https://github.com/modular-ml/pepper-ros-docker):
   * Install [Docker](https://docs.docker.com/engine/install/ubuntu/)
   * Clone the [Pepper ROS Docker](https://github.com/modular-ml/pepper-ros-docker) repository:
   ```bash
-  cd ~/Code
+  cd $HOME/Code
   git clone https://github.com/modular-ml/pepper-ros-docker.git
   ```
   * Build the Pepper ROS Docker image:
@@ -270,4 +271,93 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   <summary><b><font color="orange">Intermediate</font>: iCub & Pepper; running scripts on multiple machine</b></summary>
 
+  ### Preparing the iCub robot
+
+  * Connect the iCub robot to the power supply and switch it on (please follow the instructions specific to your iCub robot)
+  * Connect your iCub robot's (**PC:104**) ethernet cable to a network switch attached to all other machines (excluding **PC:WEBCAM** which is not needed in this setup)
+  
+  Start the `yapserver` to enable communication with the iCub robot (on any machine):
+  
+  ```bash
+  yarpserver
+  ```
+
+  Ensure every PC is configured to detect `yarpserver`:
+  ```bash
+  yarp detect <IP of machine running yarpserver> 10000
+  ```
+
+  Initialize and configure the iCub camera device on a specific port/topic (on **PC:104**):
+
+  ```bash
+  yarpdev --from camera/ServerGrabberDualDragon.ini --split true --framerate 30
+  ```
+
+  Initialize and configure the iCub emotion device on a specific port/topic (on **PC:104**):
+
+  ```bash
+  yarpdev --name /icub/face/raw --device serial --subdevice serialport --context faceExpressions --from serialport.ini
+  ```
+
+  Start the iCub emotion interface to receive the facial expressions on a specific port/topic (on **PC:104**):
+
+  ```bash
+  emotionInterface --name /icub/face/emotions --context faceExpressions --from emotions.ini
+  ```
+  Connect the input/output ports for emotion reading and writing (on **PC:104**):
+  
+  ```bash
+  yarp connect /icub/face/emotions/out /icub/face/raw/in
+  ```
+
+  ### Preparing the Pepper robot
+
+  * Connect an ethernet cable to the back of the Pepper robot's head
+  * Connect the other end of the ethernet cable to a network switch attached to all other machines (excluding **PC:WEBCAM** which is not needed in this setup)
+  * Switch on the Pepper Robot
+  * On initialization completion, press the chest button on the Pepper robot for him to speak out its current IP. This IP will be referred to as <IP of Pepper> 
+
+  Build the Pepper ROS workspace and start the `roscore` to enable communication with the Pepper robot (on **PC:PEPPER**):
+
+  ```bash
+  cd $HOME/pepper_ros_ws
+  catkin build
+  roscore
+  ```
+
+  Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI:
+  
+  ```bash
+  export ROS_MASTER_URI=<IP of machine running roscore -- PC:PEPPER>
+  ```
+
+  Assuming the Pepper ROS Docker image was installed under the name `pepperdock`, start the container (on **PC:PEPPER**):
+
+  ```bash
+  docker ps -a
+			
+		# If no container exists:
+		docker run -it --network host --name pepperdock minimal-pepper-ros-driver:latest
+			
+		# If a container exists but is 'exited':
+		docker start pepperdock
+  ```
+
+  Launch the Pepper robot's interfaces within the container (on **PC:PEPPER**):
+  
+  ```bash
+  docker exec -it pepperdock bash -i
+		export ROS_MASTER_URI=http://<IP of machine running roscore -- PC:PEPPER>:11311
+		roslaunch pepper_extra pepper_wrapyfi.launch ip:=<IP of Pepper> 
+   ```
+
+  Call the ROS services on the Pepper robot to start them within the docker container. The robot should transition to an idle mode without movement and speak out (on **PC:PEPPER**)::
+
+  ```bash
+  docker exec -it pepperdock bash -i
+		export ROS_MASTER_URI=http://<IP of machine running roscore -- PC:PEPPER>:11311
+		rosservice call /pepper/pose/idle_mode "{idle_enabled: true, breath_enabled: false}"
+		rosservice call /pepper/pose/home
+		rosservice call /pepper/speech/say "{text: 'hello and welcome, my name is pepper', wait: false}"
+  ```
 </details>
