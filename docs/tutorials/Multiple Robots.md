@@ -49,12 +49,12 @@ resulting in the emotion category $\text{k}_t$ being transmitted from the infere
 The application manager manages exchanges to and from the model and robot interfaces.
 
 We execute the application on three to six machines, depending on the configuration:
-* **PC:A**: Running the application manager and forwarding messages to and from the FER model. 
-* **S:1**: Running the FER model and forwarding messages to and from the application manager.
-* **PC:104**: Running on the physical iCub robot (*only needed when running the physical robot*).
-* **PC:ICUB**: Running the iCub robot control workflow.
-* **PC:PEPPER**: Running the Pepper robot control workflow.
-* **PC:WEBCAM**: Running the webcam interface for acquiring images from the webcam (*only needed when running the simulated robot*).
+* **PC:A** (*mware: YARP*): Running the application manager and forwarding messages to and from the FER model. 
+* **S:1** (*mware: YARP*): Running the FER model and forwarding messages to and from the application manager.
+* **PC:104** (*mware: YARP*): Running on the physical iCub robot (*only needed when running the physical robot*).
+* **PC:ICUB** (*mware: YARP*): Running the iCub robot control workflow.
+* **PC:PEPPER** (*mware: YARP, ROS*): Running the Pepper robot control workflow.
+* **PC:WEBCAM** (*mware: YARP*): Running the webcam interface for acquiring images from the webcam (*only needed when running the simulated robot*).
 
 At least one of either two robot PCs (**PC:ICUB** and **PC:PEPPER**) must be running for the application to work. 
 The webcam interface (**PC:WEBCAM**) is optional and is only needed if we want to acquire images from a webcam rather than a robots. 
@@ -109,14 +109,14 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 
 **Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems.
 
-* Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation)
-* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model
-* Install the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9)
+* Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation) on all machines (excluding **PC:104**)
+* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model on **S:1**
+* Install the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) on **S:1**
 
-Throughout this tutorial, we assume that all repositories are cloned into the `~\Code` directory.
-**Wrapyfi should also be cloned into the `~\Code` directory in order to access the examples.**
+Throughout this tutorial, we assume that all repositories are cloned into the `$HOME\Code` directory.
+**Wrapyfi should also be cloned into the `$HOME\Code` directory in order to access the examples.**
 
-Additionally, cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository is needed 
+Additionally, cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository on all machines (excluding **PC:104**) is needed 
 since it provides dedicated interfaces for communicating with the robots, acquiring and publishing webcam images, 
 and providing message structures for standardizing exchanges between applications: 
 
@@ -132,6 +132,9 @@ export PYTHONPATH=$PYTHONPATH:$HOME/Code/wrapyfi-interfaces
 ```
 
 ### When Using the Pepper Robot with NAOqi 2.5:
+
+**Note**: Installation instructions apply to **PC:PEPPER**
+
 * [ROS](https://wiki.ros.org/noetic) and Interfaces:
   * Install [ROS Noetic](http://wiki.ros.org/ROS/Installation) 
   **or** 
@@ -152,7 +155,7 @@ export PYTHONPATH=$PYTHONPATH:$HOME/Code/wrapyfi-interfaces
   within a Robostack env: `micromamba install gst-plugins-base gst-plugins-good gstreamer -c conda-forge`
   * Create a ROS workspace and link the Pepper Camera resources into it:
   ```bash
-  mkdir -p $HOME/catkin_ws/src
+  mkdir -p $HOME/pepper_ros_ws/src
   cd $HOME/pepper_ros_ws
   ln -s $HOME/Code/pepper_camera src/pepper_camera
   ```
@@ -175,6 +178,8 @@ export PYTHONPATH=$PYTHONPATH:$HOME/Code/wrapyfi-interfaces
   ```
   
 ### When using the iCub Robot:
+
+**Note**: Installation instructions apply to **PC:ICUB**. They can also be followed for **PC:A**, **S:1**, **PC:WEBCAM**, and **PC:PEPPER**, however, only YARP with Python bindings is needed for these machines. If these machines have their required packages and Wrapyfi installed inside a mamba or micromamba environment, then installing the following within the environment should suffice: `micromamba install -c robotology yarp`
 
 * Install [YARP](https://yarp.it/latest//install_yarp_linux.html) and [iCub Software](https://icub-tech-iit.github.io/documentation/sw_installation/) on local system following our [recommended instructions](https://wrapyfi.readthedocs.io/en/latest/yarp_install_lnk.html)
 **or**
@@ -202,13 +207,13 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   iCub_SIM
   ```
 
-  The facial expressions shown on the iCub's face are not enabled by default when running the iCub simulator, so we need to start the iCubFaceExpressions module to enable them (on **PC:ICUB**):
+  The facial expressions shown on the iCub's face are not enabled by default when running the iCub simulator, so we need to start the `iCubFaceExpressions` module to enable them (on **PC:ICUB**):
   
   ```bash 
   simFaceExpressions
   ```
 
-  Start the iCub emotion interface to receive the facial expressions a specific port/topic (on **PC:ICUB**):
+  Start the iCub emotion interface to receive the facial expressions on a specific port/topic (on **PC:ICUB**):
   
   ```bash
   emotionInterface --name /icubSim/face/emotions --context faceExpressions --from emotions.ini
@@ -241,18 +246,20 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   Start two mirrored instances of the application controller (on **PC:A** and **PC:ICUB**, respectively):
 
-
+  1) The first instance is responsible for running the application workflow (on **PC:A**):
+  
   ```bash
-  # The first instance is responsible for running the application workflow
   cd $HOME/Code/wrapyfi/examples/applications
   WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/COMP_mainpc.yml --cam_source webcam
   ```
 
+  2) The second instance is responsible for running the robot (iCub) control workflow (on **PC:ICUB**):
+  
   ```bash
-  # The second instance is responsible for running the robot (iCub) control workflow
   cd $HOME/Code/wrapyfi/examples/applications
   WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/OPT_icubpc.yml --cam_source webcam
   ```
+
   **Note**: running two instances is not necessary if we configure a single script to handle all exchanges; however, 
   we do so to separate the application workflow from the robot control workflows. In this example, where we run a single 
   robot, the utility of such separation is not apparent. If we were to merge the workflows in the main configuration 
@@ -265,6 +272,8 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   export PYTHONPATH=$HOME/Code/wrapyfi-interfaces:$PYTHONPATH
   python main_esr9.py webcam -w "/control_interface/image_esr9" -d -s 2 -b --frames 10 --max_frames 10 --video_mware yarp --facial_expressions_mware yarp --facial_expressions_port "/control_interface/facial_expressions_esr9" --face_detection 3 --img_width 320 --img_height 240 --jpg
   ```
+
+  **Result**: Make sure you are facing the webcam and you should now be able to see the simulated iCub robot changing his facial expressions, corresponding to your own.
 </details>
 
 <details>
@@ -282,7 +291,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarpserver
   ```
 
-  **Note**: Ensure every PC is configured to detect `yarpserver` (excluding **PC:PEPPER**). Assuming the `yarpserver` is running on a machine with an IP `<IP yarpserver>`:
+  **Note**: Ensure every PC is configured to detect `yarpserver`. Assuming the `yarpserver` is running on a machine with an IP `<IP yarpserver>`:
   
   ```bash
   yarp detect <IP yarpserver> 10000
@@ -326,7 +335,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   roscore
   ```
 
-  **Note**: Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI. Assuming the `roscore` is running on **PC:PEPPER** with an IP `<IP roscore>`:
+  **Note**: Ensure the Pepper ROS Docker container (and any other machine using ROS if manual changes to the configuration files are made) is configured to detect the `roscore` URI. Assuming the `roscore` is running on **PC:PEPPER** with an IP `<IP roscore>`:
   
   ```bash
   export ROS_MASTER_URI=<IP roscore>
@@ -361,4 +370,62 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 		rosservice call /pepper/pose/home
 		rosservice call /pepper/speech/say "{text: 'hello and welcome, my name is pepper', wait: false}"
   ```
+
+  ### Running the robot interfaces
+  
+  Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
+  
+  ```bash 
+  cd $HOME/Code/wrapyfi-interfaces
+  python wrapyfi_interfaces/robots/icub_head/interface.py \
+  --get_cam_feed \
+  --control_expressions \
+  --facial_expressions_port "/control_interface/facial_expressions_icub"
+  ```
+  
+  Start the Pepper interface to receive the facial expressions from the application controller and enable the LED color changes on the Pepper robot (on **PC:PEPPER**):
+  
+  ```bash
+  source $HOME/pepper_ros_ws/devel/setup.bash
+  cd $HOME/Code/wrapyfi-interfaces
+  python wrapyfi_interfaces/robots/pepper/interface.py \
+  --get_cam_feed \
+  --control_expressions \
+  --facial_expressions_port "/control_interface/facial_expressions_pepper"
+  ```
+
+  Start three mirrored instances of the application controller (on **PC:A**, **PC:ICUB**, and **PC:PEPPER**, respectively):
+
+  1) The first instance is responsible for running the application workflow (on **PC:A**):
+  
+  ```bash
+  cd $HOME/Code/wrapyfi/examples/applications
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/COMP_mainpc.yml --cam_source pepper
+  ```
+
+  2) The second instance is responsible for running the robot (iCub) control workflow (on **PC:ICUB**):
+  
+  ```bash
+  cd $HOME/Code/wrapyfi/examples/applications
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/OPT_icubpc.yml --cam_source pepper
+  ```
+
+  3) The third instance is responsible for running the robot (Pepper) control workflow (on **PC:PEPPER**):
+  
+  ```bash
+  cd $HOME/Code/wrapyfi/examples/applications
+  WRAPYFI_DEFAULT_COMMUNICATOR="yarp" python affective_signaling_multirobot.py --wrapyfi_cfg wrapyfi_configs/affective_signaling_multirobot/OPT_pepperpc.yml --cam_source pepper
+  ```
+
+  **Note**: The `--cam_source` argument can be set to either `icub` or `pepper`, defining where from the image arrives. Switching the camera source requires minimal changes to the control workflow instances and does not affect the FER model since the camera image is forwarded from the source to a dedicated topic/port to which the FER subscribes.
+  
+  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized emotion to the application controller (on **S:1**):
+  
+  ```bash
+  cd $HOME/Code/wrapyfi-examples_esr9/
+  export PYTHONPATH=$HOME/Code/wrapyfi-interfaces:$PYTHONPATH
+  python main_esr9.py webcam -w "/control_interface/image_esr9" -d -s 2 -b --frames 10 --max_frames 10 --video_mware yarp --facial_expressions_mware yarp --facial_expressions_port "/control_interface/facial_expressions_esr9" --face_detection 3 --img_width 320 --img_height 240 --jpg
+  ```
+
+  **Result**: Make sure you are facing the right camera (Pepper or iCub) and you should now be able to see the robots changing their facial expressions (iCub) or LED colors (Pepper) corresponding to your facial expressions.
 </details>
