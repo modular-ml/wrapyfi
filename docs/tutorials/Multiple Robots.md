@@ -282,9 +282,10 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarpserver
   ```
 
-  **Note**: Ensure every PC is configured to detect `yarpserver` (excluding **PC:PEPPER**):
+  **Note**: Ensure every PC is configured to detect `yarpserver` (excluding **PC:PEPPER**). Assuming the `yarpserver` is running on a machine with an IP `<IP yarpserver>`:
+  
   ```bash
-  yarp detect <IP of machine running yarpserver> 10000
+  yarp detect <IP yarpserver> 10000
   ```
 
   Initialize and configure the iCub camera device on a specific port/topic (on **PC:104**):
@@ -315,7 +316,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   * Connect an ethernet cable to the back of the Pepper robot's head
   * Connect the other end of the ethernet cable to a network switch attached to all other machines (excluding **PC:WEBCAM** which is not needed in this setup)
   * Switch on the Pepper Robot
-  * On initialization completion, press the chest button on the Pepper robot for him to speak out its current IP. This IP will be referred to as <IP of Pepper> 
+  * On initialization completion, press the chest button on the Pepper robot for him to speak out its current IP. This IP will be referred to as `<IP of Pepper>` 
 
   Build the Pepper ROS workspace and start the `roscore` to enable communication with the Pepper robot (on **PC:PEPPER**):
 
@@ -325,13 +326,13 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   roscore
   ```
 
-  **Note**: Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI:
+  **Note**: Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI. Assuming the `roscore` is running on the **PC:PEPPER** with an IP `<IP roscore>`:
   
   ```bash
-  export ROS_MASTER_URI=<IP of machine running roscore -- PC:PEPPER>
+  export ROS_MASTER_URI=<IP roscore>
   ```
 
-  Assuming the Pepper ROS Docker image was installed under the name `pepperdock`, start the container (on **PC:PEPPER**):
+  If the Pepper ROS Docker image was built under the name `minimal-pepper-ros-driver:latest`, start the container (on **PC:PEPPER**):
 
   ```bash
   docker ps -a
