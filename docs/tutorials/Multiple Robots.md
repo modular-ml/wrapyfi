@@ -56,7 +56,7 @@ We execute the application on three to six machines, depending on the configurat
 * **PC:PEPPER** (*mware: YARP, ROS*): Running the Pepper robot control workflow.
 * **PC:WEBCAM** (*mware: YARP*): Running the webcam interface for acquiring images from the webcam (*only needed when running the simulated robot*).
 
-**Note**: For this tutorial, **PC:ICUB**, **PC:WEBCAM**, and **PC:PEPPER** scripts are running on **PC:A** to simplify the process. However, they could also be executed on dedicated machines as long as the network configurations (`roscore` and `yarpserver` IPs) are set correctly. 
+**Note**: For this tutorial, **PC:ICUB**, **PC:WEBCAM**, and **PC:PEPPER** scripts are running on **PC:A** to simplify the process. However, they could also be executed on dedicated machines as long as the network configurations (`roscore` and `yarpserver` IP addresses) are set correctly. 
 
 At least one of either two robot PCs (**PC:ICUB** and **PC:PEPPER**) must be running for the application to work. 
 The webcam interface (**PC:WEBCAM**) is optional and is only needed if we want to acquire images from a webcam rather than a robots. 
