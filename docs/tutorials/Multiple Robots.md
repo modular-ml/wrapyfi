@@ -66,7 +66,7 @@ the flexibility of the Wrapyfi framework.
 Images arrive directly from each robot's camera:
 * The iCub robot image arrives from the left eye camera having a size of $320\times240$ pixels and is transmitted over YARP at 30 FPS. 
 * The Pepper robot image arrives from the top camera having a size of $640\times480$ pixels and is transmitted over ROS at 24 FPS.
-The image is directly forwarded to the facial expression model, resulting in a predicted emotion returned to the corresponding robot's LED interface.
+The image is directly forwarded to the facial expression model, resulting in a predicted expression returned to the corresponding robot's LED interface.
 
 ## Modifying the FER Model
 
@@ -104,7 +104,7 @@ ret, frame = cap.read()
 with every call to `cap.read()` returning a boolean value `ret` indicating whether the frame was successfully read, and the image `frame` itself. 
 
 
-### Sending the Recognized Emotion to the Robot Interfaces
+### Sending the Recognized Expression to the Robot Interfaces
 [TODO]
 
 ## Pre-requisites:
@@ -267,7 +267,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   robot, the utility of such separation is not apparent. If we were to merge the workflows in the main configuration 
   `COMP_mainpc.yml` file, then we must also run the workflow for **robot A** when wanting to run **robot B** only.
   
-  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized emotion to the application controller (on **S:1**):
+  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized expression to the application controller (on **S:1**):
   
   ```bash
   cd $HOME/Code/wrapyfi-examples_esr9/
@@ -316,7 +316,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   ```bash
   emotionInterface --name /icub/face/emotions --context faceExpressions --from emotions.ini
   ```
-  Connect the input/output ports for emotion reading and writing (on **PC:104**):
+  Connect the input/output ports for expression reading and writing (on **PC:104**):
   
   ```bash
   yarp connect /icub/face/emotions/out /icub/face/raw/in
@@ -421,7 +421,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   **Note**: The `--cam_source` argument can be set to either `icub` or `pepper`, defining where from the image arrives. Switching the camera source requires minimal changes to the control workflow instances and does not affect the FER model since the camera image is forwarded from the source to a dedicated topic/port to which the FER subscribes.
   
-  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized emotion to the application controller (on **S:1**):
+  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized expression to the application controller (on **S:1**):
   
   ```bash
   cd $HOME/Code/wrapyfi-examples_esr9/
