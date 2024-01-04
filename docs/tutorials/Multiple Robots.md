@@ -316,7 +316,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   * Connect an ethernet cable to the back of the Pepper robot's head
   * Connect the other end of the ethernet cable to a network switch attached to all other machines (excluding **PC:WEBCAM** which is not needed in this setup)
   * Switch on the Pepper Robot
-  * On initialization completion, press the chest button on the Pepper robot for him to speak out its current IP. This IP will be referred to as `<IP of Pepper>` 
+  * On initialization completion, press the chest button on the Pepper robot for him to speak out its current IP. This IP will be referred to as `<IP Pepper>` 
 
   Build the Pepper ROS workspace and start the `roscore` to enable communication with the Pepper robot (on **PC:PEPPER**):
 
@@ -326,7 +326,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   roscore
   ```
 
-  **Note**: Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI. Assuming the `roscore` is running on the **PC:PEPPER** with an IP `<IP roscore>`:
+  **Note**: Ensure **PC:A** and the Pepper ROS Docker container are configured to detect the `roscore` URI. Assuming the `roscore` is running on **PC:PEPPER** with an IP `<IP roscore>`:
   
   ```bash
   export ROS_MASTER_URI=<IP roscore>
@@ -337,26 +337,26 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   ```bash
   docker ps -a
 			
-		# If no container exists:
-		docker run -it --network host --name pepperdock minimal-pepper-ros-driver:latest
-			
-		# If a container exists but is 'exited':
-		docker start pepperdock
+  # If no container exists:
+  docker run -it --network host --name pepperdock minimal-pepper-ros-driver:latest
+		
+  # If a container exists but is 'exited':
+  docker start pepperdock
   ```
 
   Launch the Pepper robot's interfaces within the container (on **PC:PEPPER**):
   
   ```bash
   docker exec -it pepperdock bash -i
-		export ROS_MASTER_URI=http://<IP of machine running roscore -- PC:PEPPER>:11311
-		roslaunch pepper_extra pepper_wrapyfi.launch ip:=<IP of Pepper> 
+		export ROS_MASTER_URI=http://<IP roscore>:11311
+		roslaunch pepper_extra pepper_wrapyfi.launch ip:=<IP Pepper> 
    ```
 
   Call the ROS services on the Pepper robot to start them within the docker container. The robot should transition to an idle mode without movement and speak out (on **PC:PEPPER**):
 
   ```bash
   docker exec -it pepperdock bash -i
-		export ROS_MASTER_URI=http://<IP of machine running roscore -- PC:PEPPER>:11311
+		export ROS_MASTER_URI=http://<IP roscore>:11311
 		rosservice call /pepper/pose/idle_mode "{idle_enabled: true, breath_enabled: false}"
 		rosservice call /pepper/pose/home
 		rosservice call /pepper/speech/say "{text: 'hello and welcome, my name is pepper', wait: false}"
