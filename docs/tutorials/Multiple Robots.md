@@ -197,7 +197,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   <summary><b><font color="green">Easy</font>: iCub simulation only; running all scripts on a single machine</b></summary>
 
-  Here we mirror the facial expressions of an actor facing a webcam on a simulated iCub robot. The images from the webcam are streamed to the ESR9 FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub interface and displays an approximated facial expression on the robot's face.
+  Here we mirror the facial expressions of an actor facing a webcam on a simulated iCub robot. The images from the webcam are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub interface and displays an approximated facial expression on the robot's face.
   
   ### Preparing the iCub robot (in simulation)
   
@@ -287,7 +287,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   <summary><b><font color="orange">Intermediate</font>: iCub & Pepper; running scripts on multiple machine</b></summary>
   
-  Here we mirror the facial expressions of an actor facing the Pepper or iCub robot camera on both (physical) robots. The images from the chosen camera are streamed to the ESR9 FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub and Pepper robot interfaces, displays an approximated facial expression on the iCub robot's face, and triggers a color change on the Pepper robot's eye and shoulder LEDs.
+  Here we mirror the facial expressions of an actor facing the Pepper or iCub robot camera on both (physical) robots. The images from the chosen camera are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub and Pepper robot interfaces, displays an approximated facial expression on the iCub robot's face, and triggers a color change on the Pepper robot's eye and shoulder LEDs.
   
   ### Preparing the iCub robot
 
