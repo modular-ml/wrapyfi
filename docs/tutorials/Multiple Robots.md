@@ -113,7 +113,7 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 
 * Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation) on all machines (excluding **PC:104**)
 * Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model on **S:1**
-* Install the [ESR 9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) requirements on **S:1**
+* Install the [ESR9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) requirements on **S:1**
 
 Throughout this tutorial, we assume that all repositories are cloned into the `$HOME\Code` directory.
 **Wrapyfi should also be cloned into the `$HOME\Code` directory in order to access the examples.**
