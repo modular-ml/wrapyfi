@@ -197,6 +197,10 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   <summary><b><font color="green">Easy</font>: iCub simulation only; running all scripts on a single machine</b></summary>
 
+  Here we mirror the facial expressions of an actor facing a webcam on a simulated iCub robot. The images from the webcam are streamed to the ESR9 FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub interface and displays an approximated facial expression on the robot's face.
+  
+  ### Preparing the iCub robot (in simulation)
+  
   Start the yapserver to enable communication with the iCub robot (on any machine):
   
   ```bash
@@ -228,6 +232,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarp connect /face/image/out /icubSim/texture/face
   yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
   ```
+  ### Running the robot interfaces
   
   Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
@@ -275,13 +280,15 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   python main_esr9.py webcam -w "/control_interface/image_esr9" -d -s 2 -b --frames 10 --max_frames 10 --video_mware yarp --facial_expressions_mware yarp --facial_expressions_port "/control_interface/facial_expressions_esr9" --face_detection 3 --img_width 320 --img_height 240 --jpg
   ```
 
-  **Result**: Make sure you are facing the webcam and you should now be able to see the simulated iCub robot changing his facial expressions, corresponding to your own.
+  **Outcome**: Make sure you are facing the webcam and you should now be able to see the simulated iCub robot changing his facial expressions, corresponding to your own.
 </details>
 
 <details>
 
   <summary><b><font color="orange">Intermediate</font>: iCub & Pepper; running scripts on multiple machine</b></summary>
-
+  
+  Here we mirror the facial expressions of an actor facing the Pepper or iCub robot camera on both (physical) robots. The images from the chosen camera are streamed to the ESR9 FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub and Pepper robot interfaces, displays an approximated facial expression on the iCub robot's face, and triggers a color change on the Pepper robot's eye and shoulder LEDs.
+  
   ### Preparing the iCub robot
 
   * Connect the iCub robot to the power supply and switch it on (please follow the instructions specific to your iCub robot)
@@ -429,5 +436,5 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   python main_esr9.py webcam -w "/control_interface/image_esr9" -d -s 2 -b --frames 10 --max_frames 10 --video_mware yarp --facial_expressions_mware yarp --facial_expressions_port "/control_interface/facial_expressions_esr9" --face_detection 3 --img_width 320 --img_height 240 --jpg
   ```
 
-  **Result**: Make sure you are facing the right camera (Pepper or iCub) and you should now be able to see the robots changing their facial expressions (iCub) or LED colors (Pepper) corresponding to your facial expressions.
+  **Outcome**: Make sure you are facing the right camera (Pepper or iCub) and you should now be able to see the robots changing their facial expressions (iCub) or LED colors (Pepper) corresponding to your facial expressions.
 </details>
