@@ -72,8 +72,7 @@ The image is directly forwarded to the facial expression model, resulting in a p
 
 To integrate Wrapyfi into the [facial expression recognition model](https://github.com/siqueira-hc/Efficient-Facial-Feature-Learning-with-Wide-Ensemble-based-Convolutional-Neural-Networks), we first need to modify the model to accept and return data from and to the robot interfaces.
 
-
-
+This is achieved by using [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) which provide minimal examples of how to design the structure of templates and common interfaces, used for large-scale and complex applications. Templates and interfaces limit the types of data that can be transmitted. We can of course decide to transmit custom objects, something that Wrapyfi was designed to enable in the first place. However, in instances where we would like multiple applications to communicate and understand the information transmitted, a common structure *must* be introduced to avoid creating specific interfaces for each new application.
 
 ### Receiving Images from the Robot Interfaces
 
@@ -105,7 +104,27 @@ with every call to `cap.read()` returning a boolean value `ret` indicating wheth
 
 
 ### Sending the Recognized Expression to the Robot Interfaces
-[TODO]
+The [Facial Expression Message Template](https://github.com/modular-ml/wrapyfi-interfaces/blob/main/wrapyfi_interfaces/templates/facial_expressions.py) provided as part of the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) collection, allows for standardized transmission of information relating to affect. This template is similar in operation to other interfaces, where instead of wrapping methods with the Wrapyfi registry decorator, we simply call the method with arguments specifying *"what"* should be transmitted and *"where/how"* (as in the port/topic address, communication pattern, middleware).
+
+We first import the template and instantiate it:
+
+```python
+from wrapyfi_interfaces.templates.facial_expressions import FacialExpressionsInterface
+
+_FACIAL_EXPRESSION_BROADCASTER = FacialExpressionsInterface(facial_expressions_port_out=facial_expressions_port,
+    mware_out=facial_expressions_mware, facial_expressions_port_in="")
+```
+
+Setting the `facial_expressions_port_out` and `mware_out` arguments tells the template that it should activate its communication in `publish` mode, meaning that it would be transmitting emotion categories rather than receiving them. In this case, we specify the receiving port as empty, since receiving affective signals is not needed.
+
+Next, we must send the prediction signal (the emotion category, scores, emotion continuous---arousal and valence, emotion index, etc.). This is done by calling `transmit_emotion()` everytime a prediction is made:
+
+```python
+prediction, = _FACIAL_EXPRESSION_BROADCASTER.transmit_emotion(*(_predict(input_face, device)),
+    facial_expressions_port=facial_expressions_port, _mware=facial_expressions_mware)
+```
+
+Where the prediction dictionary is transmitted over the middleware and returned as `prediction` from the method call. Now, any template called from another instance of the same application or any other application subscribed to the specified port/topic on the same middleware within the network should be able to receive the prediction dictionary. This allows the robot or any controller to receive the values predicted by the model at any step in time, as long as the model ESR9 is running. 
 
 ## Pre-requisites:
 
@@ -232,7 +251,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarp connect /face/image/out /icubSim/texture/face
   yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
   ```
-  ### Running the robot interfaces
+  ### Running the iCub interface
   
   Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
