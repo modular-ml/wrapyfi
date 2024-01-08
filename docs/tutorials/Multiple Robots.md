@@ -218,7 +218,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   Here we mirror the facial expressions of an actor facing a webcam on a simulated iCub robot. The images from the webcam are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub interface and displays an approximated facial expression on the robot's face.
   
-  ### Preparing the iCub robot (in simulation)
+  **Preparing the iCub robot (in simulation)**
   
   Start the yapserver to enable communication with the iCub robot (on any machine):
   
@@ -252,7 +252,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarp connect /icubSim/face/emotions/out /icubSim/face/raw/in
   ```
   
-  ### Running the iCub interface
+  **Running the iCub interface**
   
   Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
@@ -310,7 +310,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   Here we mirror the facial expressions of an actor facing the Pepper or iCub robot camera on both (physical) robots. The images from the chosen camera are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub and Pepper robot interfaces, displays an approximated facial expression on the iCub robot's face, and triggers a color change on the Pepper robot's eye and shoulder LEDs.
   
-  ### Preparing the iCub robot
+  **Preparing the iCub robot**
   
   Hardware preparation:
   
@@ -353,7 +353,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   yarp connect /icub/face/emotions/out /icub/face/raw/in
   ```
   
-  ### Preparing the Pepper robot
+  **Preparing the Pepper robot**
   
   Hardware preparation:
   
@@ -406,7 +406,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 		rosservice call /pepper/speech/say "{text: 'hello and welcome, my name is pepper', wait: false}"
   ```
   
-  ### Running the robot interfaces
+  **Running the robot interfaces**
   
   Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
