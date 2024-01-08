@@ -310,6 +310,8 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   ### Preparing the iCub robot
 
+  Hardware preparation:
+  
   * Connect the iCub robot to the power supply and switch it on (please follow the instructions specific to your iCub robot)
   * Connect your iCub robot's (**PC:104**) ethernet cable to a network switch attached to all other machines (excluding **PC:WEBCAM** which is not needed in this setup)
   
@@ -350,6 +352,8 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   ### Preparing the Pepper robot
 
+  Hardware preparation:
+  
   * Connect an ethernet cable to the back of the Pepper robot's head
   * Connect the other end of the ethernet cable to a network switch attached to all other machines (excluding **PC:WEBCAM** which is not needed in this setup)
   * Switch on the Pepper Robot
