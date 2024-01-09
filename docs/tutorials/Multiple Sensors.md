@@ -118,7 +118,108 @@ We execute the application on five machines, depending on the configuration:
 * **S:4** (*mware: ROS 2, YARP*): Running the vision-based head orientation estimation model and transmitting messages to and from the application manager.
 * **PC:104** (*mware: YARP*): Running on the physical iCub robot (*only needed when running the physical iCub robot*).
 * **PC:A** *includes* **PC:ICUB** (*mware: YARP, ZeroMQ*): Running the iCub robot control workflow and parts of the application manager.
-* **PC:C** *includes* **PC:WEBCAM** (*mware: YARP, ZeroMQ*): Running the webcam interface for acquiring images from the webcam and parts of the application manager.
-* **PC:E** *includes* **PC:EYETRACKER** and **PC:IMU** (*mware: ROS 2, ZeroMQ*): Running the eye tracker and IMU interfaces. Additionally, running the application manager and channeling messages from the vision-based head orientation estimation model and IMU to the iCub robot.
+* **PC:C** *includes* **PC:WEBCAM** (*mware: ROS 2, ZeroMQ*): Running the webcam interface for acquiring images from the webcam and parts of the application manager.
+* **PC:E** *includes* **PC:EYETRACKER** and **PC:IMU** (*mware: YARP, ZeroMQ*): Running the eye tracker and IMU interfaces. Additionally, running the application manager and channeling messages from the vision-based head orientation estimation model and IMU to the iCub robot.
+
+At least one of either two input method PCs (**PC:WEBCAM** and **PC:EYETRACKER**) must be running for the application to work. We note that all machine scripts can be executed on a single machine, but we distribute them across multiple machines to demonstrate the flexibility of the Wrapyfi framework. Additionally, connecting the webcam, robot (physical or simulated), IMU, eye tracker, as well as running the [Pupil Capture](https://docs.pupil-labs.com/core/software/pupil-capture/) software, application managers, the YARP server, and the ZeroMQ broker would place a significant strain on memory, I/O bus, and processing resources of a single machine.
+
+## Modifying the Vision-Based Head Orientation Estimation Model
+
+To integrate Wrapyfi into the [6DRepNet vision-based head orientation estimation model](https://github.com/thohemp/6DRepNet), we first need to modify the model to accept and return data from and to the iCub robot interface.
+
+This is achieved by using [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) which provide minimal examples of how to design the structure of templates and common interfaces, used for large-scale and complex applications. Templates and interfaces limit the types of data that can be transmitted. We can of course decide to transmit custom objects, something that Wrapyfi was designed to enable in the first place. However, in instances where we would like multiple applications to communicate and understand the information transmitted, a common structure *must* be introduced to avoid creating specific interfaces for each new application.
+
+
+### Receiving and Transmitting Images from the Webcam
+
+[TODO] 
+
+### Sending the Orientation Coordinates to the Robot Interface
+
+[TODO]
+
+## Pre-requisites:
+
+**Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems. All installations must take place within a dedicated virtualenv, mamba/micromamba, or conda environment.
+
+* Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation) with all requirements (including NumPy, OpenCV, PyYAML) on all machines (excluding **PC:104**). Throughout this tutorial, we assume that all repositories are cloned into the `$HOME\Code` directory.
+**Wrapyfi should also be cloned into the `$HOME\Code` directory in order to access the examples.**:
+
+  ```bash
+  cd $HOME/Code
+  git clone https://github.com/fabawi/wrapyfi.git
+  cd wrapyfi
+  pip install .
+  pip install "numpy>1.19.5,<1.26.0" "opencv-python>=4.5.5,<4.6.5.0" "pyyaml>=5.1.1"
+  ```
+
+* Install [SciPy](https://scipy.org/install/) for performing matrix rotations (on **PC:A**):
+    
+  ```bash
+  # could be installed in several ways, but we choose pip for simplicity
+  pip install "scipy==1.9.0"
+  ```
+
+* Install [pySerial](https://pyserial.readthedocs.io/en/latest/pyserial.html#installation) for accessing the IMU's serial port (on **PC:E**):
+    
+  ```bash
+  # could be installed in several ways, but we choose pip for simplicity
+  pip install "pyserial"
+  ```
+  
+* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the  vision-based head orientation estimation model (on **S:4**):
+
+  ```bash
+  # could be installed in several ways, but we choose pip for simplicity
+  pip install "torch >= 1.10.1" "torchvision >= 0.11.2"
+  ```
+
+* Install the [face detection](https://github.com/elliottzheng/face-detection) library which is required by the vision-based head orientation estimation model (on **S:4**):
+  
+  ```bash
+  pip install git+https://github.com/elliottzheng/face-detection.git@master
+  ```
+
+* Install the [6DRepNet model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_6DRepNet) requirements (on **S:4**):
+  
+  ```bash
+  cd $HOME/Code
+  git clone https://github.com/modular-ml/wrapyfi-examples_6DRepNet.git
+  cd wrapyfi-examples_6DRepNet
+  pip install .
+  ```
+
+Cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository on all machines (excluding **PC:104**) is needed 
+since it provides dedicated interfaces for communicating with the robots, acquiring and publishing webcam images, 
+and providing message structures for standardizing exchanges between applications: 
+
+```bash
+cd $HOME/Code
+git clone https://github.com/modular-ml/wrapyfi-interfaces.git
+```
+and add it to the `PYTHONPATH` environment variable:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:$HOME/Code/wrapyfi-interfaces
+```
+
+### Compiling the Waveshare 9-DOF ICM-20948 IMU Filter on the Raspberry Pi Pico RP2040 Microcontroller:
+
+[TODO] 
+
+### Installing the Pupil Capture:
+
+[TODO] 
+
+### Setting Up the iCub Robot:
+
+**Note**: Installation instructions apply to **PC:A** (**PC:ICUB**). They can also be followed for **PC:E**, and **S:4**, however, only YARP with Python bindings is needed for these machines. If these machines have their required packages and Wrapyfi installed inside a mamba or micromamba environment, then installing the following within the environment should suffice: `micromamba install -c robotology yarp`
+
+* Install [YARP](https://yarp.it/latest//install_yarp_linux.html) and [iCub Software](https://icub-tech-iit.github.io/documentation/sw_installation/) on local system following our [recommended instructions](https://wrapyfi.readthedocs.io/en/latest/yarp_install_lnk.html)
+**or**
+within a mamba or micromamba environment using the [robotology-superbuild](https://github.com/robotology/robotology-superbuild/blob/master/doc/conda-forge.md): 
+* Activate and source YARP ([step 5 in installing YARP](https://wrapyfi.readthedocs.io/en/latest/yarp_install_lnk.html#installing-yarp)) on local system
+**or**
+activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
 
