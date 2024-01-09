@@ -51,15 +51,15 @@ The application manager manages exchanges to and from the model and robot interf
 We execute the application on three to six machines, depending on the configuration:
 * **PC:A** (*mware: YARP*): Running the application manager and forwarding messages to and from the FER model. 
 * **S:1** (*mware: YARP*): Running the FER model and forwarding messages to and from the application manager.
-* **PC:104** (*mware: YARP*): Running on the physical iCub robot (*only needed when running the physical robot*).
-* **PC:ICUB** (*mware: YARP*): Running the iCub robot control workflow.
-* **PC:PEPPER** (*mware: YARP, ROS*): Running the Pepper robot control workflow.
+* **PC:104** (*mware: YARP*): Running on the physical iCub robot (*only needed when running the physical iCub robot*).
+* **PC:ICUB** (*mware: YARP*): Running the iCub robot control workflow (*only needed when running the physical or simulated iCub robot*).
+* **PC:PEPPER** (*mware: YARP, ROS*): Running the Pepper robot control workflow (*only needed when running the physical Pepper robot*).
 * **PC:WEBCAM** (*mware: YARP*): Running the webcam interface for acquiring images from the webcam (*only needed when running the simulated robot*).
 
 **Note**: For this tutorial, **PC:ICUB**, **PC:WEBCAM**, and **PC:PEPPER** scripts are running on **PC:A** to simplify the process. However, they could also be executed on dedicated machines as long as the network configurations (`roscore` and `yarpserver` IP addresses) are set correctly. 
 
 At least one of either two robot PCs (**PC:ICUB** and **PC:PEPPER**) must be running for the application to work. 
-The webcam interface (**PC:WEBCAM**) is optional and is only needed if we want to acquire images from a webcam rather than a robots. 
+The webcam interface (**PC:WEBCAM**) is optional and is only needed if we want to acquire images from a webcam rather than a robot's camera. 
 We note that all machine scripts can be executed on a single machine, but we distribute them across multiple machines to demonstrate 
 the flexibility of the Wrapyfi framework.
 
@@ -128,16 +128,43 @@ Where the prediction dictionary is transmitted over the middleware and returned 
 
 ## Pre-requisites:
 
-**Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems.
+**Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems. All installations must take place within a dedicated virtualenv, mamba/micromamba, or conda environment.
 
-* Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation) on all machines (excluding **PC:104**)
-* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model on **S:1**
-* Install the [ESR9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) requirements on **S:1**
+* Install [Wrapyfi](https://wrapyfi.readthedocs.io/en/latest/readme_lnk.html#installation) with all requirements (including NumPy, OpenCV, PyYAML) on all machines (excluding **PC:104**). Throughout this tutorial, we assume that all repositories are cloned into the `$HOME\Code` directory.
+**Wrapyfi should also be cloned into the `$HOME\Code` directory in order to access the examples.**:
 
-Throughout this tutorial, we assume that all repositories are cloned into the `$HOME\Code` directory.
-**Wrapyfi should also be cloned into the `$HOME\Code` directory in order to access the examples.**
+  ```bash
+  cd $HOME/Code
+  git clone https://github.com/fabawi/wrapyfi.git
+  cd wrapyfi
+  pip install .
+  pip install "numpy>1.17.4,<1.26.0" "opencv-python>=4.2.0.34,<4.6.5.0" "pyyaml>=5.1.1"
+  ```
+  
+* Install [SciPy](https://scipy.org/install/) for performing median smoothing on **PC:ICUB** and **PC:PEPPER**:
+    
+  ```bash
+  # could be installed in several ways, but we choose pip for simplicity
+  pip install "scipy==1.9.0"
+  ```
+  
+* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model on **S:1**:
+  
+  ```bash
+  # could be installed in several ways, but we choose pip for simplicity
+  pip install "torch==1.12.1" "torchvision==0.13.1"
+  ```
+  
+* Install the [ESR9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) requirements on **S:1**:
+  
+  ```bash
+  cd $HOME/Code
+  git clone https://github.com/modular-ml/wrapyfi-examples_ESR9.git
+  cd wrapyfi-examples_ESR9
+  pip install -r requirements.txt
+  ```
 
-Additionally, cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository on all machines (excluding **PC:104**) is needed 
+Cloning the [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) repository on all machines (excluding **PC:104**) is needed 
 since it provides dedicated interfaces for communicating with the robots, acquiring and publishing webcam images, 
 and providing message structures for standardizing exchanges between applications: 
 
