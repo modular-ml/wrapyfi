@@ -126,7 +126,7 @@ prediction, = _FACIAL_EXPRESSION_BROADCASTER.transmit_emotion(*(_predict(input_f
 
 Where the prediction dictionary is transmitted over the middleware and returned as `prediction` from the method call. Now, any template called from another instance of the same application or any other application subscribed to the specified port/topic on the same middleware within the network should be able to receive the prediction dictionary. This allows the robot or any application manager to receive the values predicted by the model at any step in time, as long as the model ESR9 is running. 
 
-## Pre-requisites:
+## Pre-Requisites:
 
 **Note**: The following installation instructions are compatible with **Ubuntu 18-22** and are not guaranteed to work on other distributions or operating systems. All installations must take place within a dedicated virtualenv, mamba/micromamba, or conda environment.
 
@@ -141,21 +141,21 @@ Where the prediction dictionary is transmitted over the middleware and returned 
   pip install "numpy>1.17.4,<1.26.0" "opencv-python>=4.2.0.34,<4.6.5.0" "pyyaml>=5.1.1"
   ```
   
-* Install [SciPy](https://scipy.org/install/) for performing median smoothing on **PC:ICUB** and **PC:PEPPER**:
+* Install [SciPy](https://scipy.org/install/) for performing median smoothing (on **PC:ICUB** and **PC:PEPPER**):
     
   ```bash
   # could be installed in several ways, but we choose pip for simplicity
   pip install "scipy==1.9.0"
   ```
   
-* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model on **S:1**:
+* Install [PyTorch](https://pytorch.org/get-started/locally/) for running the facial expression recognition model (on **S:1**):
   
   ```bash
   # could be installed in several ways, but we choose pip for simplicity
   pip install "torch==1.12.1" "torchvision==0.13.1"
   ```
   
-* Install the [ESR9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) requirements on **S:1**:
+* Install the [ESR9 FER model with Wrapyfi](https://github.com/modular-ml/wrapyfi-examples_ESR9) requirements (on **S:1**):
   
   ```bash
   cd $HOME/Code
@@ -225,7 +225,7 @@ export PYTHONPATH=$PYTHONPATH:$HOME/Code/wrapyfi-interfaces
   docker build . -t minimal-pepper-ros-driver
   ```
   
-### When using the iCub Robot:
+### When Using the iCub Robot:
 
 **Note**: Installation instructions apply to **PC:ICUB**. They can also be followed for **PC:A**, **S:1**, **PC:WEBCAM**, and **PC:PEPPER**, however, only YARP with Python bindings is needed for these machines. If these machines have their required packages and Wrapyfi installed inside a mamba or micromamba environment, then installing the following within the environment should suffice: `micromamba install -c robotology yarp`
 
