@@ -124,7 +124,7 @@ prediction, = _FACIAL_EXPRESSION_BROADCASTER.transmit_emotion(*(_predict(input_f
     facial_expressions_port=facial_expressions_port, _mware=facial_expressions_mware)
 ```
 
-Where the prediction dictionary is transmitted over the middleware and returned as `prediction` from the method call. Now, any template called from another instance of the same application or any other application subscribed to the specified port/topic on the same middleware within the network should be able to receive the prediction dictionary. This allows the robot or any controller to receive the values predicted by the model at any step in time, as long as the model ESR9 is running. 
+Where the prediction dictionary is transmitted over the middleware and returned as `prediction` from the method call. Now, any template called from another instance of the same application or any other application subscribed to the specified port/topic on the same middleware within the network should be able to receive the prediction dictionary. This allows the robot or any application manager to receive the values predicted by the model at any step in time, as long as the model ESR9 is running. 
 
 ## Pre-requisites:
 
@@ -243,7 +243,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   <summary><b><font color="green">Easy</font>: iCub simulation only; running all scripts on a single machine</b></summary>
 
-  Here we mirror the facial expressions of an actor facing a webcam on a simulated iCub robot. The images from the webcam are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub interface and displays an approximated facial expression on the robot's face.
+  Here we mirror the facial expressions of an actor facing a webcam on a simulated iCub robot. The images from the webcam are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application manager (robot workflow manager). The manager transmits the readings to the iCub interface and displays an approximated facial expression on the robot's face.
   
   **Preparing the iCub robot (in simulation)**
   
@@ -281,7 +281,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   **Running the iCub interface**
   
-  Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
+  Start the iCub interface to receive the facial expressions from the application manager and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
   ```bash 
   cd $HOME/Code/wrapyfi-interfaces
@@ -291,14 +291,14 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   --facial_expressions_port "/control_interface/facial_expressions_icub"
   ```
   
-  Start the camera interface to receive images from the webcam and forward them to the application controller (on **PC:WEBCAM**):
+  Start the camera interface to receive images from the webcam and forward them to the application manager (on **PC:WEBCAM**):
   
   ```bash
   cd $HOME/Code/wrapyfi/examples/applications
   python wrapyfi_interfaces/io/video/interface.py --mware yarp --cap_source "0" --fps 30 --cap_feed_port "/control_interface/image_webcam" --img_width 320 --img_height 240 --jpg
   ```
   
-  Start two mirrored instances of the application controller (on **PC:A** and **PC:ICUB**, respectively):
+  Start two mirrored instances of the application manager (on **PC:A** and **PC:ICUB**, respectively):
   
   1) The first instance is responsible for running the application workflow (on **PC:A**):
   
@@ -319,7 +319,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   robot, the utility of such separation is not apparent. If we were to merge the workflows in the main configuration 
   `COMP_mainpc.yml` file, then we must also run the workflow for **robot A** when wanting to run **robot B** only.
   
-  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized expression to the application controller (on **S:1**):
+  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized expression to the application manager (on **S:1**):
   
   ```bash
   cd $HOME/Code/wrapyfi-examples_esr9/
@@ -335,7 +335,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
 
   <summary><b><font color="orange">Intermediate</font>: iCub & Pepper; running scripts on multiple machine</b></summary>
   
-  Here we mirror the facial expressions of an actor facing the Pepper or iCub robot camera on both (physical) robots. The images from the chosen camera are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application controller (robot workflow controller). The controller transmits the readings to the iCub and Pepper robot interfaces, displays an approximated facial expression on the iCub robot's face, and triggers a color change on the Pepper robot's eye and shoulder LEDs.
+  Here we mirror the facial expressions of an actor facing the Pepper or iCub robot camera on both (physical) robots. The images from the chosen camera are streamed to the ESR9 [(Siqueira et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/6037) FER model, which then classifies their facial expressions and returns the predicted class to the application manager (robot workflow manager). The manager transmits the readings to the iCub and Pepper robot interfaces, displays an approximated facial expression on the iCub robot's face, and triggers a color change on the Pepper robot's eye and shoulder LEDs.
   
   **Preparing the iCub robot**
   
@@ -435,7 +435,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   **Running the robot interfaces**
   
-  Start the iCub interface to receive the facial expressions from the application controller and activate the facial expressions on the iCub robot (on **PC:ICUB**):
+  Start the iCub interface to receive the facial expressions from the application manager and activate the facial expressions on the iCub robot (on **PC:ICUB**):
   
   ```bash 
   cd $HOME/Code/wrapyfi-interfaces
@@ -445,7 +445,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   --facial_expressions_port "/control_interface/facial_expressions_icub"
   ```
   
-  Start the Pepper interface to receive the facial expressions from the application controller and enable the LED color changes on the Pepper robot (on **PC:PEPPER**):
+  Start the Pepper interface to receive the facial expressions from the application manager and enable the LED color changes on the Pepper robot (on **PC:PEPPER**):
   
   ```bash
   source $HOME/pepper_ros_ws/devel/setup.bash
@@ -456,7 +456,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   --facial_expressions_port "/control_interface/facial_expressions_pepper"
   ```
   
-  Start three mirrored instances of the application controller (on **PC:A**, **PC:ICUB**, and **PC:PEPPER**, respectively):
+  Start three mirrored instances of the application manager (on **PC:A**, **PC:ICUB**, and **PC:PEPPER**, respectively):
   
   1) The first instance is responsible for running the application workflow (on **PC:A**):
   
@@ -481,7 +481,7 @@ activate the robotology-superbuild env: `micromamba activate robotologyenv`
   
   **Note**: The `--cam_source` argument can be set to either `icub` or `pepper`, defining where from the image arrives. Switching the camera source requires minimal changes to the control workflow instances and does not affect the FER model since the camera image is forwarded from the source to a dedicated topic/port to which the FER subscribes.
   
-  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized expression to the application controller (on **S:1**):
+  Run the ESR9 FER model, acquiring images from the webcam and forwarding the recognized expression to the application manager (on **S:1**):
   
   ```bash
   cd $HOME/Code/wrapyfi-examples_esr9/
