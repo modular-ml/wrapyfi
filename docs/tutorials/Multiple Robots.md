@@ -70,7 +70,7 @@ The image is directly forwarded to the facial expression model, resulting in a p
 
 ## Modifying the FER Model
 
-To integrate Wrapyfi into the [facial expression recognition model](https://github.com/siqueira-hc/Efficient-Facial-Feature-Learning-with-Wide-Ensemble-based-Convolutional-Neural-Networks), we first need to modify the model to accept and return data from and to the robot interfaces.
+To integrate Wrapyfi into the [ESR9 facial expression recognition model](https://github.com/siqueira-hc/Efficient-Facial-Feature-Learning-with-Wide-Ensemble-based-Convolutional-Neural-Networks), we first need to modify the model to accept and return data from and to the robot interfaces.
 
 This is achieved by using [Wrapyfi interfaces](https://github.com/modular-ml/wrapyfi-interfaces) which provide minimal examples of how to design the structure of templates and common interfaces, used for large-scale and complex applications. Templates and interfaces limit the types of data that can be transmitted. We can of course decide to transmit custom objects, something that Wrapyfi was designed to enable in the first place. However, in instances where we would like multiple applications to communicate and understand the information transmitted, a common structure *must* be introduced to avoid creating specific interfaces for each new application.
 
