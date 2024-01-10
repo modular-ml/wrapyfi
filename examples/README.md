@@ -1,5 +1,7 @@
 # Examples
 
+**All examples are fully documented in [https://wrapyfi.readthedocs.io/en/latest/examples.html](https://wrapyfi.readthedocs.io/en/latest/examples.html)**
+
 To install the examples' requirements 
 
 ```
