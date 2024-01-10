@@ -53,10 +53,14 @@ Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
-We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment.
+We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
+Wrapyfi [ROS interfaces](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md) must be
+built to support messages needed for audio transmission.
 
 * For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
-We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment.
+We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment. Additionally, the 
+Wrapyfi [ROS 2 interfaces](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md) must be
+built to support messages and services needed for audio transmission and the REQ/REP pattern support.
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
