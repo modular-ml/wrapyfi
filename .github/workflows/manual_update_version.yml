@@ -17,15 +17,15 @@ jobs:
         pdm add setuptools
         pdm import setup.py
 
-    - name: Update ROS & ROS 2 Interface Versions
-      run: |
-        VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
-        if [[ -z "$VERSION" ]]; then
-          echo "Failed to extract version from pyproject.toml"
-          exit 1
-        fi
-        sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml
-        sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml
+    # - name: Update ROS & ROS 2 Interface Versions (added to separate repositories, therefore, this is not needed)
+    #   run: |
+    #     VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
+    #     if [[ -z "$VERSION" ]]; then
+    #       echo "Failed to extract version from pyproject.toml"
+    #       exit 1
+    #     fi
+    #     sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml
+    #     sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml
 
     - name: Generate Documentation
       run: |
