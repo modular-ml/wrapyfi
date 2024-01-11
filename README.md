@@ -49,17 +49,17 @@ Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm
 
 Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
 
-* Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
+* Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md?rank=0).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
-Wrapyfi [ROS interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md) must be
+Wrapyfi [ROS interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md?rank=0) must be
 built to support messages needed for audio transmission.
 
 * For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
 We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment. Additionally, the 
-Wrapyfi [ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md) must be
+Wrapyfi [ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md?rank=0) must be
 built to support messages and services needed for audio transmission and the REQ/REP pattern support.
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
