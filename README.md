@@ -102,12 +102,12 @@ Wrapyfi **could** and should be used within such environments with minimal requi
 pip install wrapyfi
 ```
 
-### Source
+### Source (Pip)
 
 Clone the current repository:
 
 ```
-git clone https://github.com/fabawi/wrapyfi.git
+git clone --recursive https://github.com/fabawi/wrapyfi.git
 cd wrapyfi
 ```
 
@@ -117,7 +117,7 @@ You can choose to install minimal dependencies, for running a basic Wrapyfi scri
 pip install .[all]
 ```
 
-or install wrapyfi without NumPy, OpenCV, and ZeroMQ:
+or install wrapyfi *without* NumPy, OpenCV, and ZeroMQ:
 
 ```
 pip install .
