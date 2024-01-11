@@ -6,7 +6,7 @@ REPLACEMENTS = {
         'yarp_install_lnk.html',
     'https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md':
         '../../ros2_interfaces_lnk.html',
-    'https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md':
+    'https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md':
         '../../ros_interfaces_lnk.html'
     }
 

@@ -1,9 +1,9 @@
 # Compiling ROS interfaces
 
 **WARNING**: These instructions are located in 
-[https://github.com/fabawi/wrapyfi/blob/main/wrapyfi_extensions/wrapyfi_ros_interfaces](https://github.com/fabawi/wrapyfi/blob/main/wrapyfi_extensions/wrapyfi_ros_interfaces)
+[https://github.com/modular-ml/wrapyfi_ros_interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces)
 
-To transmit audio messages, you need to compile the ROS interfaces. 
+To transmit ROS audio messages with [Wrapyfi](https://github.com/fabawi/wrapyfi), you need to compile the ROS interfaces. 
 ROS must already be installed on your system, with all its build dependencies. 
 You can find the installation instructions [here](http://wiki.ros.org/noetic/Installation/Ubuntu) 
 or install using [Robostack](https://robostack.github.io/GettingStarted.html).
@@ -104,5 +104,5 @@ or install using [Robostack](https://robostack.github.io/GettingStarted.html).
 
     ```
    
-     Run your Wrapyfi enabled script from the same terminal. Now you can transmit ROS audio messages in PUB/SUB and REQ/REP.
+     Run your Wrapyfi enabled script from the same terminal. Now you can transmit ROS audio messages in PUB/SUB [\[example\]](https://wrapyfi.readthedocs.io/en/latest/examples/examples.sensors.html#module-examples.sensors.cam_mic) and REQ/REP [\[example\]](https://wrapyfi.readthedocs.io/en/latest/examples/examples.communication_patterns.html#module-examples.communication_patterns.request_reply_example).
      

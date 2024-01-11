@@ -191,7 +191,7 @@ All messages are transmitted using the yarp python bindings
 
 ```{warning}
 ROS requires a custom message to handle audio. This message must be compiled first before using Wrapyfi with ROS Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md).
 ```
 
 All messages are transmitted using the rospy python bindings as topic messages
@@ -254,7 +254,7 @@ The requester formats its arguments as *(\[args\], {kwargs})*
 
 ```{warning}
 ROS requires a custom service to handle audio. This service must be compiled first before using Wrapyfi with ROS Audio. 
-Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md).
+Refer to [these instructions for compiling Wrapyfi ROS services and messages](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md).
 ```
 
 All messages are transmitted using the rospy python bindings as services.

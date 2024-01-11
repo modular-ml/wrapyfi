@@ -54,7 +54,7 @@ Note that the iCub package is not needed for Wrapyfi to work and does not have t
 
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
-Wrapyfi [ROS interfaces](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/wrapyfi_ros_interfaces/README.md) must be
+Wrapyfi [ROS interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md) must be
 built to support messages needed for audio transmission.
 
 * For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
