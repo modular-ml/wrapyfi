@@ -104,7 +104,7 @@ pip install wrapyfi
 
 ### Source (Pip)
 
-Clone the current repository:
+Clone this repository:
 
 ```
 git clone --recursive https://github.com/fabawi/wrapyfi.git
