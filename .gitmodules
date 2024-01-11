@@ -1,3 +1,0 @@
-[submodule "wrapyfi_extensions/wrapyfi_ros_interfaces"]
-	path = wrapyfi_extensions/wrapyfi_ros_interfaces
-	url = https://github.com/modular-ml/wrapyfi_ros_interfaces
