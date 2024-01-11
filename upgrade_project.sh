@@ -22,19 +22,19 @@ update_version_in_package_xml() {
     echo "Version updated to $VERSION in $PACKAGE_XML_PATH"
 }
 
-# UPDATE ROS & ROS 2 INTERFACE VERSIONS
+# UPDATE ROS & ROS 2 INTERFACE VERSIONS (ADDED TO SEPARATE REPOSITORIES, THEREFORE, THIS IS NOT NEEDED)
 #######################################################################################################################
 
-# get the version from pyproject.toml
-VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
-# check if the version was extracted correctly
-if [[ -z "$VERSION" ]]; then
-    echo "Failed to extract version from pyproject.toml"
-    exit 1
-fi
-# update version in various package.xml files
-update_version_in_package_xml "wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml"
-update_version_in_package_xml "wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml"
+# # get the version from pyproject.toml
+# VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
+# # check if the version was extracted correctly
+# if [[ -z "$VERSION" ]]; then
+#     echo "Failed to extract version from pyproject.toml"
+#     exit 1
+# fi
+# # update version in various package.xml files
+# update_version_in_package_xml "wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml"
+# update_version_in_package_xml "wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml"
 
 # GENERATE DOCUMENTATION
 #######################################################################################################################
