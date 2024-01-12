@@ -37,6 +37,9 @@ if __version__ is None or __url__ is None:
         from importlib import metadata
         __version__ = metadata.version(__name__)
         __url__ = metadata.metadata(__name__)["Home-page"]
+        if __url__ is None:
+            for url_extract in metadata.metadata("wrapyfi").get_all('Project-URL'):
+                __url__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Homepage" else __url__
     except ImportError:
         try:
             import pkg_resources
