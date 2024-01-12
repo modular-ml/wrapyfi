@@ -33,7 +33,7 @@ project_info = get_project_info_from_setup()
 
 __version__ = project_info.get('version', None)
 __url__ = project_info.get('url', None)
-__doc__ = project.info.get('doc', None)
+__doc__ = project_info.get('doc', None)
 name = project_info.get('name', 'wrapyfi')
 
 if __version__ is None or __url__ is None or __doc__ is None:
