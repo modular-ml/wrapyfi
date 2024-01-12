@@ -274,7 +274,7 @@ class ROSAudioChunkServer(ROSServer):
             logging.error("[ROS] Could not import ROSAudioService. "
                           "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros_interfaces_lnk.html")
             sys.exit(1)
         self._server = rospy.Service(self.out_topic, ROSAudioService, self._service_callback)
         self._rep_msg = ROSAudioService._response_class().response

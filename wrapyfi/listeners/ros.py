@@ -251,7 +251,7 @@ class ROSAudioChunkListener(ROSListener):
             logging.error("[ROS] Could not import ROSAudioMessage. "
                           "Make sure the ROS messages in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros_interfaces_lnk.html")
             sys.exit(1)
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = rospy.Subscriber(self.in_topic, ROSAudioMessage, callback=self._message_callback)
