@@ -273,7 +273,7 @@ class ROSAudioChunkPublisher(ROSPublisher):
             logging.error("[ROS] Could not import ROSAudioMessage. "
                           "Make sure the ROS messages in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros_interfaces_lnk.html")
             sys.exit(1)
         self._publisher = rospy.Publisher(self.out_topic, ROSAudioMessage, queue_size=self.queue_size)
         self._sound_msg = ROSAudioMessage()

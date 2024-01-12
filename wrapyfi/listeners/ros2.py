@@ -256,7 +256,7 @@ class ROS2AudioChunkListener(ROS2Listener):
             logging.error("[ROS 2] Could not import ROS2AudioMessage. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
             sys.exit(1)
         self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
         self._subscriber = self.create_subscription(ROS2AudioMessage, self.in_topic, callback=self._message_callback, qos_profile=self.queue_size)

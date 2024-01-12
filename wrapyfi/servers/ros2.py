@@ -92,7 +92,7 @@ class ROS2NativeObjectServer(ROS2Server):
             logging.error("[ROS 2] Could not import ROS2NativeObjectService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
             sys.exit(1)
 
         self._server = self.create_service(ROS2NativeObjectService, self.out_topic, self._service_callback)
@@ -209,7 +209,7 @@ class ROS2ImageServer(ROS2Server):
             logging.error("[ROS 2] Could not import ROS2NativeObjectService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
             sys.exit(1)
         if self.jpg:
             self._server = self.create_service(ROS2CompressedImageService, self.out_topic, self._service_callback)
@@ -328,7 +328,7 @@ class ROS2AudioChunkServer(ROS2Server):
             logging.error("[ROS 2] Could not import ROS2AudioService. "
                           "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
                           "Refer to the documentation for more information: \n" +
-                          wrapyfi.__url__ + "wrapyfi_extensions/wrapyfi_ros2_interfaces/README.md")
+                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
             sys.exit(1)
         self._server = self.create_service(ROS2AudioService, self.out_topic, self._service_callback)
         self._req_msg = ROS2AudioService.Request()
