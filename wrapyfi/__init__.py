@@ -23,7 +23,7 @@ def get_project_info_from_setup():
     return {
         'name': name_match.group(1),
         'version': version_match.group(1),
-        'url': url_match.group(1)
+        'url': url_match.group(1),
         'doc': None if not doc_match else doc_match.group(1)
     }
 
