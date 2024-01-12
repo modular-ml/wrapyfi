@@ -48,7 +48,7 @@ if __version__ is None or __url__ is None or __doc__ is None:
                 __url__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Homepage" else __url__
         if __doc__ is None:
             for url_extract in mdata.get_all("Project-URL"):
-                __doc__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Documentation" else __url__
+                __doc__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Documentation" else __doc__
     except ImportError:
         try:
             # when Python < 3.8 and setuptools/pip have not been updated
@@ -62,7 +62,7 @@ if __version__ is None or __url__ is None or __doc__ is None:
                     __url__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Homepage" else __url__
             if __doc__ is None:
                 for url_extract in mdata.get_all("Project-URL"):
-                    __doc__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Documentation" else __url__
+                    __doc__ = url_extract.split(", ")[1] if url_extract.split(", ")[0] == "Documentation" else __doc__
         except pkg_resources.DistributionNotFound:
             __version__ = "unknown_version"
             __url__ = "unknown_url"
