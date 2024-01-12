@@ -126,7 +126,7 @@ pip install .
 ## Usage
 
 Wrapyfi supports two patterns of communication: 
-* **Publisher-Subscriber** (pub-sub): A publisher sends data to a subscriber accepting arguments and executing methods on the publisher's end.
+* **Publisher-Subscriber** (PUB/SUB): A publisher sends data to a subscriber accepting arguments and executing methods on the publisher's end.
 e.g., with YARP
 
 
@@ -204,7 +204,7 @@ while True:
 Run `yarpserver` from the command line. Now execute the Python script above (with Wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
 
 
-* **Request-Reply** (req-rep): A requester sends a request to a responder, which responds to the request in a synchronous manner.
+* **Request-Reply** (REQ/REP): A requester sends a request to a responder, which responds to the request in a synchronous manner.
 e.g., with ROS
 
 <table>
