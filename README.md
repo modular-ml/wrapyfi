@@ -1,4 +1,3 @@
-
 <p align="center">
   <img width="460" height="300" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/wrapyfi.png">
 </p>
@@ -11,6 +10,7 @@
 [![paper](https://custom-icon-badges.demolab.com/badge/Paper-blue.svg?logo=paper_sheet&logoColor=white)](https://www2.informatik.uni-hamburg.de/wtm/publications/2024/AAFW24/Abawi_HRI24.pdf "paper link")
 [![arXiv](https://custom-icon-badges.demolab.com/badge/arXiv:2302.09648-lightyellow.svg?logo=arxiv-logomark-small)](https://arxiv.org/abs/2302.09648 "arXiv link")
 [![doi](https://custom-icon-badges.demolab.com/badge/10.1145/3610977.3637471-lightyellow.svg?logo=doi_logo)](https://doi.org/10.1145/3610977.3637471 "doi link")
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmodular-ml%2Fwrapyfi.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmodular-ml%2Fwrapyfi?ref=badge_shield)
 
 [![researchgate](https://custom-icon-badges.demolab.com/badge/ResearchGate-white.svg?logo=researchgate)](https://www.researchgate.net/publication/376582189_Wrapyfi_A_Python_Wrapper_for_Integrating_Robots_Sensors_and_Applications_across_Multiple_Middleware "researchgate link")
 [![paperswithcode](https://custom-icon-badges.demolab.com/badge/Papers%20With%20Code-white.svg?logo=paperwithcode)](https://cs.paperswithcode.com/paper/wrapyfi-a-wrapper-for-message-oriented-and "paperswithcode link")
@@ -337,3 +337,7 @@ Supported Objects by the `AudioChunk` type include:
 * [x] **Numpy Array**,int (supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format)
 
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmodular-ml%2Fwrapyfi.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmodular-ml%2Fwrapyfi?ref=badge_large)
