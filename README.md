@@ -98,7 +98,7 @@ pip install wrapyfi[all]
 or when installing Wrapyfi on a *server* (headless) including `numpy`, `opencv-python-headless`, and `pyzmq`:
 
 ```
-pip install wrapyfi[all]
+pip install wrapyfi[headless]
 ```
 
 Other middleware such as ROS are environment-specific and require dependencies that cannot be installed using pip. 
