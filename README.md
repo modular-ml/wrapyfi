@@ -87,13 +87,19 @@ You can install Wrapyfi with **pip** or from source.
 
 ### Pip
 
-To install all the necessary components for the majority of common uses of Wrapyfi (e.g., NativeObject, Image, Audio, etc.) using **pip**, this process installs both Wrapyfi and its dependencies, like NumPy and OpenCV (`opencv-contrib-python`, `opencv-headless`, and `opencv-python` are supported), that are essential for various workloads, along with ZeroMQ being the default middleware. This option is the best for users running Wrapyfi out of the box in a newly created environment (without any middleware installed beforehand), installing `numpy`, `opencv-contrib-python` and `pyzmq`:
+To install all the necessary components for the majority of common uses of Wrapyfi (e.g., NativeObject, Image, Audio, etc.) using **pip**, this process installs both Wrapyfi and its dependencies, like NumPy and OpenCV (`opencv-contrib-python`, `opencv-headless`, and `opencv-python` are supported), that are essential for various workloads, along with ZeroMQ being the default middleware. This option is the best for users running Wrapyfi out of the box in a newly created environment (without any middleware installed beforehand), installing `numpy`, `opencv-contrib-python`, and `pyzmq`:
 
 ```
 pip install wrapyfi[all]
 ```
 
 *Note that most plugins require additional dependencies and should be installed separately.*
+ 
+or when installing Wrapyfi on a *server* (headless) including `numpy`, `opencv-python-headless`, and `pyzmq`:
+
+```
+pip install wrapyfi[all]
+```
 
 Other middleware such as ROS are environment-specific and require dependencies that cannot be installed using pip. 
 Wrapyfi **could** and should be used within such environments with minimal requirements to avoid conflicts with existing NumPy and OpenCV packages:
@@ -111,13 +117,19 @@ git clone --recursive https://github.com/fabawi/wrapyfi.git
 cd wrapyfi
 ```
 
-You can choose to install minimal dependencies, for running a basic Wrapyfi script:
+You can choose to install minimal dependencies including `numpy`, `opencv-contrib-python`, and `pyzmq`, for running a basic Wrapyfi script:
 
 ```
 pip install .[all]
 ```
 
-or install wrapyfi *without* NumPy, OpenCV, and ZeroMQ:
+or when installing Wrapyfi on a *server* (headless) including `numpy`, `opencv-python-headless`, and `pyzmq`:
+
+```
+pip install .[headless]
+```
+
+or install Wrapyfi *without* NumPy, OpenCV, and ZeroMQ:
 
 ```
 pip install .
