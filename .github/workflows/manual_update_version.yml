@@ -68,8 +68,3 @@ jobs:
         python3 -m pip -vvv install --upgrade --force-reinstall cffi
         python3 -m pip install --upgrade twine
         python3 -m twine upload dist/* --username $PYPI_USERNAME --password $PYPI_PASSWORD
-    
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
