@@ -8,7 +8,9 @@ REPLACEMENTS = {
     'https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md':
         'ros2_interfaces_lnk.html',
     'https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md':
-        'ros_interfaces_lnk.html'
+        'ros_interfaces_lnk.html',
+    'https://github.com/fabawi/wrapyfi/tree/main/dockerfiles/README.md':
+        'wrapyfi_docker_lnk.html',
 }
 
 class LinkModifier(SphinxTransform):
