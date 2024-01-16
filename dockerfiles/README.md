@@ -1,10 +1,12 @@
+# Wrapyfi Docker
+
 Images of supported middleware with [Wrapyfi](https://github.com/fabawi/wrapyfi) pre-installed. All middleware frameworks are installed within micromamba environments, which are activated on running the Docker container. The images have only been tested with Docker but not with Nvidia Docker.
 
 You can pull the Docker image which suits your needs. Some images are loaded with two middleware, and others with three. Note that ROS and ROS 2 cannot be installed withing the same environment, which is why you won't find a docker with all middleware. Since we use micromamba inside the images, all middleware could be installed within an image. Given they are in separate mamba environments, we chose to keep them in separate images as well.
 
 ## Installation
 
-There are two ways to install a Wrapyfi Docker image. You can build any of the [Dockerfiles](https://github.com/fabawi/wrapyfi/tree/main/dockerfiles/README.md) found in the Wrapyfi repository. Alternatively, you can pull the image directly from the [modularml/wrapyfi](https://hub.docker.com/repository/docker/modularml/wrapyfi) repository on the Docker Hub.
+There are two ways to install a Wrapyfi Docker image. You can build any of the [Dockerfiles](https://github.com/fabawi/wrapyfi/tree/main/dockerfiles) found in the Wrapyfi repository. Alternatively, you can pull the image directly from the [modularml/wrapyfi](https://hub.docker.com/repository/docker/modularml/wrapyfi) repository on the Docker Hub.
 
 ### Docker Hub [recommended]
 
@@ -16,7 +18,7 @@ docker pull modularml/wrapyfi:0.4.32-zeromq-yarp-ros
 
 ### Build from source 
 
-If you would like to modify the images before using them, you can build the [Dockerfiles](https://github.com/fabawi/wrapyfi/tree/main/dockerfiles/README.md) found in the Wrapyfi repository e.g. to build the [wrapyfi_zeromq-ros2.Dockerfile](https://github.com/fabawi/wrapyfi/blob/dev/dockerfiles/wrapyfi_zeromq-ros2.Dockerfile),
+If you would like to modify the images before using them, you can build the [Dockerfiles](https://github.com/fabawi/wrapyfi/tree/main/dockerfiles) found in the Wrapyfi repository e.g. to build the [wrapyfi_zeromq-ros2.Dockerfile](https://github.com/fabawi/wrapyfi/blob/dev/dockerfiles/wrapyfi_zeromq-ros2.Dockerfile),
 
 ```bash
 docker build --rm=true --no-cache -f wrapyfi_zeromq-ros2.Dockerfile -t wrapyfi-zeromq-ros2 .
