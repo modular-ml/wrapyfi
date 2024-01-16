@@ -135,6 +135,11 @@ or install Wrapyfi *without* NumPy, OpenCV, and ZeroMQ:
 pip install .
 ```
 
+## Docker
+
+Wrapyfi Docker images can be pulled/installed directly from the [modularml/wrapyfi](https://hub.docker.com/repository/docker/modularml/wrapyfi) repository on the Docker Hub. Dockerfiles for all supported environments can be built as well by following the [Wrapyfi Docker instructions](https://github.com/fabawi/wrapyfi/tree/main/dockerfiles/README.md?rank=0).
+
+
 ## Usage
 
 Wrapyfi supports two patterns of communication: 
