@@ -8,54 +8,56 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
     
-    # Step 1: Create shared volume (assuming the volume is named shared_volume)
-    - name: Create and verify shared volume
+    # Step 1: Create a local directory with full read-write permissions
+    - name: Create and verify local directory
       run: |
-        # Create the shared volume
-        docker volume create shared_volume
-        echo "Shared volume created"
+        # Create the directory
+        mkdir -p ${GITHUB_WORKSPACE}/shared_directory
+        echo "Local directory created"
+
+        # Grant full read-write permissions
+        chmod 777 ${GITHUB_WORKSPACE}/shared_directory
+        echo "Granted full read-write permissions to the directory"
         
-        # List all volumes and check if shared_volume is in the list
-        echo "Listing all volumes:"
-        docker volume ls
-        if docker volume ls | grep -q 'shared_volume'; then
-          echo "Verification: shared_volume exists"
+        # Verify creation
+        if [ -d "${GITHUB_WORKSPACE}/shared_directory" ]; then
+          echo "Verification: shared_directory exists and is writable"
         else
-          echo "Error: shared_volume was not created successfully"
+          echo "Error: shared_directory was not created successfully"
           exit 1
         fi
 
-    # Step 2: Pull Docker images
+    # Step 2: Pull Docker images (remains unchanged)
     - name: Pull Docker image DockA
       run: docker pull modularml/wrapyfi:0.4.32-zeromq-yarp-ros2
     - name: Pull Docker Image DockB
       run: docker pull modularml/wrapyfi:0.4.32-zeromq-ros
    
-    # Step 3: Run YARP and ROS servers
+    # Step 3: Run YARP and ROS servers (replace volume mounts with bind mounts)
     - name: Run DockA with YARP server
-      run: docker run --name wrapyfi__yarpserver --net host --rm -d -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
+      run: docker run --name wrapyfi__yarpserver --net host --rm -d -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
     - name: Run DockB with ROS server
-      run: docker run --name wrapyfi__roscore --net host --rm -d -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
+      run: docker run --name wrapyfi__roscore --net host --rm -d -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
 
-    # Step 4 & 5 & 6: Install packages, run tests, and append coverage data
+    # Step 4 & 5 & 6: Install packages, run tests, and append coverage data (replace volume mounts with bind mounts)
     - name: Run tests and coverage on DockA
       run: |
-        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v shared_volume:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 bash -c "\
+        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 bash -c "\
           yarp detect --write; \
           pip install coverage && \
           coverage run --source=wrapyfi -m unittest discover -s wrapyfi"
     - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
-        docker run --name wrapyfi_zeromq_ros --net host --rm -v shared_volume:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
+        docker run --name wrapyfi_zeromq_ros --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
           pip install coverage && \
           coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi && \
           coverage report --data-file=/tmp/shared_volume/.coverage && \
           coverage xml -o /tmp/shared_volume/coverage.xml"
 
-    # Step 7: Upload the coverage report
+    # Step 7: Upload the coverage report (remains unchanged)
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: shared_volume/coverage.xml
+        file: ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
