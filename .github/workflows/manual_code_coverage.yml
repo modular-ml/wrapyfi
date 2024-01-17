@@ -33,22 +33,24 @@ jobs:
    
     # Step 3: Run YARP and ROS servers
     - name: Run DockA with YARP server
-      run: docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -dit -v shared_volume:/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
+      run: docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -dit -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
     - name: Run DockB with ROS server
-      run: docker run --name wrapyfi_zeromq_ros --net host --rm -dit -v shared_volume:/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
+      run: docker run --name wrapyfi_zeromq_ros --net host --rm -dit -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
 
     # Step 4 & 5 & 6: Install packages, run tests, and append coverage data
     - name: Run tests and coverage on DockA
       run: |
         docker exec wrapyfi_zeromq_yarp_ros2 bash & "\
           pip install coverage && \
-          coverage run --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
+          cd /tmp/shared_volume && \
+          coverage run --source=wrapyfi -m unittest discover -s wrapyfi"
     - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
         docker exec wrapyfi_zeromq_ros bash & "\
           pip install coverage && \
-          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage && \
-          coverage report --data-file=/shared_volume/.coverage && \
+          cd /tmp/shared_volume && \
+          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi && \
+          coverage report --data-file=/tmp/shared_volume/.coverage && \
           coverage xml -o /shared_volume/coverage.xml"
 
     # Step 7: Upload the coverage report
