@@ -7,15 +7,28 @@ jobs:
   run-containers:
     runs-on: ubuntu-latest
     steps:
-    # Step 1: Pull Docker Images
-    - name: Pull Docker Image DockA
+    # Step 1: Pull Docker images
+    - name: Pull Docker image DockA
       run: docker pull modularml/wrapyfi:0.4.32-zeromq-yarp-ros2
     - name: Pull Docker Image DockB
       run: docker pull modularml/wrapyfi:0.4.32-zeromq-ros
     
     # Step 2: Create shared volume (assuming the volume is named shared_volume)
-    - name: Create a shared volume
-      run: docker volume create shared_volume
+    - name: Create and verify shared volume
+      run: |
+        # Create the shared volume
+        docker volume create shared_volume
+        echo "Shared volume created"
+        
+        # List all volumes and check if shared_volume is in the list
+        echo "Listing all volumes:"
+        docker volume ls
+        if docker volume ls | grep -q 'shared_volume'; then
+          echo "Verification: shared_volume exists"
+        else
+          echo "Error: shared_volume was not created successfully"
+          exit 1
+        fi
 
     # Step 3: Run YARP and ROS servers
     - name: Run DockA with YARP server
