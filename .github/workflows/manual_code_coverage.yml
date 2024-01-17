@@ -44,13 +44,13 @@ jobs:
       run: |
         docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 bash -c "\
           yarp detect --write; \
-          pip install coverage wrapyfi[headless] --upgrade && \
-          coverage run --source=wrapyfi -m unittest discover -s wrapyfi"
+          pip install coverage && \
+          WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread coverage run --source=wrapyfi -m unittest discover -s wrapyfi"
     - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
         docker run --name wrapyfi_zeromq_ros --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
-          pip install coverage wrapyfi[headless] --upgrade && \
-          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi && \
+          pip install coverage && \
+          WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi && \
           coverage report --data-file=/tmp/shared_volume/.coverage && \
           coverage xml -o /tmp/shared_volume/coverage.xml"
 
