@@ -26,33 +26,48 @@ docker build --rm=true --no-cache -f wrapyfi_zeromq-ros2.Dockerfile -t wrapyfi-z
 
 ## Usage
 
-If the image requires a server (like ROS or YARP), you need to run them from within the container, e.g.:
+If the image requires a server (like ROS or YARP), you need to run them from within the container. To run `roscore` e.g. in `modularml/wrapyfi:0.4.32-zeromq-yarp-ros`:
 
 ```bash
-docker run --name wrapyfi_zeromq_yarp_ros --net host \
-        --rm -dit modularml/wrapyfi:0.4.32-zeromq-yarp-ros roscore
+docker run --name wrapyfi__roscore --net host \
+        --rm -dit modularml/wrapyfi:0.4.32-zeromq-yarp-ros bash -c "roscore"
 ```
 
-   **Note**: Remove the `-d` argument i.e., replace `-dit` with `-it` to keep the container attached and view the server log. 
+   **Note**: Remove the `-d` argument i.e., replace `-dit` with `-it` to keep the container attached and view the server log (including IP information).
 
-You would also need to run the YARP server in `modularml/wrapyfi:0.4.32-zeromq-yarp-ros` . But since the container is already running, you can `exec` the command---However, you cannot detach it:
-
-```bash
-docker exec -it -e ENV_NAME=zeromq_yarp_ros wrapyfi_zeromq_yarp_ros bash
-        yarpserver
-``` 
-
-Now you can attach to the container which gives you access to a linux environment with pre-installed Wrapyfi and supported middleware:
+You would also need to run the YARP server when YARP is required and a server is not running already. Images where this is applicable include `modularml/wrapyfi:0.4.32-zeromq-yarp-ros`, `modularml/wrapyfi:0.4.32-zeromq-yarp-ros2`, and `modularml/wrapyfi:0.4.32-zeromq-yarp`:
 
 ```bash
-docker exec -e ENV_NAME=zeromq_yarp_ros -it wrapyfi_zeromq_yarp_ros bash
+docker exec -it -e ENV_NAME=zeromq_yarp_ros wrapyfi_zeromq_yarp_ros bash -c "yarpserver"
 ``` 
 
-For images that don't require a server (such as ROS 2 and ZeroMQ images), you simply run the container after pulling the corresponding image:
+To access an interactive bash terminal, you can run other container/s based on the existing images. Ensure that the ROS and YARP URIs and ports are correct to use the two middleware (after running `roscore` and `yarpserver`):
+
+```bash
+
+# for ROS environments
+docker run --name wrapyfi_zeromq_yarp_ros --net host \
+        --rm -it modularml/wrapyfi:0.4.32-zeromq-yarp-ros bash -c \
+        "echo 'This is an environment with ROS installed' && echo 'ROS_MASTER_URI: `$ROS_MASTER_URI`'; bash"
+
+# for YARP environments
+docker run --name wrapyfi_zeromq_yarp_ros --net host \
+        --rm -it modularml/wrapyfi:0.4.32-zeromq-yarp-ros bash -c \
+        "echo 'This is an environment with YARP installed' && yarp detect --write && yarp name list; bash"
+
+```
+
+For images that don't require a server (such as ROS 2 and ZeroMQ images), you can directly run the container after pulling the corresponding image:
 
 ```bash
 docker run --net host --name wrapyfi_zeromq_ros2 \
-        --rm -it modularml/wrapyfi:0.4.32-zeromq-ros2
+        --rm -it modularml/wrapyfi:0.4.32-zeromq-ros2 bash
+```
+
+You can also attach to an existing container which gives you access to a linux environment with pre-installed Wrapyfi and supported middleware:
+
+```bash
+docker exec -e ENV_NAME=zeromq_yarp_ros2 -it wrapyfi_zeromq_yarp_ros2 bash
 ```
 
 ### Mounting volumes
