@@ -23,22 +23,17 @@ jobs:
     - name: Create a shared volume
       run: docker volume create shared_volume
 
-    # Step 4 & 5: Install packages, run tests, and append coverage data
+    # Step 4 & 5 & 6: Install packages, run tests, and append coverage data
     - name: Run tests and append coverage on DockA
       run: |
-        docker exec wrapyfi_zeromq_yarp_ros2 /bin/bash -c "\
+        docker exec wrapyfi_zeromq_yarp_ros2 bash & "\
           pip install coverage && \
           coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
-    - name: Run tests and append coverage on DockB
+    - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
-        docker exec wrapyfi_zeromq_ros /bin/bash -c "\
+        docker exec wrapyfi_zeromq_ros bash & "\
           pip install coverage && \
-          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
-
-    # Step 6: Generate the final report from the combined .coverage file
-    - name: Generate coverage report
-      run: |
-        docker run --rm -v shared_volume:/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 /bin/bash -c "\
+          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage && \
           coverage report --data-file=/shared_volume/.coverage && \
           coverage xml -o /shared_volume/coverage.xml"
 
