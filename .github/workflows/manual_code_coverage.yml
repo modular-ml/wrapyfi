@@ -6,15 +6,6 @@ on:
 jobs:
   run-containers:
     runs-on: ubuntu-latest
-    container:
-      image: node:18
-      env:
-        NODE_ENV: development
-      ports:
-        - 80
-      volumes:
-        - shared_volume:/shared_volume
-      options: --cpus 1
     steps:
     # Step 1: Pull Docker Images
     - name: Pull Docker Image DockA
