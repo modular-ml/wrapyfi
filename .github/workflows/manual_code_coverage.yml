@@ -40,7 +40,7 @@ jobs:
     # Step 4 & 5 & 6: Install packages, run tests, and append coverage data
     - name: Run tests and coverage on DockA
       run: |
-        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v shared_volume:/tmp/shared_volume -w /tmp/shared_volume bash modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 -c "\
+        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v shared_volume:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 bash -c "\
           yarp detect --write; \
           pip install coverage && \
           coverage run --source=wrapyfi -m unittest discover -s wrapyfi"
