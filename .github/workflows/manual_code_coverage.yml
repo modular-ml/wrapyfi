@@ -47,7 +47,7 @@ jobs:
           pip install coverage && \
           ROS_LOG_DIR=/tmp WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread coverage run --source=wrapyfi -m unittest discover -s wrapyfi && \
           coverage report --data-file=/tmp/shared_volume/.coverage && \
-          coverage xml -o /tmp/shared_volume/coverage.xml"
+          coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
     # WIP(fabawi): This seems to break after coverage losing track of Wrapyfi's location
     # - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
     #   run: |
@@ -56,7 +56,7 @@ jobs:
     #       pip uninstall -y pyzmq && \
     #       coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi; \
     #       coverage report --data-file=/tmp/shared_volume/.coverage && \
-    #       coverage xml -o /tmp/shared_volume/coverage.xml"
+    #       coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
 
     # Step 7: Upload the coverage report (remains unchanged)
     - name: Upload coverage report to Codecov
