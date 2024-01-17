@@ -42,5 +42,8 @@ class ROS2Middleware(metaclass=SingletonOptimized):
         Deinitialize the ROS 2 middleware. This method is automatically called when the program exits.
         """
         logging.info("Deinitializing ROS 2 middleware")
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
+        else:
+            logging.info("ROS 2 context is already shutdown or not initialized. Skipping shutdown.")
 
