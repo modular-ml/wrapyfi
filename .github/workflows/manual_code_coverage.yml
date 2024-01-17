@@ -6,6 +6,9 @@ on:
 jobs:
   run-containers:
     runs-on: ubuntu-latest
+    container:
+      volumes:
+        - shared_volume:/shared_volume
     steps:
     # Step 1: Pull Docker Images
     - name: Pull Docker Image DockA
@@ -15,9 +18,9 @@ jobs:
 
     # Step 2: Run YARP and ROS servers
     - name: Run DockA with YARP server
-      run: docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -dit -v shared_volume:/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
+      run: docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -dit -v /shared_volume:/ modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
     - name: Run DockB with ROS server
-      run: docker run --name wrapyfi_zeromq_ros --net host --rm -dit -v shared_volume:/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
+      run: docker run --name wrapyfi_zeromq_ros --net host --rm -dit -v /shared_volume:/ modularml/wrapyfi:0.4.32-zeromq-ros roscore
 
     # Step 3: Create shared volume (assuming the volume is named shared_volume)
     - name: Create a shared volume
@@ -28,14 +31,14 @@ jobs:
       run: |
         docker exec wrapyfi_zeromq_yarp_ros2 bash & "\
           pip install coverage && \
-          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
+          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/.coverage"
     - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
         docker exec wrapyfi_zeromq_ros bash & "\
           pip install coverage && \
-          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage && \
-          coverage report --data-file=/shared_volume/.coverage && \
-          coverage xml -o /shared_volume/coverage.xml"
+          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/.coverage && \
+          coverage report --data-file=/.coverage && \
+          coverage xml -o /coverage.xml"
 
     # Step 7: Upload the coverage report
     - name: Upload coverage report to Codecov
