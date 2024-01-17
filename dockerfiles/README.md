@@ -38,7 +38,8 @@ docker run --name wrapyfi_zeromq_yarp_ros --net host \
 You would also need to run the YARP server in `modularml/wrapyfi:0.4.32-zeromq-yarp-ros` . But since the container is already running, you can `exec` the command---However, you cannot detach it:
 
 ```bash
-docker exec -e ENV_NAME=zeromq_yarp_ros wrapyfi_zeromq_yarp_ros bash -c "yarpserver"
+docker exec -it -e ENV_NAME=zeromq_yarp_ros wrapyfi_zeromq_yarp_ros bash
+        yarpserver
 ``` 
 
 Now you can attach to the container which gives you access to a linux environment with pre-installed Wrapyfi and supported middleware:
