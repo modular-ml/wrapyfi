@@ -30,7 +30,7 @@ If the image requires a server (like ROS or YARP), you need to run them from wit
 
 ```bash
 docker run --name wrapyfi_zeromq_yarp_ros --net host \
-        --rm -dit docker pull modularml/wrapyfi:0.4.32-zeromq-yarp-ros roscore
+        --rm -dit modularml/wrapyfi:0.4.32-zeromq-yarp-ros roscore
 ```
 
    **Note**: Remove the `-d` argument i.e., replace `-dit` with `-it` to keep the container attached and view the server log. 
@@ -38,7 +38,7 @@ docker run --name wrapyfi_zeromq_yarp_ros --net host \
 You would also need to run the YARP server in `modularml/wrapyfi:0.4.32-zeromq-yarp-ros` . But since the container is already running, you can `exec` the command---However, you cannot detach it:
 
 ```bash
-docker exec -e ENV_NAME=zeromq_yarp_ros wrapyfi_zeromq_yarp_ros bash & yarpserver
+docker exec -e ENV_NAME=zeromq_yarp_ros wrapyfi_zeromq_yarp_ros bash -c "yarpserver"
 ``` 
 
 Now you can attach to the container which gives you access to a linux environment with pre-installed Wrapyfi and supported middleware:
