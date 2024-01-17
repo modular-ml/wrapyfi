@@ -50,7 +50,7 @@ jobs:
       run: |
         docker run --name wrapyfi_zeromq_ros --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
           pip install coverage && \
-          pip uninstall pyzmq && \
+          pip uninstall -y pyzmq && \
           coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi; \
           coverage report --data-file=/tmp/shared_volume/.coverage && \
           coverage xml -o /tmp/shared_volume/coverage.xml"
