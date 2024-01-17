@@ -27,12 +27,12 @@ jobs:
     - name: Run tests and append coverage on DockA
       run: |
         docker exec wrapyfi_zeromq_yarp_ros2 /bin/bash -c "\
-          pip3 install coverage && \
+          pip install coverage && \
           coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
     - name: Run tests and append coverage on DockB
       run: |
         docker exec wrapyfi_zeromq_ros /bin/bash -c "\
-          pip3 install coverage && \
+          pip install coverage && \
           coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
 
     # Step 6: Generate the final report from the combined .coverage file
