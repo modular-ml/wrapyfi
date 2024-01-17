@@ -38,11 +38,11 @@ jobs:
       run: docker run --name wrapyfi_zeromq_ros --net host --rm -dit -v shared_volume:/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
 
     # Step 4 & 5 & 6: Install packages, run tests, and append coverage data
-    - name: Run tests and append coverage on DockA
+    - name: Run tests and coverage on DockA
       run: |
         docker exec wrapyfi_zeromq_yarp_ros2 bash & "\
           pip install coverage && \
-          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
+          coverage run --source=wrapyfi -m unittest discover -s wrapyfi --data-file=/shared_volume/.coverage"
     - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
         docker exec wrapyfi_zeromq_ros bash & "\
