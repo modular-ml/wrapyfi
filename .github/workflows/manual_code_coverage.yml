@@ -33,20 +33,20 @@ jobs:
    
     # Step 3: Run YARP and ROS servers
     - name: Run DockA with YARP server
-      run: docker run --name wrapyfi__yarpserver --net host --rm -dit -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
+      run: docker run --name wrapyfi__yarpserver --net host --rm -it -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
     - name: Run DockB with ROS server
-      run: docker run --name wrapyfi__roscore --net host --rm -dit -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
+      run: docker run --name wrapyfi__roscore --net host --rm -it -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
 
     # Step 4 & 5 & 6: Install packages, run tests, and append coverage data
     - name: Run tests and coverage on DockA
       run: |
-        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -dit -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 -w /tmp/shared_volume bash -c "\
+        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -it -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 -w /tmp/shared_volume bash -c "\
           yarp detect --write; \
           pip install coverage && \
           coverage run --source=wrapyfi -m unittest discover -s wrapyfi"
     - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
       run: |
-        docker run --name wrapyfi_zeromq_ros --net host --rm -dit -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros -w /tmp/shared_volume bash -c "\
+        docker run --name wrapyfi_zeromq_ros --net host --rm -it -v shared_volume:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros -w /tmp/shared_volume bash -c "\
           pip install coverage && \
           coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi && \
           coverage report --data-file=/tmp/shared_volume/.coverage && \
