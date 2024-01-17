@@ -207,8 +207,13 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
         monitor = context.socket(zmq.PUB)
         monitor.bind(inproc_address)
-
-        zmq.proxy(xpub, xsub, monitor)
+        try:
+          zmq.proxy(xpub, xsub, monitor)
+        except Exception as e:
+          if str(e) == "Socket operation on non-socket":  # https://stackoverflow.com/a/58642776
+            pass
+          else:
+            logging.error(f"[ZeroMQ BROKER] An error occurred in the ZeroMQ proxy: {str(e)}.")
 
     @staticmethod
     def subscription_monitor_thread(inproc_address: str = "inproc://monitor", socket_sub_address: str = "tcp://127.0.0.1:5556",
@@ -417,7 +422,13 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
             logging.error(f"[ZeroMQ] {e} {socket_req_address}")
             return
         # logging.info(f"[ZeroMQ] Intialising REQ/REP device broker")
-        zmq.proxy(xrep, xreq)
+        try:
+          zmq.proxy(xrep, xreq)
+        except Exception as e:
+          if str(e) == "Socket operation on non-socket":  # https://stackoverflow.com/a/58642776
+            pass
+          else:
+            logging.error(f"[ZeroMQ] An error occurred in the ZeroMQ proxy: {str(e)}.")
 
     @staticmethod
     def deinit():
