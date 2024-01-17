@@ -57,8 +57,13 @@ jobs:
     #       coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi; \
     #       coverage report --data-file=/tmp/shared_volume/.coverage && \
     #       coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
-
-    # Step 7: Upload the coverage report (remains unchanged)
+    
+    # Step 7: Print out the coverage.xml
+    - name: Print content of coverage.xml
+      run: |
+          cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+    
+    # Step 8: Upload the coverage report (remains unchanged)
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v3
       with:
