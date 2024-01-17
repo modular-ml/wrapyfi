@@ -58,10 +58,12 @@ jobs:
     #       coverage report --data-file=/tmp/shared_volume/.coverage && \
     #       coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
     
-    # Step 7: Print out the coverage.xml
-    - name: Print content of coverage.xml
+    # Step 7: Modify codecov paths
+    - name: Modify paths in coverage.xml
       run: |
-          cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi|wrapyfi|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml # Optional: Print to verify
+
     
     # Step 8: Upload the coverage report (remains unchanged)
     - name: Upload coverage report to Codecov
