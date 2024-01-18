@@ -135,7 +135,7 @@ class ZeroMQTestWrapper(unittest.TestCase):
         self.assertIn(self.MWARE, Test.get_communicators())
 
         Test.close_all_instances()
-    
+
 
 class ROS2TestWrapper(ZeroMQTestWrapper):
     """
