@@ -134,6 +134,10 @@ class ZeroMQTestWrapper(unittest.TestCase):
 
         self.assertIn(self.MWARE, Test.get_communicators())
 
+    def tearDown(self):
+        from wrapyfi.connect.wrapper import MiddlewareCommunicator
+        MiddlewareCommunicator.close_all_instances()
+
 
 class ROS2TestWrapper(ZeroMQTestWrapper):
     """
