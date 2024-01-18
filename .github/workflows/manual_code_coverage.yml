@@ -61,13 +61,6 @@ jobs:
     # Step 7: Modify codecov paths
     - name: Modify paths in coverage.xml
       run: |
-        sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml # Optional: Print to verify
-
-    # Step 7: Modify codecov paths
-    - name: Modify paths in coverage.xml
-      run: |
         # Set the <source> correctly
         sed -i 's|<source></source>|<source>/wrapyfi</source>|' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
         sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
