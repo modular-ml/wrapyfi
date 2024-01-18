@@ -61,16 +61,19 @@ jobs:
     # Step 7: Modify codecov paths
     - name: Modify paths in coverage.xml
       run: |
-        # Set the source directory to /wrapyfi
-        sed -i 's|<sources>|<sources><source>/wrapyfi</source>|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        # Remove the old source tag if it exists
-        sed -i '/<source>.*<\/source>/d' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        # Modify file paths by removing the unnecessary path prefix and leading ./
-        sed -i 's|filename="./opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi/|filename="|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|filename=".|filename="|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        # Optional: Print to verify
-        cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml # Optional: Print to verify
 
+    # Step 7: Modify codecov paths
+    - name: Modify paths in coverage.xml
+      run: |
+        # Set the <source> correctly
+        sed -i 's|<source></source>|<source>/wrapyfi</source>|' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|filename="./|filename="|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml  # Optional: Print to verify
     
     # Step 8: Upload the coverage report (remains unchanged)
     - name: Upload coverage report to Codecov
