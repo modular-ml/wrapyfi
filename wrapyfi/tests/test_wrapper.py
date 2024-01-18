@@ -50,6 +50,7 @@ class ZeroMQTestWrapper(unittest.TestCase):
 
         # ensure no nodes are registered
         self.assertIn("Test.exchange_object", Test._MiddlewareCommunicator__registry)
+        Test.close_all_instances()
 
     def test_close(self):
         """
@@ -134,6 +135,7 @@ class ZeroMQTestWrapper(unittest.TestCase):
 
         self.assertIn(self.MWARE, Test.get_communicators())
 
+        # ensure no nodes are registered
         Test.close_all_instances()
 
 
