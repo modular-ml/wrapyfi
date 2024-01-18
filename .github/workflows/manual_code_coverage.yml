@@ -61,18 +61,18 @@ jobs:
     # Step 7: Modify codecov paths
     - name: Modify paths in coverage.xml
       run: |
-        # Set the <source> correctly
-        sed -i 's|<source></source>|<source>/wrapyfi</source>|' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|filename="./|filename="|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|<package name="..\([^ ]\)|<package name=".\1|g' ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        cat ${GITHUB_WORKSPACE}/shared_directory/coverage.xml  # Optional: Print to verify
+        cp ${GITHUB_WORKSPACE}/shared_directory/coverage.xml ${GITHUB_WORKSPACE}/coverage.xml
+        sed -i 's|<source></source>|<source>/wrapyfi</source>|' ${GITHUB_WORKSPACE}/coverage.xml
+        sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/coverage.xml
+        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/coverage.xml
+        sed -i 's|filename="./|filename="|g' ${GITHUB_WORKSPACE}/coverage.xml
+        sed -i 's|<package name="..\([^ ]\)|<package name=".\1|g' ${GITHUB_WORKSPACE}/coverage.xml
+        cat ${GITHUB_WORKSPACE}/coverage.xml  # Optional: Print to verify
     
     # Step 8: Upload the coverage report (remains unchanged)
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ${{ github.workspace }}/shared_directory/coverage.xml
+        file: ${{ github.workspace }}/coverage.xml
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
