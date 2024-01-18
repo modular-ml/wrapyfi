@@ -23,11 +23,13 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
     middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the
     class is instantiated and when the program exits, respectively.
     """
+
     class ZeroMQSharedMonitorData:
         """
         Shared data class for the ZeroMQ PUB/SUB monitor. This class is used to share data between the main process and
         the monitor listener process/thread.
         """
+
         def __init__(self, use_multiprocessing: bool = False):
             """
             Initialize the shared data class.
@@ -170,22 +172,24 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                     self.shared_monitor_data = self.ZeroMQSharedMonitorData(use_multiprocessing=False)
                     self.monitor = threading.Thread(name='pubsub_monitor_listener_spawn',
                                                     target=self.__init_monitor_listener, kwargs=zeromq_proxy_kwargs)
-                    self.monitor.setDaemon(True)
+                    self.monitor.setDaemon(True)  # deprecation warning Python3.10. Previous Python versions only support this
                     self.monitor.start()
 
             time.sleep(1)
 
             if zeromq_proxy_kwargs.get("start_proxy_broker", False):
                 if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                    self.proxy = multiprocessing.Process(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=zeromq_proxy_kwargs)
+                    self.proxy = multiprocessing.Process(name='zeromq_pubsub_broker', target=self.__init_proxy,
+                                                         kwargs=zeromq_proxy_kwargs)
                     self.proxy.daemon = True
                     self.proxy.start()
                 else:  # if threaded
-                    self.proxy = threading.Thread(name='zeromq_pubsub_broker', target=self.__init_proxy, kwargs=zeromq_proxy_kwargs)
-                    self.proxy.setDaemon(True)
+                    self.proxy = threading.Thread(name='zeromq_pubsub_broker', target=self.__init_proxy,
+                                                  kwargs=zeromq_proxy_kwargs)
+                    self.proxy.setDaemon(True)  # deprecation warning Python3.10. Previous Python versions only support this
                     self.proxy.start()
             pass
-                
+
     @staticmethod
     def proxy_thread(socket_pub_address: str = "tcp://127.0.0.1:5555",
                      socket_sub_address: str = "tcp://127.0.0.1:5556",
@@ -208,15 +212,23 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         monitor = context.socket(zmq.PUB)
         monitor.bind(inproc_address)
         try:
-          zmq.proxy(xpub, xsub, monitor)
+            zmq.proxy(xpub, xsub, monitor)
         except Exception as e:
-          if str(e) == "Socket operation on non-socket":  # https://stackoverflow.com/a/58642776
-            pass
-          else:
-            logging.error(f"[ZeroMQ BROKER] An error occurred in the ZeroMQ proxy: {str(e)}.")
+            # WORKAROUND(fabawi): The errno in ZMQERROR changes arbitrarily but the message seems consistent. According
+            #  to https://pyzmq.readthedocs.io/en/latest/api/zmq.html#context when ctx.destroy() is called, and the
+            #  context is created in another thread, the operation is unsafe. If we want to maintain daemonized spawning
+            #  of brokers, we have to apply this workaround. There is no way to let the proxy know that the context has
+            #  been destroyed, so we let it crash. This only happens when the spawning method is `thread`; `process`
+            #  (default method) will hang forever. This can be done by setting the environment variables
+            #  WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread
+            if str(e) == "Socket operation on non-socket":
+                pass
+            else:
+                logging.error(f"[ZeroMQ BROKER] An error occurred in the ZeroMQ proxy: {str(e)}.")
 
     @staticmethod
-    def subscription_monitor_thread(inproc_address: str = "inproc://monitor", socket_sub_address: str = "tcp://127.0.0.1:5556",
+    def subscription_monitor_thread(inproc_address: str = "inproc://monitor",
+                                    socket_sub_address: str = "tcp://127.0.0.1:5556",
                                     pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS", verbose: bool = False):
         """
         Subscription monitor thread for the ZeroMQ PUB/SUB proxy.
@@ -272,7 +284,8 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             except Exception as e:
                 logging.error(f"[ZeroMQ BROKER] An error occurred in the ZeroMQ subscription monitor: {str(e)}")
 
-    def __init_proxy(self, socket_pub_address: str = "tcp://127.0.0.1:5555", socket_sub_address: str = "tcp://127.0.0.1:5556",
+    def __init_proxy(self, socket_pub_address: str = "tcp://127.0.0.1:5555",
+                     socket_sub_address: str = "tcp://127.0.0.1:5556",
                      pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
                      **kwargs):
         """
@@ -296,7 +309,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                                  "pubsub_monitor_topic": pubsub_monitor_topic,
                                  "verbose": kwargs.get("verbose", False)}).start()
 
-    def __init_monitor_listener(self, socket_pub_address: str = "tcp://127.0.0.1:5555", 
+    def __init_monitor_listener(self, socket_pub_address: str = "tcp://127.0.0.1:5555",
                                 pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
                                 verbose: bool = False, **kwargs):
         """
@@ -348,6 +361,7 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     middleware and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the
     class is instantiated and when the program exits, respectively.
     """
+
     @staticmethod
     def activate(**kwargs):
         """
@@ -369,7 +383,8 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
         ZeroMQMiddlewareReqRep(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
 
-    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional[dict] = None, *args, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional[dict] = None, *args,
+                 **kwargs):
         """
         Initialize the ZeroMQ REQ/REP middleware. This method is automatically called when the class is instantiated.
 
@@ -392,17 +407,20 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
 
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                self.proxy = multiprocessing.Process(name='zeromq_reqrep_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
+                self.proxy = multiprocessing.Process(name='zeromq_reqrep_broker', target=self.__init_device,
+                                                     kwargs=zeromq_proxy_kwargs)
                 self.proxy.daemon = True
                 self.proxy.start()
             else:  # if threaded
-                self.proxy = threading.Thread(name='zeromq_reqrep_broker', target=self.__init_device, kwargs=zeromq_proxy_kwargs)
-                self.proxy.setDaemon(True)
+                self.proxy = threading.Thread(name='zeromq_reqrep_broker', target=self.__init_device,
+                                              kwargs=zeromq_proxy_kwargs)
+                self.proxy.setDaemon(True)  # deprecation warning Python3.10. Previous Python versions only support this
                 self.proxy.start()
             pass
 
     @staticmethod
-    def __init_device(socket_rep_address: str = "tcp://127.0.0.1:5559", socket_req_address: str = "tcp://127.0.0.1:5560", **kwargs):
+    def __init_device(socket_rep_address: str = "tcp://127.0.0.1:5559",
+                      socket_req_address: str = "tcp://127.0.0.1:5560", **kwargs):
         """
         Initialize the ZeroMQ REQ/REP device broker.
 
@@ -423,12 +441,19 @@ class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
             return
         # logging.info(f"[ZeroMQ] Intialising REQ/REP device broker")
         try:
-          zmq.proxy(xrep, xreq)
+            zmq.proxy(xrep, xreq)
         except Exception as e:
-          if str(e) == "Socket operation on non-socket":  # https://stackoverflow.com/a/58642776
-            pass
-          else:
-            logging.error(f"[ZeroMQ] An error occurred in the ZeroMQ proxy: {str(e)}.")
+            # WORKAROUND(fabawi): The errno in ZMQERROR changes arbitrarily but the message seems consistent. According
+            #  to https://pyzmq.readthedocs.io/en/latest/api/zmq.html#context when ctx.destroy() is called, and the
+            #  context is created in another thread, the operation is unsafe. If we want to maintain daemonized spawning
+            #  of brokers, we have to apply this workaround. There is no way to let the proxy know that the context has
+            #  been destroyed, so we let it crash. This only happens when the spawning method is `thread`; `process`
+            #  (default method) will hang forever. This can be done by setting the environment variables
+            #  WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread
+            if str(e) == "Socket operation on non-socket":
+                pass
+            else:
+                logging.error(f"[ZeroMQ] An error occurred in the ZeroMQ proxy: {str(e)}.")
 
     @staticmethod
     def deinit():
@@ -445,6 +470,7 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
 
     Note: This parameter server is experimental and not fully tested.
     """
+
     @staticmethod
     def activate(**kwargs):
         zeromq_post_kwargs = {}
@@ -459,9 +485,11 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
             except AttributeError:
                 pass
 
-        ZeroMQMiddlewareParamServer(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs, **zeromq_pre_kwargs)
+        ZeroMQMiddlewareParamServer(zeromq_proxy_kwargs=kwargs, zeromq_post_kwargs=zeromq_post_kwargs,
+                                    **zeromq_pre_kwargs)
 
-    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional = None, *args, **kwargs):
+    def __init__(self, zeromq_proxy_kwargs: Optional[dict] = None, zeromq_post_kwargs: Optional = None, *args,
+                 **kwargs):
         """
         Initialize the ZeroMQ parameter server middleware. This method is automatically called when the class is
         instantiated.
@@ -488,8 +516,9 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
             self.params = self.manager.dict()
             self.params["WRAPYFI_ACTIVE"] = "True"
             if zeromq_proxy_kwargs["proxy_broker_spawn"] == "process":
-                self.param_broadcaster = multiprocessing.Process(name='zeromq_param_broadcaster', target=self.__init_broadcaster,
-                                                            kwargs=zeromq_proxy_kwargs, args=(self.params,))
+                self.param_broadcaster = multiprocessing.Process(name='zeromq_param_broadcaster',
+                                                                 target=self.__init_broadcaster,
+                                                                 kwargs=zeromq_proxy_kwargs, args=(self.params,))
                 self.param_broadcaster.daemon = True
                 self.param_broadcaster.start()
                 self.param_server = multiprocessing.Process(name='zeromq_param_server', target=self.__init_server,
@@ -498,18 +527,20 @@ class ZeroMQMiddlewareParamServer(metaclass=SingletonOptimized):
                 self.param_server.start()
             else:  # if threaded
 
-                self.param_broadcaster = threading.Thread(name='zeromq_param_broadcaster', target=self.__init_broadcaster,
-                                                     kwargs=zeromq_proxy_kwargs, args=(self.params,))
-                self.param_broadcaster.setDaemon(True)
+                self.param_broadcaster = threading.Thread(name='zeromq_param_broadcaster',
+                                                          target=self.__init_broadcaster,
+                                                          kwargs=zeromq_proxy_kwargs, args=(self.params,))
+                self.param_broadcaster.setDaemon(True)  # deprecation warning Python3.10. Previous Python versions only support this
                 self.param_broadcaster.start()
                 self.param_server = threading.Thread(name='zeromq_param_server', target=self.__init_server,
                                                      kwargs=zeromq_proxy_kwargs, args=(self.params,))
-                self.param_server.setDaemon(True)
+                self.param_server.setDaemon(True)  # deprecation warning Python3.10. Previous Python versions only support this
                 self.param_server.start()
             pass
 
     @staticmethod
-    def __init_broadcaster(params, param_pub_address: str = "tcp://127.0.0.1:5655", param_sub_address: str = "tcp://127.0.0.1:5656",
+    def __init_broadcaster(params, param_pub_address: str = "tcp://127.0.0.1:5655",
+                           param_sub_address: str = "tcp://127.0.0.1:5656",
                            param_poll_interval=1, verbose=False, **kwargs):
         """
         Initialize the ZeroMQ parameter server broadcaster.
