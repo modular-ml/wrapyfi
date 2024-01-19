@@ -48,7 +48,7 @@ jobs:
           ROS_LOG_DIR=/tmp WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread coverage run --source=wrapyfi -m unittest discover -s wrapyfi && \
           coverage report --data-file=/tmp/shared_volume/.coverage && \
           coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
-    # WIP(fabawi): This seems to break after coverage losing track of Wrapyfi's location
+    # WIP(fabawi): This breaks as coverage tries to append previous source location /opt/conda/.../wrapyfi to current and they don't match
     # - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
     #   run: |
     #     docker run --name wrapyfi_zeromq_ros --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
