@@ -8,6 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
     
+    # Step 0: Checkout Wrapyfi for upload to codecov
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
     # Step 1: Create a local directory with full read-write permissions
     - name: Create and verify local directory
       run: |
@@ -62,7 +68,8 @@ jobs:
     - name: Modify paths in coverage.xml
       run: |
         cp ${GITHUB_WORKSPACE}/shared_directory/coverage.xml ${GITHUB_WORKSPACE}/coverage.xml
-        sed -i 's|<source></source>|<source>/wrapyfi</source>|' ${GITHUB_WORKSPACE}/coverage.xml
+        rm ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
+        sed -i 's|<source></source>|<source>/home/runner/work/wrapyfi/wrapyfi</source>|' ${GITHUB_WORKSPACE}/coverage.xml
         sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/coverage.xml
         sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/coverage.xml
         sed -i 's|filename="./|filename="|g' ${GITHUB_WORKSPACE}/coverage.xml
