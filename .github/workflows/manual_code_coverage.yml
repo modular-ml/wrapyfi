@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
     
-    # Step 0: Checkout Wrapyfi for upload to codecov
+    # Step 0: Checkout Wrapyfi for local code coverage
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -18,15 +18,15 @@ jobs:
     - name: Create and verify local directory
       run: |
         # Create the directory
-        mkdir -p ${GITHUB_WORKSPACE}/shared_directory
+        mkdir -p ${GITHUB_WORKSPACE}
         echo "Local directory created"
 
         # Grant full read-write permissions
-        chmod 777 ${GITHUB_WORKSPACE}/shared_directory
+        chmod 777 ${GITHUB_WORKSPACE}
         echo "Granted full read-write permissions to the directory"
         
         # Verify creation
-        if [ -d "${GITHUB_WORKSPACE}/shared_directory" ]; then
+        if [ -d "${GITHUB_WORKSPACE}" ]; then
           echo "Verification: shared_directory exists and is writable"
         else
           echo "Error: shared_directory was not created successfully"
@@ -41,39 +41,35 @@ jobs:
    
     # Step 3: Run YARP and ROS servers (replace volume mounts with bind mounts)
     - name: Run DockA with YARP server
-      run: docker run --name wrapyfi__yarpserver --net host --rm -d -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
+      run: docker run --name wrapyfi__yarpserver --net host --rm -d -v ${GITHUB_WORKSPACE}:/wrapyfi -w /wrapyfi modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 yarpserver
     - name: Run DockB with ROS server
-      run: docker run --name wrapyfi__roscore --net host --rm -d -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros roscore
+      run: docker run --name wrapyfi__roscore --net host --rm -d -v ${GITHUB_WORKSPACE}:/wrapyfi -w /wrapyfi modularml/wrapyfi:0.4.32-zeromq-ros roscore
 
     # Step 4 & 5 & 6: Install packages, run tests, and append coverage data (replace volume mounts with bind mounts)
+    # Run ROS 2, YARP, and ZeroMQ environment
     - name: Run tests and coverage on DockA
       run: |
-        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 bash -c "\
+        docker run --name wrapyfi_zeromq_yarp_ros2 --net host --rm -v ${GITHUB_WORKSPACE}:/wrapyfi -w /wrapyfi modularml/wrapyfi:0.4.32-zeromq-yarp-ros2 bash -c "\
           yarp detect --write; \
           pip install coverage && \
+          pip uninstall -y wrapyfi && \
           ROS_LOG_DIR=/tmp WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN=thread WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN=thread coverage run --source=wrapyfi -m unittest discover -s wrapyfi && \
-          coverage report --data-file=/tmp/shared_volume/.coverage && \
-          coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
-    # WIP(fabawi): This breaks as coverage tries to append previous source location /opt/conda/.../wrapyfi to current and they don't match
-    # - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
-    #   run: |
-    #     docker run --name wrapyfi_zeromq_ros --net host --rm -v ${GITHUB_WORKSPACE}/shared_directory:/tmp/shared_volume -w /tmp/shared_volume modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
-    #       pip install coverage && \
-    #       pip uninstall -y pyzmq && \
-    #       coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi; \
-    #       coverage report --data-file=/tmp/shared_volume/.coverage && \
-    #       coverage xml -o /tmp/shared_volume/coverage.xml --data-file=/tmp/shared_volume/.coverage"
+          coverage report --data-file=/wrapyfi/.coverage && \
+          coverage xml -o /wrapyfi/coverage.xml --data-file=/wrapyfi/.coverage"
+    # Run ROS environment
+    - name: Run tests and append coverage on DockB. Generate the final report from the combined .coverage file
+      run: |
+        docker run --name wrapyfi_zeromq_ros --net host --rm -v ${GITHUB_WORKSPACE}:/wrapyfi -w /wrapyfi modularml/wrapyfi:0.4.32-zeromq-ros bash -c "\
+          pip install coverage && \
+          pip uninstall -y pyzmq && \
+          pip uninstall -y wrapyfi && \
+          coverage run -a --source=wrapyfi -m unittest discover -s wrapyfi; \
+          coverage report --data-file=/wrapyfi/.coverage && \
+          coverage xml -o /wrapyfi/coverage.xml --data-file=/wrapyfi/.coverage"
     
     # Step 7: Modify codecov paths
     - name: Modify paths in coverage.xml
       run: |
-        cp ${GITHUB_WORKSPACE}/shared_directory/coverage.xml ${GITHUB_WORKSPACE}/coverage.xml
-        rm ${GITHUB_WORKSPACE}/shared_directory/coverage.xml
-        sed -i 's|<source></source>|<source>/home/runner/work/wrapyfi/wrapyfi</source>|' ${GITHUB_WORKSPACE}/coverage.xml
-        sed -i 's|.opt.conda.envs.zeromq_yarp_ros2.lib.python3.10.site-packages.wrapyfi|.|g' ${GITHUB_WORKSPACE}/coverage.xml
-        sed -i 's|/opt/conda/envs/zeromq_yarp_ros2/lib/python3.10/site-packages/wrapyfi||g' ${GITHUB_WORKSPACE}/coverage.xml
-        sed -i 's|filename="./|filename="|g' ${GITHUB_WORKSPACE}/coverage.xml
-        sed -i 's|<package name="..\([^ ]\)|<package name=".\1|g' ${GITHUB_WORKSPACE}/coverage.xml
         cat ${GITHUB_WORKSPACE}/coverage.xml  # Optional: Print to verify
     
     # Step 8: Upload the coverage report (remains unchanged)
