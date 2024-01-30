@@ -58,12 +58,12 @@ Note that the iCub package is not needed for Wrapyfi to work and does not have t
 * For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
 Wrapyfi [ROS interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md?rank=0) must be
-built to support messages needed for audio transmission.
+built to support messages needed for audio transmission ![ROS Package Index](https://img.shields.io/ros/v/noetic/wrapyfi_ros_interfaces)
 
 * For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
 We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment. Additionally, the 
-Wrapyfi [ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md?rank=0) must be
-built to support messages and services needed for audio transmission and the REQ/REP pattern support.
+Wrapyfi [ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md?rank=0) 
+must be built to support messages and services needed for audio transmission and the REQ/REP pattern support ![ROS Package Index](https://img.shields.io/ros/v/humble/wrapyfi_ros2_interfaces)
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
