@@ -20,6 +20,14 @@ examples.encoders.astropy\_example module
    :undoc-members:
    :show-inheritance:
 
+examples.encoders.cupy\_example module
+--------------------------------------
+
+.. automodule:: examples.encoders.cupy_example
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 examples.encoders.dask\_example module
 --------------------------------------
 

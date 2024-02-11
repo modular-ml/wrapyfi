@@ -4,6 +4,14 @@ wrapyfi.plugins package
 Submodules
 ----------
 
+wrapyfi.plugins.cupy\_array module
+----------------------------------
+
+.. automodule:: wrapyfi.plugins.cupy_array
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.plugins.dask\_data module
 ---------------------------------
 
