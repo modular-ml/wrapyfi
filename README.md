@@ -337,6 +337,7 @@ Supported Objects by the `NativeObject` type include:
 * [x] [**pandas DataFrame|Series**](https://pandas.pydata.org/docs/)
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 * [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)
+* [x] [**CuPy Array**](https://docs.cupy.dev/en/stable/index.html)
 * [x] [**Xarray DataArray|Dataset**](http://xarray.pydata.org/en/stable/)
 * [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
 * [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)

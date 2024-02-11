@@ -411,6 +411,7 @@ Other than native python objects, the following objects are supported:
 * `PIL.Image`
 * `pyarrow.StructArray`
 * `xarray.DataArray` and `xarray.Dataset`
+* `cupy.ndarray`
 * `dask.array.Array` and `dask.dataframe.DataFrame`
 * `zarr.core.Array` and `zarr.core.Group`
 * `pint.Quantity`
@@ -457,6 +458,7 @@ The plugins supporting remapping are:
 * `mxnet.nd.NDArray`
 * `torch.Tensor`
 * `paddle.Tensor`
+* `cupy.ndarray` **ONLY SUPPORTS CUDA DEVICES**
 
 ### Serialization
 
