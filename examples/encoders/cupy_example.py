@@ -48,6 +48,7 @@ class CuPyNotifier(MiddlewareCommunicator):
         msg = input("Type your message: ")
         ret = {
             "message": msg,
+            "cupy_ones_cuda": cp.ones((2, 4), dtype=cp.float32),
             "cupy_zeros_cuda": cp.zeros((2, 3), dtype=cp.float32)
         }
         return ret,
