@@ -16,10 +16,11 @@
 
 
 [![codecov](https://codecov.io/github/modular-ml/wrapyfi/graph/badge.svg?token=5SD1A6ENKE)](https://codecov.io/github/modular-ml/wrapyfi)
-[![PyPI version](https://badge.fury.io/py/wrapyfi.svg)](https://badge.fury.io/py/wrapyfi)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://black.readthedocs.io/ "code style link")
 [![PyPI - Implementation](https://img.shields.io/pypi/implementation/wrapyfi)](https://pypi.org/project/wrapyfi/ "implementation")
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wrapyfi)](https://pypi.org/project/wrapyfi/ "python version")
+
+[![PyPI version](https://badge.fury.io/py/wrapyfi.svg)](https://badge.fury.io/py/wrapyfi)
 [![PyPI total downloads](https://img.shields.io/pepy/dt/wrapyfi)](https://www.pepy.tech/projects/wrapyfi)
 [![Docker Hub Pulls](https://img.shields.io/docker/pulls/modularml/wrapyfi.svg)](https://hub.docker.com/repository/docker/modularml/wrapyfi)
 
