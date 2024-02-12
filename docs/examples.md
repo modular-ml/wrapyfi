@@ -58,6 +58,9 @@ A message publisher and listener for native Python objects and PyArrow arrays.
 ## [xarray](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.xarray_example)
 A message publisher and listener for native Python objects and xarray DataArrays.
 
+## [CuPy](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.cupy_example)
+A message publisher and listener for native Python objects and CuPy arrays.
+
 ## [Zarr](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.zarr_example)
 A message publisher and listener for native Python objects and Zarr arrays/groups.
 
