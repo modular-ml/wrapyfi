@@ -27,6 +27,11 @@ jobs:
     #     sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros2_interfaces/package.xml
     #     sed -i.bak -E "s|<version>[^<]+</version>|<version>$VERSION</version>|" wrapyfi_extensions/wrapyfi_ros_interfaces/package.xml
 
+    - name: Refactor with Code Black
+      run: |
+        python3 -m pip install black
+        black .
+
     - name: Generate Documentation
       run: |
         cd docs

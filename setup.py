@@ -44,7 +44,7 @@ def check_cv2(default_python="opencv-python"):
 
 setuptools.setup(
     name="wrapyfi",
-    version="0.4.39",
+    version="0.4.40",
     description="Wrapyfi is a wrapper for simplifying Middleware communication",
     url="https://github.com/fabawi/wrapyfi/blob/main/",
     project_urls={
@@ -70,7 +70,7 @@ setuptools.setup(
     python_requires=">=3.6",
     setup_requires=["cython>=0.29.1"],
     classifiers=[
-        "Development Status :: 4 - Production/Stable",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Robotics",

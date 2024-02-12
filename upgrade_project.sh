@@ -39,6 +39,10 @@ update_version_in_package_xml() {
 # GENERATE DOCUMENTATION
 #######################################################################################################################
 
+# refactor code with black
+python3 -m pip install black
+black .
+
 # compile docs with sphinx
 cd docs
 python3 -m pip install -r requirements.txt
