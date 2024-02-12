@@ -26,7 +26,7 @@ import numpy as np
 from wrapyfi.utils import *
 
 try:
-    import cupy as cp
+    import cupy
 
     HAVE_CUPY = True
 except ImportError:
@@ -37,10 +37,10 @@ def cupy_device_to_str(device):
     """
     Convert a CuPy device to a string representation.
 
-    :param device: Union[cp.cuda.Device, int]: The CuPy device
+    :param device: Union[cupy.cuda.Device, int]: The CuPy device
     :return: str: A string representing the CuPy device
     """
-    if isinstance(device, (cp.cuda.Device, int)):
+    if isinstance(device, (cupy.cuda.Device, int)):
         return f"cuda:{int(device)}"
     elif isinstance(device, str):
         return device
@@ -53,24 +53,24 @@ def cupy_str_to_device(device_str):
     Convert a string to a CuPy device.
 
     :param device_str: str: A string representing a CuPy device
-    :return: cp.cuda.Device: A CuPy device
+    :return: cupy.cuda.Device: A CuPy device
     """
     if isinstance(device_str, str) and device_str.startswith("cuda:"):
         device_id = int(device_str.split(":")[1])
-        return cp.cuda.Device(device_id)
+        return cupy.cuda.Device(device_id)
     elif isinstance(device_str, str) and device_str.startswith("cpu:"):
         raise ValueError("CuPY does not support CPU devices")
     else:
         raise ValueError(f"Invalid device string {device_str}")
 
 
-@PluginRegistrar.register(types=None if not HAVE_CUPY else cp.ndarray.__mro__[:-1])
+@PluginRegistrar.register(types=None if not HAVE_CUPY else cupy.ndarray.__mro__[:-1])
 class CuPyArray(Plugin):
     def __init__(self, load_cupy_device=None, map_cupy_devices=None, **kwargs):
         """
         Initialize the CuPy plugin.
 
-        :param load_cupy_device: cp.cuda.Device or str: Default CuPy device to load tensors onto
+        :param load_cupy_device: cupy.cuda.Device or str: Default CuPy device to load tensors onto
         :param map_cupy_devices: dict: [Optional] A dictionary mapping encoded device strings to decoding devices
         """
         self.map_cupy_devices = map_cupy_devices or {}
@@ -84,11 +84,11 @@ class CuPyArray(Plugin):
         """
         Encode CuPy array into a base64 ASCII string.
 
-        :param obj: cp.ndarray: The CuPy array to encode
+        :param obj: cupy.ndarray: The CuPy array to encode
         :return: Tuple[bool, dict]
         """
         with io.BytesIO() as memfile:
-            np.save(memfile, cp.asnumpy(obj))
+            np.save(memfile, cupy.asnumpy(obj))
             obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
         obj_device = cupy_device_to_str(obj.device)
         return True, dict(
@@ -100,7 +100,7 @@ class CuPyArray(Plugin):
         Decode a base64 ASCII string back into CuPy array.
 
         :param obj_full: tuple: A tuple containing the encoded data string and device string
-        :return: Tuple[bool, cp.ndarray]
+        :return: Tuple[bool, cupy.ndarray]
         """
         with io.BytesIO(base64.b64decode(obj_full[1].encode("ascii"))) as memfile:
             obj_device_str = self.map_cupy_devices.get(
@@ -108,4 +108,4 @@ class CuPyArray(Plugin):
             )
             obj_device = cupy_str_to_device(obj_device_str)
             with obj_device:
-                return True, cp.array(np.load(memfile))
+                return True, cupy.array(np.load(memfile))

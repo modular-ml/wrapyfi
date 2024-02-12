@@ -45,7 +45,7 @@ class CuPyNotifier(MiddlewareCommunicator):
         "/notify/test_cupy_exchange",
         carrier="",
         should_wait=True,
-        listener_kwargs=dict(load_cupy_device=cp.cuda.Device(0)),
+        listener_kwargs=dict(load_cupy_device=0),  # cp.cuda.Device(0)
     )
     def exchange_object(self, mware=None):
         """
