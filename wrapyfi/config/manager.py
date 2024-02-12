@@ -14,7 +14,7 @@ class ConfigManager(metaclass=SingletonOptimized):
         """
         Initializing the ConfigManager. The configuration can be provided as a yaml file name or as a dictionary.
 
-        :param config: Callable[..., Any]: Loads a yaml configuration file when "str" type provided. Directly set when "dict" type provided
+        :param config: Union[dict, str]: Loads a yaml configuration file when "str" type provided. Directly set when "dict" type provided
         """
         if isinstance(config, str):
             self.config = self.__loadfile(config)
