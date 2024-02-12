@@ -16,16 +16,27 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
 SOCKET_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_REQ_PORT", 5558))
 SOCKET_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_REP_PORT", 5559))
-START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
+START_PROXY_BROKER = (
+    os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
+)
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQServer(Server):
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 socket_ip: str = SOCKET_IP, socket_rep_port: int = SOCKET_PUB_PORT, socket_req_port: int = SOCKET_SUB_PORT,
-                 start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
-                 zeromq_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        socket_ip: str = SOCKET_IP,
+        socket_rep_port: int = SOCKET_PUB_PORT,
+        socket_req_port: int = SOCKET_SUB_PORT,
+        start_proxy_broker: bool = START_PROXY_BROKER,
+        proxy_broker_spawn: bool = PROXY_BROKER_SPAWN,
+        zeromq_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the server and start the device broker if necessary.
 
@@ -41,20 +52,26 @@ class ZeroMQServer(Server):
         :param kwargs: dict: Additional kwargs for the server
         """
         if out_topic != "":
-            logging.warning(f"[ZeroMQ] ZeroMQ does not support topics for the REQ/REP pattern. Topic {out_topic} removed")
+            logging.warning(
+                f"[ZeroMQ] ZeroMQ does not support topics for the REQ/REP pattern. Topic {out_topic} removed"
+            )
             out_topic = ""
         if carrier or carrier != "tcp":
-            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for REQ/REP pattern. Using TCP.")
+            logging.warning(
+                "[ZeroMQ] ZeroMQ does not support other carriers than TCP for REQ/REP pattern. Using TCP."
+            )
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
 
         self.socket_rep_address = f"{carrier}://{socket_ip}:{socket_rep_port}"
         self.socket_req_address = f"{carrier}://{socket_ip}:{socket_req_port}"
         if start_proxy_broker:
-            ZeroMQMiddlewareReqRep.activate(socket_rep_address=self.socket_rep_address,
-                                            socket_req_address=self.socket_req_address,
-                                            proxy_broker_spawn=proxy_broker_spawn,
-                                            **zeromq_kwargs or {})
+            ZeroMQMiddlewareReqRep.activate(
+                socket_rep_address=self.socket_rep_address,
+                socket_req_address=self.socket_req_address,
+                proxy_broker_spawn=proxy_broker_spawn,
+                **zeromq_kwargs or {},
+            )
         else:
             ZeroMQMiddlewareReqRep.activate(**zeromq_kwargs or {})
 
@@ -72,8 +89,15 @@ class ZeroMQServer(Server):
 
 @Servers.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectServer(ZeroMQServer):
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        serializer_kwargs: Optional[dict] = None,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
@@ -98,9 +122,13 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
         self._socket = zmq.Context().instance().socket(zmq.REP)
         for socket_property in ZeroMQMiddlewareReqRep().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
-                self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+                self._socket.setsockopt_string(
+                    getattr(zmq, socket_property[0]), socket_property[1]
+                )
             else:
-                self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+                self._socket.setsockopt(
+                    getattr(zmq, socket_property[0]), socket_property[1]
+                )
         self._socket.connect(self.socket_req_address)
         self.established = True
 
@@ -116,7 +144,11 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
         """
         message = self._socket.recv_string()
         try:
-            request = json.loads(message, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            request = json.loads(
+                message,
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
             args, kwargs = request
             return args, kwargs
         except json.JSONDecodeError as e:
@@ -137,9 +169,19 @@ class ZeroMQNativeObjectServer(ZeroMQServer):
 @Servers.register("Image", "zeromq")
 class ZeroMQImageServer(ZeroMQNativeObjectServer):
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        jpg: bool = False,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
 
@@ -153,7 +195,13 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, out_topic, carrier=carrier, deserializer_kwargs=deserializer_kwargs, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            deserializer_kwargs=deserializer_kwargs,
+            **kwargs,
+        )
 
         self.width = width
         self.height = height
@@ -173,15 +221,21 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
             logging.warning("[ZeroMQ] Image is None. Skipping reply.")
             return
 
-        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
-                not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+        if (
+            0 < self.width != img.shape[1]
+            or 0 < self.height != img.shape[0]
+            or not (
+                (img.ndim == 2 and not self.rgb)
+                or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
+            )
+        ):
             raise ValueError("Incorrect image shape for server reply")
 
-        if not img.flags['C_CONTIGUOUS']:
+        if not img.flags["C_CONTIGUOUS"]:
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            _, img_encoded = cv2.imencode('.jpg', img)
+            _, img_encoded = cv2.imencode(".jpg", img)
             img_bytes = img_encoded.tobytes()
             self._socket.send(img_bytes)
         else:
@@ -193,9 +247,17 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
 @Servers.register("AudioChunk", "zeromq")
 class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling audio data as numpy arrays, serializing them to JSON strings for transmission.
 
@@ -207,7 +269,13 @@ class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, out_topic, carrier=carrier, deserializer_kwargs=deserializer_kwargs, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            deserializer_kwargs=deserializer_kwargs,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -226,7 +294,7 @@ class ZeroMQAudioChunkServer(ZeroMQNativeObjectServer):
         self.channels = channels if self.channels == -1 else self.channels
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
-        aud = np.require(aud, dtype=np.float32, requirements='C')
+        aud = np.require(aud, dtype=np.float32, requirements="C")
 
         aud_list = aud.tolist()
         aud_json = json.dumps({"aud": (int(chunk), int(channels), int(rate), aud_list)})

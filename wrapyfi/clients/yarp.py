@@ -14,8 +14,15 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class YarpClient(Client):
 
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 persistent: bool = True, yarp_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        persistent: bool = True,
+        yarp_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the client.
 
@@ -30,6 +37,7 @@ class YarpClient(Client):
         YarpMiddleware.activate(**yarp_kwargs or {})
 
         self.persistent = persistent
+
     def close(self):
         """
         Close the client.
@@ -44,9 +52,16 @@ class YarpClient(Client):
 
 @Clients.register("NativeObject", "yarp")
 class YarpNativeObjectClient(YarpClient):
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 persistent: bool = True,
-                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        persistent: bool = True,
+        serializer_kwargs: Optional[dict] = None,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The NativeObject listener using the YARP Bottle construct assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -61,7 +76,9 @@ class YarpNativeObjectClient(YarpClient):
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         :param kwargs: dict: Additional kwargs for the client
         """
-        super().__init__(name, in_topic, carrier=carrier, persistent=persistent, **kwargs)
+        super().__init__(
+            name, in_topic, carrier=carrier, persistent=persistent, **kwargs
+        )
         self._port = None
         self._queue = queue.Queue(maxsize=1)
 
@@ -108,8 +125,12 @@ class YarpNativeObjectClient(YarpClient):
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         args_msg = yarp.Bottle()
         args_msg.clear()
         args_msg.addString(args_str)
@@ -118,7 +139,11 @@ class YarpNativeObjectClient(YarpClient):
         msg.clear()
 
         self._port.write(args_msg, msg)
-        obj = json.loads(msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        obj = json.loads(
+            msg.get(0).asString(),
+            object_hook=self._plugin_decoder_hook,
+            **self._deserializer_kwargs,
+        )
         self._queue.put(obj, block=False)
 
     def _await_reply(self):
@@ -131,16 +156,28 @@ class YarpNativeObjectClient(YarpClient):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"[YARP] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[YARP] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
             return None
 
 
 @Clients.register("Image", "yarp")
 class YarpImageClient(YarpNativeObjectClient):
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False,
-                 persistent: bool = True, serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        persistent: bool = True,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The Image client using the YARP Bottle construct parsed to a numpy array.
 
@@ -155,9 +192,18 @@ class YarpImageClient(YarpNativeObjectClient):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         if "jpg" in kwargs:
-            logging.warning("[YARP] YARP currently does not support JPG encoding in REQ/REP. Using raw image.")
+            logging.warning(
+                "[YARP] YARP currently does not support JPG encoding in REQ/REP. Using raw image."
+            )
             kwargs.pop("jpg")
-        super().__init__(name, in_topic, carrier=carrier, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            persistent=persistent,
+            serializer_kwargs=serializer_kwargs,
+            **kwargs,
+        )
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -170,15 +216,23 @@ class YarpImageClient(YarpNativeObjectClient):
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         args_msg = yarp.Bottle()
         args_msg.clear()
         args_msg.addString(args_str)
         msg = yarp.Bottle()
         msg.clear()
         self._port.write(args_msg, msg)
-        img = json.loads(msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        img = json.loads(
+            msg.get(0).asString(),
+            object_hook=self._plugin_decoder_hook,
+            **self._deserializer_kwargs,
+        )
         height, width, channels = img.shape
         if 0 < self.width != width or 0 < self.height != height:
             raise ValueError("Incorrect image shape for client")
@@ -188,9 +242,18 @@ class YarpImageClient(YarpNativeObjectClient):
 
 @Clients.register("AudioChunk", "yarp")
 class YarpAudioChunkClient(YarpNativeObjectClient):
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 persistent: bool = True, serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        persistent: bool = True,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The AudioChunk client using the YARP Bottle construct parsed to a numpy array.
 
@@ -203,7 +266,14 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
         :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
-        super().__init__(name, in_topic, carrier=carrier, persistent=persistent, serializer_kwargs=serializer_kwargs, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            persistent=persistent,
+            serializer_kwargs=serializer_kwargs,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -215,18 +285,30 @@ class YarpAudioChunkClient(YarpNativeObjectClient):
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         args_msg = yarp.Bottle()
         args_msg.clear()
         args_msg.addString(args_str)
         msg = yarp.Bottle()
         msg.clear()
         self._port.write(args_msg, msg)
-        chunk, channels, rate, aud = json.loads(msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        chunk, channels, rate, aud = json.loads(
+            msg.get(0).asString(),
+            object_hook=self._plugin_decoder_hook,
+            **self._deserializer_kwargs,
+        )
         if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for client")
-        if 0 < self.chunk != chunk or self.channels != channels or aud.size != chunk * channels:
+        if (
+            0 < self.chunk != chunk
+            or self.channels != channels
+            or aud.size != chunk * channels
+        ):
             raise ValueError("Incorrect audio shape for client")
         else:
             self._queue.put((aud, rate), block=False)

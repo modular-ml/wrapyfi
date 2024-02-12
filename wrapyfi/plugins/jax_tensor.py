@@ -26,6 +26,7 @@ from wrapyfi.utils import *
 
 try:
     import jax
+
     HAVE_JAX = True
 except ImportError:
     HAVE_JAX = False
@@ -59,7 +60,7 @@ class JAXTensor(Plugin):
         """
         with io.BytesIO() as memfile:
             np.save(memfile, np.asarray(obj))
-            obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
         return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data))
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
@@ -74,6 +75,5 @@ class JAXTensor(Plugin):
             - bool: Always True, indicating that the decoding was successful
             - jax.numpy.DeviceArray: The decoded JAX tensor data
         """
-        with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
+        with io.BytesIO(base64.b64decode(obj_full[1].encode("ascii"))) as memfile:
             return True, jax.numpy.array(np.load(memfile))
-

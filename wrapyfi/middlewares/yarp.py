@@ -14,6 +14,7 @@ class YarpMiddleware(metaclass=SingletonOptimized):
     and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the class is
     instantiated and when the program exits, respectively.
     """
+
     @staticmethod
     def activate(**kwargs):
         """

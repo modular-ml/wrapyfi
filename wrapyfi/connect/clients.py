@@ -9,6 +9,7 @@ class Clients(object):
     """
     A class that holds all clients and their corresponding middleware communicators.
     """
+
     registry = {}
     mwares = set()
 
@@ -20,10 +21,12 @@ class Clients(object):
         :param data_type: str: The data type to register the client for e.g., "NativeObject", "Image", "AudioChunk", etc.
         :param communicator: str: The middleware communicator to register the client for e.g., "ros", "ros2", "yarp", "zeromq", etc.
         """
+
         def decorator(cls_):
             cls.registry[data_type + ":" + communicator] = cls_
             cls.mwares.add(communicator)
             return cls_
+
         return decorator
 
     @staticmethod
@@ -31,9 +34,15 @@ class Clients(object):
         """
         Scan for clients and add them to the registry.
         """
-        modules = glob(os.path.join(os.path.dirname(__file__), "..", "clients", "*.py"), recursive=True)
-        modules = ["wrapyfi.clients." + module.replace(os.path.dirname(__file__) + "/../clients/", "") for module in
-                   modules]
+        modules = glob(
+            os.path.join(os.path.dirname(__file__), "..", "clients", "*.py"),
+            recursive=True,
+        )
+        modules = [
+            "wrapyfi.clients."
+            + module.replace(os.path.dirname(__file__) + "/../clients/", "")
+            for module in modules
+        ]
         dynamic_module_import(modules, globals())
 
 
@@ -41,6 +50,7 @@ class Client(object):
     """
     A base class for clients.
     """
+
     def __init__(self, name: str, in_topic: str, carrier: str = "", **kwargs):
         """
         Initialize the client.

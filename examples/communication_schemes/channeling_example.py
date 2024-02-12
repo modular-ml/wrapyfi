@@ -42,55 +42,100 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 class ChannelingCls(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware_A", "ChannelingCls", "/example/native_A_msg",
-        carrier="mcast", should_wait=True
+        "NativeObject",
+        "$mware_A",
+        "ChannelingCls",
+        "/example/native_A_msg",
+        carrier="mcast",
+        should_wait=True,
     )
     @MiddlewareCommunicator.register(
-        "Image", "$mware_B", "ChannelingCls", "/example/image_B_msg",
-        carrier="tcp", width="$img_width", height="$img_height", rgb=True, should_wait=False
+        "Image",
+        "$mware_B",
+        "ChannelingCls",
+        "/example/image_B_msg",
+        carrier="tcp",
+        width="$img_width",
+        height="$img_height",
+        rgb=True,
+        should_wait=False,
     )
     @MiddlewareCommunicator.register(
-        "AudioChunk", "$mware_C", "ChannelingCls", "/example/audio_C_msg",
-        carrier="tcp", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels", should_wait=False
+        "AudioChunk",
+        "$mware_C",
+        "ChannelingCls",
+        "/example/audio_C_msg",
+        carrier="tcp",
+        rate="$aud_rate",
+        chunk="$aud_chunk",
+        channels="$aud_channels",
+        should_wait=False,
     )
-    def read_mulret_mulmware(self, img_width=200, img_height=200,
-                             aud_rate=44100, aud_chunk=8820, aud_channels=1,
-                             mware_A=None, mware_B=None, mware_C=None):
-        """Read and forward messages through channels A, B, and C."""
-        ros_img = np.random.randint(256, size=(img_height, img_width, 3), dtype=np.uint8)
-        zeromq_aud = (np.random.uniform(-1, 1, aud_chunk), aud_rate,)
+    def read_mulret_mulmware(
+        self,
+        img_width=200,
+        img_height=200,
+        aud_rate=44100,
+        aud_chunk=8820,
+        aud_channels=1,
+        mware_A=None,
+        mware_B=None,
+        mware_C=None,
+    ):
+        """
+        Read and forward messages through channels A, B, and C.
+        """
+        ros_img = np.random.randint(
+            256, size=(img_height, img_width, 3), dtype=np.uint8
+        )
+        zeromq_aud = (
+            np.random.uniform(-1, 1, aud_chunk),
+            aud_rate,
+        )
         yarp_native = [ros_img, zeromq_aud]
         return yarp_native, ros_img, zeromq_aud
 
 
 def parse_args():
-    """Parse command line arguments."""
+    """
+    Parse command line arguments.
+    """
     parser = argparse.ArgumentParser(description="Channeling Example using Wrapyfi.")
     parser.add_argument(
-        "--mode", type=str, default="publish",
+        "--mode",
+        type=str,
+        default="publish",
         choices={"publish", "listen"},
-        help="The transmission mode"
+        help="The transmission mode",
     )
     parser.add_argument(
-        "--mware_A", type=str, default="none",
+        "--mware_A",
+        type=str,
+        default="none",
         choices=MiddlewareCommunicator.get_communicators().update({"none"}),
-        help="The middleware to use for transmission of channel A"
+        help="The middleware to use for transmission of channel A",
     )
     parser.add_argument(
-        "--mware_B", type=str, default="none",
+        "--mware_B",
+        type=str,
+        default="none",
         choices=MiddlewareCommunicator.get_communicators().update({"none"}),
-        help="The middleware to use for transmission of channel B"
+        help="The middleware to use for transmission of channel B",
     )
     parser.add_argument(
-        "--mware_C", type=str, default="none",
+        "--mware_C",
+        type=str,
+        default="none",
         choices=MiddlewareCommunicator.get_communicators().update({"none"}),
-        help="The middleware to use for transmission of channel C"
+        help="The middleware to use for transmission of channel C",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate ChannelingCls class and communication."""
+    """
+    Main function to initiate ChannelingCls class and communication.
+    """
     channeling = ChannelingCls()
     channeling.activate_communication(channeling.read_mulret_mulmware, mode=args.mode)
 

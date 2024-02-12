@@ -9,6 +9,7 @@ class ListenerWatchDog(metaclass=SingletonOptimized):
     """
     A watchdog that scans for listeners and removes them from the ring if they are not established.
     """
+
     def __init__(self, repeats: int = 10, inner_repeats: int = 10):
         """
         Initialize the ListenerWatchDog.
@@ -53,6 +54,7 @@ class Listeners(object):
     """
     A class that holds all listeners and their corresponding middleware communicators.
     """
+
     registry = {}
     mwares = set()
 
@@ -64,10 +66,12 @@ class Listeners(object):
         :param data_type: str: The data type to register the listener for e.g., "NativeObject", "Image", "AudioChunk", etc.
         :param communicator: str: The middleware communicator to register the listener for e.g., "ros", "ros2", "yarp", "zeromq", etc.
         """
+
         def decorator(cls_):
             cls.registry[data_type + ":" + communicator] = cls_
             cls.mwares.add(communicator)
             return cls_
+
         return decorator
 
     @staticmethod
@@ -75,9 +79,15 @@ class Listeners(object):
         """
         Scan for listeners and add them to the registry.
         """
-        modules = glob(os.path.join(os.path.dirname(__file__), "..", "listeners", "*.py"), recursive=True)
-        modules = ["wrapyfi.listeners." + module.replace(os.path.dirname(__file__) + "/../listeners/", "") for module in
-                   modules]
+        modules = glob(
+            os.path.join(os.path.dirname(__file__), "..", "listeners", "*.py"),
+            recursive=True,
+        )
+        modules = [
+            "wrapyfi.listeners."
+            + module.replace(os.path.dirname(__file__) + "/../listeners/", "")
+            for module in modules
+        ]
         dynamic_module_import(modules, globals())
 
 
@@ -85,7 +95,15 @@ class Listener(object):
     """
     A base class for listeners.
     """
-    def __init__(self, name: str, in_topic: str, carrier: str = "", should_wait: bool = True, **kwargs):
+
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "",
+        should_wait: bool = True,
+        **kwargs,
+    ):
         """
         Initialize the Listener.
 

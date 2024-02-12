@@ -12,7 +12,11 @@ WRAPYFI_PLUGIN_PATHS = "WRAPYFI_PLUGIN_PATHS"
 lock = threading.Lock()
 
 
-def deepcopy(obj: Any, exclude_keys: Optional[Union[list, tuple]] = None, shallow_keys: Optional[Union[list, tuple]] = None):
+def deepcopy(
+    obj: Any,
+    exclude_keys: Optional[Union[list, tuple]] = None,
+    shallow_keys: Optional[Union[list, tuple]] = None,
+):
     """
     Deep copy an object, excluding specified keys.
 
@@ -21,6 +25,7 @@ def deepcopy(obj: Any, exclude_keys: Optional[Union[list, tuple]] = None, shallo
     :param shallow_keys: Union[list, tuple]: A list of keys to shallow copy
     """
     import copy
+
     if exclude_keys is None:
         return copy.deepcopy(obj)
     else:
@@ -32,7 +37,11 @@ def deepcopy(obj: Any, exclude_keys: Optional[Union[list, tuple]] = None, shallo
             return {deepcopy(item, exclude_keys) for item in obj}
         elif isinstance(obj, dict):
             _shallows = shallow_keys or []
-            ret = {key: deepcopy(val, exclude_keys) for key, val in obj.items() if key not in exclude_keys + _shallows}
+            ret = {
+                key: deepcopy(val, exclude_keys)
+                for key, val in obj.items()
+                if key not in exclude_keys + _shallows
+            }
             ret.update({key: val for key, val in obj.items() if key in _shallows})
             return ret
         else:
@@ -46,6 +55,7 @@ def get_default_args(fnc: Callable[..., Any]):
     :param fnc: Callable[..., Any]: The function to get the default arguments for
     """
     import inspect
+
     signature = inspect.signature(fnc)
     return {
         k: v.default
@@ -54,7 +64,12 @@ def get_default_args(fnc: Callable[..., Any]):
     }
 
 
-def match_args(args: Union[list, tuple], kwargs: dict, src_args: Union[list, tuple], src_kwargs: dict):
+def match_args(
+    args: Union[list, tuple],
+    kwargs: dict,
+    src_args: Union[list, tuple],
+    src_kwargs: dict,
+):
     """
     Match and Substitute Arguments and Keyword Arguments using Specified Source Values.
 
@@ -91,7 +106,11 @@ def match_args(args: Union[list, tuple], kwargs: dict, src_args: Union[list, tup
     for kwarg_key, kwarg_val in kwargs.items():
         if isinstance(kwarg_val, str) and "$" in kwarg_val and kwarg_val[1:].isdigit():
             new_kwargs[kwarg_key] = src_args[int(kwarg_val[1:])]
-        elif isinstance(kwarg_val, str) and "$" in kwarg_val and not kwarg_val[1:].isdigit():
+        elif (
+            isinstance(kwarg_val, str)
+            and "$" in kwarg_val
+            and not kwarg_val[1:].isdigit()
+        ):
             new_kwargs[kwarg_key] = src_kwargs[kwarg_val[1:]]
         else:
             new_kwargs[kwarg_key] = kwarg_val
@@ -111,14 +130,14 @@ def dynamic_module_import(modules: List[str], globals: dict):
         module_name = module_name[:-3]
         module_name = module_name.replace("/", ".")
         try:
-            module = __import__(module_name, fromlist=['*'])
+            module = __import__(module_name, fromlist=["*"])
         except ImportError as e:
             # print(module_name + " could not be imported.", e)
             continue
-        if hasattr(module, '__all__'):
+        if hasattr(module, "__all__"):
             all_names = module.__all__
         else:
-            all_names = [name for name in dir(module) if not name.startswith('_')]
+            all_names = [name for name in dir(module) if not name.startswith("_")]
         globals.update({name: getattr(module, name) for name in all_names})
 
 
@@ -128,13 +147,16 @@ class SingletonOptimized(type):
 
     Source: https://stackoverflow.com/a/6798042
     """
+
     _instances = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             with lock:
                 if cls not in cls._instances:
-                    cls._instances[cls] = super(SingletonOptimized, cls).__call__(*args, **kwargs)
+                    cls._instances[cls] = super(SingletonOptimized, cls).__call__(
+                        *args, **kwargs
+                    )
         return cls._instances[cls]
 
 
@@ -142,6 +164,7 @@ class Plugin(object):
     """
     Base class for encoding and decoding plugins.
     """
+
     def encode(self, *args, **kwargs):
         """
         Encode data into a base64 string.
@@ -172,6 +195,7 @@ class PluginRegistrar(object):
     """
     Class for registering encoding and decoding plugins.
     """
+
     encoder_registry = {}
     decoder_registry = {}
 
@@ -182,12 +206,14 @@ class PluginRegistrar(object):
 
         :param types: tuple: The type(s) to register the plugin for
         """
+
         def wrapper(cls):
             if types is not None:
                 for cls_type in types:
                     PluginRegistrar.encoder_registry[cls_type] = cls
                 PluginRegistrar.decoder_registry[str(cls.__name__)] = cls
             return cls
+
         return wrapper
 
     @staticmethod
@@ -196,20 +222,30 @@ class PluginRegistrar(object):
         Scan the plugins directory (Wrapyfi builtin and external) for plugins to register.
         This method is called automatically when the module is imported.
         """
-        modules = glob(os.path.join(os.path.dirname(__file__), "plugins", "*.py"), recursive=True)
-        modules = ["wrapyfi.plugins." + module.replace(os.path.dirname(__file__) + "/plugins/", "") for module in modules]
+        modules = glob(
+            os.path.join(os.path.dirname(__file__), "plugins", "*.py"), recursive=True
+        )
+        modules = [
+            "wrapyfi.plugins."
+            + module.replace(os.path.dirname(__file__) + "/plugins/", "")
+            for module in modules
+        ]
         dynamic_module_import(modules, globals())
 
         extern_modules_paths = os.environ.get(WRAPYFI_PLUGIN_PATHS, "").split(":")
         for mod_group_idx, extern_module_path in enumerate(extern_modules_paths):
-            extern_modules = glob(os.path.join(extern_module_path, "plugins", "*.py"), recursive=True)
+            extern_modules = glob(
+                os.path.join(extern_module_path, "plugins", "*.py"), recursive=True
+            )
             for mod_idx, extern_module in enumerate(extern_modules):
-                spec = importlib.util.spec_from_file_location(f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}", extern_module)
+                spec = importlib.util.spec_from_file_location(
+                    f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}", extern_module
+                )
                 module = importlib.util.module_from_spec(spec)
                 sys.modules[spec.name] = module
                 spec.loader.exec_module(module)
-                extern_modules = [f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}." + extern_module.replace(
-                    extern_module_path + "/plugins/", "")]
+                extern_modules = [
+                    f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}."
+                    + extern_module.replace(extern_module_path + "/plugins/", "")
+                ]
                 dynamic_module_import(extern_modules, globals())
-
-

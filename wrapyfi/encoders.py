@@ -18,13 +18,14 @@ class JsonEncoder(json.JSONEncoder):
     - Numpy ndarray objects
     - Objects registered with the PluginRegistrar
     """
+
     def __init__(self, **kwargs):
         """
         Initialize the JsonEncoder.
 
         :param kwargs: dict: Additional keyword arguments extracting values from the 'serializer_kwargs' key and passing them to the base class. All other keyword arguments are passed to the corresponding Plugin.
         """
-        super().__init__(**kwargs.get('serializer_kwargs', {}))
+        super().__init__(**kwargs.get("serializer_kwargs", {}))
         self.plugins = dict()
         for plugin_key, plugin_val in PluginRegistrar.encoder_registry.items():
             self.plugins[plugin_key] = plugin_val(**kwargs)
@@ -37,7 +38,7 @@ class JsonEncoder(json.JSONEncoder):
         :return: Plugin: The plugin for the given object if its type is registered, None otherwise
         """
         for cls in reversed(type(obj).__mro__[:-1]):
-            if cls.__module__ == 'collections.abc':
+            if cls.__module__ == "collections.abc":
                 continue  # skip classes from collections.abc
             if issubclass(cls, abc.ABCMeta):
                 if cls.__abstractmethods__:
@@ -52,9 +53,10 @@ class JsonEncoder(json.JSONEncoder):
         :param obj: Any: The object to encode
         :return: str: The JSON string representation of the object returned by the base class
         """
+
         def hint_tuples(item):
             if isinstance(item, tuple):
-                return dict(__wrapyfi__=('tuple', item))
+                return dict(__wrapyfi__=("tuple", item))
             if isinstance(item, list):
                 return [hint_tuples(e) for e in item]
             if isinstance(item, dict):
@@ -72,19 +74,19 @@ class JsonEncoder(json.JSONEncoder):
         :return: dict: A dictionary containing the class name and encoded data string
         """
         if isinstance(obj, set):
-            return dict(__wrapyfi__=('set', list(obj)))
+            return dict(__wrapyfi__=("set", list(obj)))
 
         elif isinstance(obj, datetime):
-            return dict(__wrapyfi__=('datetime', obj.isoformat()))
+            return dict(__wrapyfi__=("datetime", obj.isoformat()))
 
         elif isinstance(obj, np.datetime64):
-            return dict(__wrapyfi__=('numpy.datetime64', str(obj)))
+            return dict(__wrapyfi__=("numpy.datetime64", str(obj)))
 
         elif isinstance(obj, (np.ndarray, np.generic)):
             with io.BytesIO() as memfile:
                 np.save(memfile, obj)
-                obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
-            return dict(__wrapyfi__=('numpy.ndarray', obj_data))
+                obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
+            return dict(__wrapyfi__=("numpy.ndarray", obj_data))
 
         plugin_match = self.find_plugin(obj)
         if plugin_match is not None:
@@ -106,6 +108,7 @@ class JsonDecodeHook(object):
     - Numpy ndarray objects
     - Objects registered with the PluginRegistrar
     """
+
     def __init__(self, **kwargs):
         """
         Initialize the JsonDecodeHook.
@@ -124,24 +127,26 @@ class JsonDecodeHook(object):
         :return: Any: The decoded object
         """
         if isinstance(obj, dict):
-            wrapyfi = obj.get('__wrapyfi__', None)
+            wrapyfi = obj.get("__wrapyfi__", None)
             if wrapyfi is not None:
                 obj_type = wrapyfi[0]
 
-                if obj_type == 'tuple':
+                if obj_type == "tuple":
                     return tuple(wrapyfi[1])
 
-                elif obj_type == 'set':
+                elif obj_type == "set":
                     return set(wrapyfi[1])
 
-                elif obj_type == 'datetime':
+                elif obj_type == "datetime":
                     return datetime.fromisoformat(wrapyfi[1])
 
-                elif obj_type == 'numpy.datetime64':
+                elif obj_type == "numpy.datetime64":
                     return np.datetime64(wrapyfi[1])
 
-                elif obj_type == 'numpy.ndarray':
-                    with io.BytesIO(base64.b64decode(wrapyfi[1].encode('ascii'))) as memfile:
+                elif obj_type == "numpy.ndarray":
+                    with io.BytesIO(
+                        base64.b64decode(wrapyfi[1].encode("ascii"))
+                    ) as memfile:
                         return np.load(memfile)
 
                 plugin_match = self.plugins.get(obj_type, None)

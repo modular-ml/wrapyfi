@@ -20,7 +20,9 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROS2Client(Client, Node):
-    def __init__(self, name: str, in_topic: str, ros2_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self, name: str, in_topic: str, ros2_kwargs: Optional[dict] = None, **kwargs
+    ):
         """
         Initialize the client.
 
@@ -32,7 +34,8 @@ class ROS2Client(Client, Node):
         carrier = "tcp"
         if "carrier" in kwargs and kwargs["carrier"] not in ["", None]:
             logging.warning(
-                "[ROS 2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP.")
+                "[ROS 2] ROS 2 currently does not support explicit carrier setting for PUB/SUB pattern. Using TCP."
+            )
         if "carrier" in kwargs:
             del kwargs["carrier"]
         ROS2Middleware.activate(**ros2_kwargs or {})
@@ -53,9 +56,14 @@ class ROS2Client(Client, Node):
 
 @Clients.register("NativeObject", "ros2")
 class ROS2NativeObjectClient(ROS2Client):
-    def __init__(self, name: str, in_topic: str,
-                 serializer_kwargs: Optional[dict] = None,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        serializer_kwargs: Optional[dict] = None,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The NativeObject listener using the ROS 2 String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -83,16 +91,20 @@ class ROS2NativeObjectClient(ROS2Client):
             from wrapyfi_ros2_interfaces.srv import ROS2NativeObjectService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS 2] Could not import ROS2NativeObjectService. "
-                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
-                          "Refer to the documentation for more information: \n" +
-                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
+
+            logging.error(
+                "[ROS 2] Could not import ROS2NativeObjectService. "
+                "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                "Refer to the documentation for more information: \n"
+                + wrapyfi.__doc__
+                + "ros2_interfaces_lnk.html"
+            )
             sys.exit(1)
         self._client = self.create_client(ROS2NativeObjectService, self.in_topic)
         self._req_msg = ROS2NativeObjectService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('[ROS 2] Service not available, waiting again...')
+            logging.info("[ROS 2] Service not available, waiting again...")
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -119,8 +131,12 @@ class ROS2NativeObjectClient(ROS2Client):
         :param kwargs: dict: Keyword arguments to send in the request
         """
         # transmit args to server
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         self._req_msg.request = args_str
         future = self._client.call_async(self._req_msg)
         # receive message from server
@@ -129,7 +145,11 @@ class ROS2NativeObjectClient(ROS2Client):
             if future.done():
                 try:
                     msg = future.result()
-                    obj = json.loads(msg.response, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+                    obj = json.loads(
+                        msg.response,
+                        object_hook=self._plugin_decoder_hook,
+                        **self._deserializer_kwargs,
+                    )
                     self._queue.put(obj, block=False)
                 except Exception as e:
                     logging.error("[ROS 2] Service call failed: %s" % e)
@@ -145,15 +165,27 @@ class ROS2NativeObjectClient(ROS2Client):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"[ROS 2] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS 2] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
             return None
 
 
 @Clients.register("Image", "ros2")
 class ROS2ImageClient(ROS2Client):
-    def __init__(self, name: str, in_topic: str, width: int = -1, height: int = -1,
-                 rgb: bool = True, fp: bool = False, jpg: bool = False, serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        jpg: bool = False,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The Image client using the ROS 2 Image message parsed to a numpy array.
 
@@ -177,10 +209,10 @@ class ROS2ImageClient(ROS2Client):
         self.jpg = jpg
 
         if self.fp:
-            self._encoding = '32FC3' if self.rgb else '32FC1'
+            self._encoding = "32FC3" if self.rgb else "32FC1"
             self._type = np.float32
         else:
-            self._encoding = 'bgr8' if self.rgb else 'mono8'
+            self._encoding = "bgr8" if self.rgb else "mono8"
             self._type = np.uint8
         self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
 
@@ -196,13 +228,20 @@ class ROS2ImageClient(ROS2Client):
         Establish the client's connection to the ROS 2 service.
         """
         try:
-            from wrapyfi_ros2_interfaces.srv import ROS2ImageService, ROS2CompressedImageService
+            from wrapyfi_ros2_interfaces.srv import (
+                ROS2ImageService,
+                ROS2CompressedImageService,
+            )
         except ImportError:
             import wrapyfi
-            logging.error("[ROS 2] Could not import ROS2ImageService. "
-                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
-                          "Refer to the documentation for more information: \n" +
-                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
+
+            logging.error(
+                "[ROS 2] Could not import ROS2ImageService. "
+                "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                "Refer to the documentation for more information: \n"
+                + wrapyfi.__doc__
+                + "ros2_interfaces_lnk.html"
+            )
             sys.exit(1)
         if self.jpg:
             self._client = self.create_client(ROS2CompressedImageService, self.in_topic)
@@ -212,7 +251,7 @@ class ROS2ImageClient(ROS2Client):
             self._req_msg = ROS2ImageService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('[ROS 2] Service not available, waiting again...')
+            logging.info("[ROS 2] Service not available, waiting again...")
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -239,8 +278,12 @@ class ROS2ImageClient(ROS2Client):
         :param kwargs: dict: Keyword arguments to send in the request
         """
         # transmit args to server
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         self._req_msg.request = args_str
         future = self._client.call_async(self._req_msg)
         # receive message from server
@@ -253,8 +296,16 @@ class ROS2ImageClient(ROS2Client):
                     if self.jpg:
                         self._queue.put((data.format, data.data), block=False)
                     else:
-                        self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data),
-                                        block=False)
+                        self._queue.put(
+                            (
+                                data.height,
+                                data.width,
+                                data.encoding,
+                                data.is_bigendian,
+                                data.data,
+                            ),
+                            block=False,
+                        )
                 except Exception as e:
                     logging.error("[ROS 2] Service call failed: %s" % e)
                 break
@@ -268,33 +319,55 @@ class ROS2ImageClient(ROS2Client):
         try:
             if self.jpg:
                 format, data = self._queue.get(block=True)
-                if format != 'jpeg':
+                if format != "jpeg":
                     raise ValueError(f"Unsupported image format: {format}")
                 if self.rgb:
                     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
                 else:
-                    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE)
+                    img = cv2.imdecode(
+                        np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE
+                    )
             else:
-                height, width, encoding, is_bigendian, data = self._queue.get(block=True)
+                height, width, encoding, is_bigendian, data = self._queue.get(
+                    block=True
+                )
                 if encoding != self._encoding:
                     raise ValueError("Incorrect encoding for listener")
-                if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                if (
+                    0 < self.width != width
+                    or 0 < self.height != height
+                    or len(data) != height * width * self._pixel_bytes
+                ):
                     raise ValueError("Incorrect image shape for listener")
-                img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
+                img = np.frombuffer(
+                    data,
+                    dtype=np.dtype(self._type).newbyteorder(
+                        ">" if is_bigendian else "<"
+                    ),
+                ).reshape((height, width, -1))
                 if img.shape[2] == 1:
                     img = img.squeeze(axis=2)
             return img
         except queue.Full:
-            logging.warning(f"[ROS 2] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS 2] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
             return None
 
 
 @Clients.register("AudioChunk", "ros2")
 class ROS2AudioChunkClient(ROS2Client):
-    def __init__(self, name: str, in_topic: str,
-                 channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The AudioChunk client using the ROS 2 Audio message parsed to a numpy array.
 
@@ -328,16 +401,20 @@ class ROS2AudioChunkClient(ROS2Client):
             from wrapyfi_ros2_interfaces.srv import ROS2AudioService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS 2] Could not import ROS2AudioService. "
-                          "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
-                          "Refer to the documentation for more information: \n" +
-                          wrapyfi.__doc__ + "ros2_interfaces_lnk.html")
+
+            logging.error(
+                "[ROS 2] Could not import ROS2AudioService. "
+                "Make sure the ROS 2 services in wrapyfi_extensions/wrapyfi_ros2_interfaces are compiled. "
+                "Refer to the documentation for more information: \n"
+                + wrapyfi.__doc__
+                + "ros2_interfaces_lnk.html"
+            )
             sys.exit(1)
         self._client = self.create_client(ROS2AudioService, self.in_topic)
         self._req_msg = ROS2AudioService.Request()
 
         while not self._client.wait_for_service(timeout_sec=1.0):
-            logging.info('[ROS 2] Service not available, waiting again...')
+            logging.info("[ROS 2] Service not available, waiting again...")
         self.established = True
 
     def request(self, *args, **kwargs):
@@ -363,8 +440,12 @@ class ROS2AudioChunkClient(ROS2Client):
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         self._req_msg.request = args_str
         future = self._client.call_async(self._req_msg)
 
@@ -374,8 +455,17 @@ class ROS2AudioChunkClient(ROS2Client):
                 try:
                     msg = future.result()
                     data = msg.response
-                    self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data),
-                                        block=False)
+                    self._queue.put(
+                        (
+                            data.chunk_size,
+                            data.channels,
+                            data.sample_rate,
+                            data.encoding,
+                            data.is_bigendian,
+                            data.data,
+                        ),
+                        block=False,
+                    )
                 except Exception as e:
                     logging.error("[ROS 2] Service call failed: %s" % e)
                 break
@@ -387,19 +477,28 @@ class ROS2AudioChunkClient(ROS2Client):
         :return: Tuple[np.ndarray, int]: The received message as a numpy array formatted as (np.ndarray[audio_chunk, channels], int[samplerate])
         """
         try:
-            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=False)
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(
+                block=False
+            )
             if 0 < self.rate != rate:
                 raise ValueError("Incorrect audio rate for publisher")
-            if encoding not in ['S16LE', 'S16BE']:
+            if encoding not in ["S16LE", "S16BE"]:
                 raise ValueError("Incorrect encoding for listener")
-            if 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+            if (
+                0 < self.chunk != chunk
+                or self.channels != channels
+                or len(data) != chunk * channels * 4
+            ):
                 raise ValueError("Incorrect audio shape for listener")
-            aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape(
-                (chunk, channels))
+            aud = np.frombuffer(
+                data,
+                dtype=np.dtype(np.float32).newbyteorder(">" if is_bigendian else "<"),
+            ).reshape((chunk, channels))
             # aud = aud / 32767.0
             return aud, rate
         except queue.Full:
-            logging.warning(f"[ROS 2] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS 2] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
             return None
-

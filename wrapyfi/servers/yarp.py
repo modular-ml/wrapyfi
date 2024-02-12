@@ -12,9 +12,16 @@ from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 class YarpServer(Server):
 
-    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 out_topic_connect: Optional[str] = None, persistent: bool = True,
-                 yarp_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        out_topic_connect: Optional[str] = None,
+        persistent: bool = True,
+        yarp_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the server.
 
@@ -26,7 +33,13 @@ class YarpServer(Server):
         :param yarp_kwargs: dict: Additional kwargs for  the Yarp middleware
         :param kwargs: dict: Additional kwargs for the server
         """
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            out_topic_connect=out_topic_connect,
+            **kwargs,
+        )
         YarpMiddleware.activate(**yarp_kwargs or {})
         self.style = yarp.ContactStyle()
         self.style.persistent = persistent
@@ -49,9 +62,17 @@ class YarpServer(Server):
 @Servers.register("NativeObject", "yarp")
 class YarpNativeObjectServer(YarpServer):
 
-    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 out_topic_connect: Optional[str] = None, persistent: bool = True,
-                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        out_topic_connect: Optional[str] = None,
+        persistent: bool = True,
+        serializer_kwargs: Optional[dict] = None,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
@@ -64,7 +85,14 @@ class YarpNativeObjectServer(YarpServer):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            out_topic_connect=out_topic_connect,
+            persistent=persistent,
+            **kwargs,
+        )
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
         self._serializer_kwargs = serializer_kwargs or {}
@@ -80,11 +108,17 @@ class YarpNativeObjectServer(YarpServer):
         self._port = yarp.RpcServer()
         self._port.open(self.out_topic)
         if self.style.persistent:
-            self._netconnect = yarp.Network.connect(self.out_topic, self.out_topic_connect, self.style)
+            self._netconnect = yarp.Network.connect(
+                self.out_topic, self.out_topic_connect, self.style
+            )
         else:
-            self._netconnect = yarp.Network.connect(self.out_topic, self.out_topic_connect, self.carrier)
+            self._netconnect = yarp.Network.connect(
+                self.out_topic, self.out_topic_connect, self.carrier
+            )
 
-        self._netconnect = yarp.Network.connect(self.out_topic, self.out_topic_connect, self.carrier)
+        self._netconnect = yarp.Network.connect(
+            self.out_topic, self.out_topic_connect, self.carrier
+        )
         if self.persistent:
             self.established = True
 
@@ -106,7 +140,11 @@ class YarpNativeObjectServer(YarpServer):
             request = False
             while not request:
                 request = self._port.read(obj_msg, True)
-            [args, kwargs] = json.loads(obj_msg.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            [args, kwargs] = json.loads(
+                obj_msg.get(0).asString(),
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
             return args, kwargs
         except Exception as e:
             logging.error("[YARP] Service call failed: %s" % e)
@@ -119,8 +157,12 @@ class YarpNativeObjectServer(YarpServer):
 
         :param obj: Any: The Python object to be serialized and sent
         """
-        obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
-                             serializer_kwrags=self._serializer_kwargs)
+        obj_str = json.dumps(
+            obj,
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         obj_msg = yarp.Bottle()
         obj_msg.clear()
         obj_msg.addString(obj_str)
@@ -132,10 +174,20 @@ class YarpNativeObjectServer(YarpServer):
 
 @Servers.register("Image", "yarp")
 class YarpImageServer(YarpNativeObjectServer):
-    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 out_topic_connect: Optional[str] = None, persistent: bool = True,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        out_topic_connect: Optional[str] = None,
+        persistent: bool = True,
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling image data as numpy arrays, serializing them to JSON strings for transmission.
 
@@ -152,9 +204,19 @@ class YarpImageServer(YarpNativeObjectServer):
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
         if "jpg" in kwargs:
-            logging.warning("[YARP] YARP currently does not support JPG encoding in REQ/REP. Using raw image.")
+            logging.warning(
+                "[YARP] YARP currently does not support JPG encoding in REQ/REP. Using raw image."
+            )
             kwargs.pop("jpg")
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, deserializer_kwargs=deserializer_kwargs, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            out_topic_connect=out_topic_connect,
+            persistent=persistent,
+            deserializer_kwargs=deserializer_kwargs,
+            **kwargs,
+        )
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -166,8 +228,14 @@ class YarpImageServer(YarpNativeObjectServer):
 
         :param img: np.ndarray: Image to send formatted as a cv2 image - np.ndarray[img_height, img_width, channels]
         """
-        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
-                not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+        if (
+            0 < self.width != img.shape[1]
+            or 0 < self.height != img.shape[0]
+            or not (
+                (img.ndim == 2 and not self.rgb)
+                or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
+            )
+        ):
             raise ValueError("Incorrect image shape for publisher")
         # img = np.require(img, dtype=self._type, requirements='C')
         super().reply(img)
@@ -175,10 +243,19 @@ class YarpImageServer(YarpNativeObjectServer):
 
 @Servers.register("AudioChunk", "yarp")
 class YarpAudioChunkServer(YarpNativeObjectServer):
-    def __init__(self, name: str, out_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp",
-                 out_topic_connect: Optional[str] = None, persistent: bool = True,
-                 channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        out_topic_connect: Optional[str] = None,
+        persistent: bool = True,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling audio data as numpy arrays, serializing them to JSON strings for transmission.
 
@@ -193,7 +270,15 @@ class YarpAudioChunkServer(YarpNativeObjectServer):
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, out_topic, carrier=carrier, out_topic_connect=out_topic_connect, persistent=persistent, deserializer_kwargs=deserializer_kwargs, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            out_topic_connect=out_topic_connect,
+            persistent=persistent,
+            deserializer_kwargs=deserializer_kwargs,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -214,5 +299,5 @@ class YarpAudioChunkServer(YarpNativeObjectServer):
         self.channels = channels if self.channels == -1 else self.channels
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
-        aud = np.require(aud, dtype=np.float32, requirements='C')
+        aud = np.require(aud, dtype=np.float32, requirements="C")
         super().reply((chunk, channels, rate, aud))

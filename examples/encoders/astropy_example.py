@@ -41,57 +41,72 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 # Modifying the WRAPYFI_PLUGINS_PATH environment variable to include the plugins directory
 script_dir = os.path.dirname(os.path.realpath(__file__))
-if 'WRAPYFI_PLUGINS_PATH' in os.environ:
-    os.environ['WRAPYFI_PLUGINS_PATH'] += os.pathsep + script_dir
+if "WRAPYFI_PLUGINS_PATH" in os.environ:
+    os.environ["WRAPYFI_PLUGINS_PATH"] += os.pathsep + script_dir
 else:
-    os.environ['WRAPYFI_PLUGINS_PATH'] = script_dir
+    os.environ["WRAPYFI_PLUGINS_PATH"] = script_dir
 
 
 class Notifier(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware", "Notifier", "/notify/test_astropy_exchange",
-        carrier="tcp", should_wait=True
+        "NativeObject",
+        "$mware",
+        "Notifier",
+        "/notify/test_astropy_exchange",
+        carrier="tcp",
+        should_wait=True,
     )
     def exchange_object(self, mware=None):
-        """Exchange messages with Astropy Tables and other native Python objects."""
+        """
+        Exchange messages with Astropy Tables and other native Python objects.
+        """
         msg = input("Type your message: ")
 
         # Creating an example Astropy Table
         t = Table()
-        t['name'] = ['source 1', 'source 2', 'source 3']
-        t['flux'] = [1.2, 2.2, 3.1]
+        t["name"] = ["source 1", "source 2", "source 3"]
+        t["flux"] = [1.2, 2.2, 3.1]
 
         ret = {
             "message": msg,
             "astropy_table": t,
         }
-        return ret,
+        return (ret,)
 
 
 def parse_args():
-    """Parse command line arguments."""
+    """
+    Parse command line arguments.
+    """
     parser = argparse.ArgumentParser(
-        description="A message publisher and listener for native Python objects and Astropy Tables.")
-    parser.add_argument(
-        "--mode", type=str, default="publish",
-        choices={"publish", "listen"},
-        help="The transmission mode"
+        description="A message publisher and listener for native Python objects and Astropy Tables."
     )
     parser.add_argument(
-        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        "--mode",
+        type=str,
+        default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode",
+    )
+    parser.add_argument(
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
         choices=MiddlewareCommunicator.get_communicators(),
-        help="The middleware to use for transmission"
+        help="The middleware to use for transmission",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate Notifier class and communication."""
+    """
+    Main function to initiate Notifier class and communication.
+    """
     notifier = Notifier()
     notifier.activate_communication(Notifier.exchange_object, mode=args.mode)
 
     while True:
-        msg_object, = notifier.exchange_object(mware=args.mware)
+        (msg_object,) = notifier.exchange_object(mware=args.mware)
         print("Method result:", msg_object)
 
 

@@ -45,5 +45,6 @@ class ROS2Middleware(metaclass=SingletonOptimized):
         if rclpy.ok():
             rclpy.shutdown()
         else:
-            logging.info("ROS 2 context is already shutdown or not initialized. Skipping shutdown.")
-
+            logging.info(
+                "ROS 2 context is already shutdown or not initialized. Skipping shutdown."
+            )

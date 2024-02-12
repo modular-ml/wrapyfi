@@ -9,6 +9,7 @@ class ConfigManager(metaclass=SingletonOptimized):
     """
     The configuration manager is a singleton which is invoked once throughout the runtime.
     """
+
     def __init__(self, config: Optional[Union[dict, str]], **kwargs):
         """
         Initializing the ConfigManager. The configuration can be provided as a yaml file name or as a dictionary.
@@ -44,4 +45,3 @@ class ConfigManager(metaclass=SingletonOptimized):
         """
         with open(filename, "w") as fp:
             yaml.safe_dump(self.config, fp)
-

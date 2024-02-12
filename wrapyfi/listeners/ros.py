@@ -24,8 +24,16 @@ WATCHDOG_POLL_REPEAT = None
 
 class ROSListener(Listener):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True,
-                 queue_size: int = QUEUE_SIZE, ros_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        queue_size: int = QUEUE_SIZE,
+        ros_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the subscriber.
 
@@ -38,11 +46,15 @@ class ROSListener(Listener):
         :param kwargs: dict: Additional kwargs for the subscriber
         """
         if carrier or carrier != "tcp":
-            logging.warning("[ROS] ROS does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
+            logging.warning(
+                "[ROS] ROS does not support other carriers than TCP for PUB/SUB pattern. Using TCP."
+            )
             carrier = "tcp"
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
+        super().__init__(
+            name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs
+        )
         ROSMiddleware.activate(**ros_kwargs or {})
-        
+
         self.queue_size = queue_size
 
     def close(self):
@@ -60,8 +72,16 @@ class ROSListener(Listener):
 @Listeners.register("NativeObject", "ros")
 class ROSNativeObjectListener(ROSListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int =QUEUE_SIZE,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        queue_size: int = QUEUE_SIZE,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The NativeObject listener using the ROS String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -73,7 +93,14 @@ class ROSNativeObjectListener(ROSListener):
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            queue_size=queue_size,
+            **kwargs,
+        )
 
         self._subscriber = self._queue = None
 
@@ -86,8 +113,16 @@ class ROSNativeObjectListener(ROSListener):
         """
         Establish the subscriber.
         """
-        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_topic, std_msgs.msg.String, callback=self._message_callback)
+        self._queue = queue.Queue(
+            maxsize=(
+                0
+                if self.queue_size is None or self.queue_size <= 0
+                else self.queue_size
+            )
+        )
+        self._subscriber = rospy.Subscriber(
+            self.in_topic, std_msgs.msg.String, callback=self._message_callback
+        )
         self.established = True
 
     def listen(self) -> Any:
@@ -100,7 +135,11 @@ class ROSNativeObjectListener(ROSListener):
             self.establish()
         try:
             obj_str = self._queue.get(block=self.should_wait)
-            return json.loads(obj_str, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            return json.loads(
+                obj_str,
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
         except queue.Empty:
             return None
 
@@ -113,14 +152,28 @@ class ROSNativeObjectListener(ROSListener):
         try:
             self._queue.put(msg.data, block=False)
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(
+                f"[ROS] Discarding data because listener queue is full: {self.in_topic}"
+            )
 
 
 @Listeners.register("Image", "ros")
 class ROSImageListener(ROSListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        queue_size: int = QUEUE_SIZE,
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        jpg: bool = False,
+        **kwargs,
+    ):
         """
         The Image listener using the ROS Image message parsed to a numpy array.
 
@@ -135,7 +188,14 @@ class ROSImageListener(ROSListener):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            queue_size=queue_size,
+            **kwargs,
+        )
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -143,13 +203,13 @@ class ROSImageListener(ROSListener):
         self.jpg = jpg
 
         if self.fp:
-            self._encoding = '32FC3' if self.rgb else '32FC1'
+            self._encoding = "32FC3" if self.rgb else "32FC1"
             self._type = np.float32
         else:
-            self._encoding = 'bgr8' if self.rgb else 'mono8'
+            self._encoding = "bgr8" if self.rgb else "mono8"
             self._type = np.uint8
         if self.jpg:
-            self._encoding = 'jpeg'
+            self._encoding = "jpeg"
             self._type = np.uint8
 
         self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
@@ -162,11 +222,23 @@ class ROSImageListener(ROSListener):
         """
         Establish the subscriber.
         """
-        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
+        self._queue = queue.Queue(
+            maxsize=(
+                0
+                if self.queue_size is None or self.queue_size <= 0
+                else self.queue_size
+            )
+        )
         if self.jpg:
-            self._subscriber = rospy.Subscriber(self.in_topic, sensor_msgs.msg.CompressedImage, callback=self._message_callback)
+            self._subscriber = rospy.Subscriber(
+                self.in_topic,
+                sensor_msgs.msg.CompressedImage,
+                callback=self._message_callback,
+            )
         else:
-            self._subscriber = rospy.Subscriber(self.in_topic, sensor_msgs.msg.Image, callback=self._message_callback)
+            self._subscriber = rospy.Subscriber(
+                self.in_topic, sensor_msgs.msg.Image, callback=self._message_callback
+            )
         self.established = True
 
     def listen(self):
@@ -180,19 +252,32 @@ class ROSImageListener(ROSListener):
         try:
             if self.jpg:
                 format, data = self._queue.get(block=self.should_wait)
-                if format != 'jpeg':
+                if format != "jpeg":
                     raise ValueError(f"Unsupported image format: {format}")
                 if self.rgb:
                     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
                 else:
-                    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE)
+                    img = cv2.imdecode(
+                        np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE
+                    )
             else:
-                height, width, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+                height, width, encoding, is_bigendian, data = self._queue.get(
+                    block=self.should_wait
+                )
                 if encoding != self._encoding:
                     raise ValueError("Incorrect encoding for listener")
-                if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+                if (
+                    0 < self.width != width
+                    or 0 < self.height != height
+                    or len(data) != height * width * self._pixel_bytes
+                ):
                     raise ValueError("Incorrect image shape for listener")
-                img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
+                img = np.frombuffer(
+                    data,
+                    dtype=np.dtype(self._type).newbyteorder(
+                        ">" if is_bigendian else "<"
+                    ),
+                ).reshape((height, width, -1))
                 if img.shape[2] == 1:
                     img = img.squeeze(axis=2)
             return img
@@ -209,16 +294,37 @@ class ROSImageListener(ROSListener):
             if self.jpg:
                 self._queue.put((data.format, data.data), block=False)
             else:
-                self._queue.put((data.height, data.width, data.encoding, data.is_bigendian, data.data), block=False)
+                self._queue.put(
+                    (
+                        data.height,
+                        data.width,
+                        data.encoding,
+                        data.is_bigendian,
+                        data.data,
+                    ),
+                    block=False,
+                )
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(
+                f"[ROS] Discarding data because listener queue is full: {self.in_topic}"
+            )
 
 
 @Listeners.register("AudioChunk", "ros")
 class ROSAudioChunkListener(ROSListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE,
-                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        queue_size: int = QUEUE_SIZE,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        **kwargs,
+    ):
         """
         The AudioChunk listener using the ROS Image message parsed to a numpy array.
 
@@ -231,8 +337,19 @@ class ROSAudioChunkListener(ROSListener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size,
-                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            queue_size=queue_size,
+            width=chunk,
+            height=channels,
+            rgb=False,
+            fp=True,
+            jpg=False,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -248,13 +365,25 @@ class ROSAudioChunkListener(ROSListener):
             from wrapyfi_ros_interfaces.msg import ROSAudioMessage
         except ImportError:
             import wrapyfi
-            logging.error("[ROS] Could not import ROSAudioMessage. "
-                          "Make sure the ROS messages in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
-                          "Refer to the documentation for more information: \n" +
-                          wrapyfi.__doc__ + "ros_interfaces_lnk.html")
+
+            logging.error(
+                "[ROS] Could not import ROSAudioMessage. "
+                "Make sure the ROS messages in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                "Refer to the documentation for more information: \n"
+                + wrapyfi.__doc__
+                + "ros_interfaces_lnk.html"
+            )
             sys.exit(1)
-        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._subscriber = rospy.Subscriber(self.in_topic, ROSAudioMessage, callback=self._message_callback)
+        self._queue = queue.Queue(
+            maxsize=(
+                0
+                if self.queue_size is None or self.queue_size <= 0
+                else self.queue_size
+            )
+        )
+        self._subscriber = rospy.Subscriber(
+            self.in_topic, ROSAudioMessage, callback=self._message_callback
+        )
         self.established = True
 
     def listen(self):
@@ -266,14 +395,23 @@ class ROSAudioChunkListener(ROSListener):
         if not self.established:
             self.establish()
         try:
-            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=self.should_wait)
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(
+                block=self.should_wait
+            )
             if 0 < self.rate != rate:
                 raise ValueError("Incorrect audio rate for listener")
-            if encoding not in ['S16LE', 'S16BE']:
+            if encoding not in ["S16LE", "S16BE"]:
                 raise ValueError("Incorrect encoding for listener")
-            if 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+            if (
+                0 < self.chunk != chunk
+                or self.channels != channels
+                or len(data) != chunk * channels * 4
+            ):
                 raise ValueError("Incorrect audio shape for listener")
-            aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape((chunk, channels))
+            aud = np.frombuffer(
+                data,
+                dtype=np.dtype(np.float32).newbyteorder(">" if is_bigendian else "<"),
+            ).reshape((chunk, channels))
             # aud = aud / 32767.0
             return aud, rate
         except queue.Empty:
@@ -286,9 +424,21 @@ class ROSAudioChunkListener(ROSListener):
         :param data: wrapyfi_ros_interfaces.msg.ROSAudioMessage: The received message
         """
         try:
-            self._queue.put((data.chunk_size, data.channels, data.sample_rate, data.encoding, data.is_bigendian, data.data), block=False)
+            self._queue.put(
+                (
+                    data.chunk_size,
+                    data.channels,
+                    data.sample_rate,
+                    data.encoding,
+                    data.is_bigendian,
+                    data.data,
+                ),
+                block=False,
+            )
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
+            logging.warning(
+                f"[ROS] Discarding data because listener queue is full: {self.in_topic}"
+            )
 
 
 @Listeners.register("Properties", "ros")
@@ -300,7 +450,16 @@ class ROSPropertiesListener(ROSListener):
     but care should be taken when using dictionaries, since they are analogous with node namespaces:
     http://wiki.ros.org/rospy/Overview/Parameter%20Server
     """
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
+
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        queue_size: int = QUEUE_SIZE,
+        **kwargs,
+    ):
         """
         The PropertiesListener using the ROS Parameter Server.
 
@@ -310,7 +469,14 @@ class ROSPropertiesListener(ROSListener):
         :param should_wait: bool: Whether the subscriber should wait for a parameter to be set. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            queue_size=queue_size,
+            **kwargs,
+        )
         self._subscriber = self._queue = None
 
         if not self.should_wait:
@@ -318,7 +484,9 @@ class ROSPropertiesListener(ROSListener):
 
         self.previous_property = False
 
-    def await_connection(self, in_topic: Optional[int] = None, repeats: Optional[int] = None):
+    def await_connection(
+        self, in_topic: Optional[int] = None, repeats: Optional[int] = None
+    ):
         """
         Wait for a parameter to be set.
 
@@ -375,7 +543,15 @@ class ROSPropertiesListener(ROSListener):
 @Listeners.register("ROSMessage", "ros")
 class ROSMessageListener(ROSListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", should_wait: bool = True, queue_size: int = QUEUE_SIZE, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        queue_size: int = QUEUE_SIZE,
+        **kwargs,
+    ):
         """
         The ROSMessageListener using the ROS message type inferred from the message type. Supports standard ROS msgs.
 
@@ -385,7 +561,14 @@ class ROSMessageListener(ROSListener):
         :param should_wait: bool: Whether the subscriber should wait for a message to be published. Default is True
         :param queue_size: int: Size of the queue for the subscriber. Default is 5
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, queue_size=queue_size, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            queue_size=queue_size,
+            **kwargs,
+        )
         self._subscriber = self._queue = self._topic_type = None
 
         ListenerWatchDog().add_listener(self)
@@ -394,11 +577,21 @@ class ROSMessageListener(ROSListener):
         """
         Establish the subscriber.
         """
-        self._queue = queue.Queue(maxsize=0 if self.queue_size is None or self.queue_size <= 0 else self.queue_size)
-        self._topic_type, topic_str, _ = rostopic.get_topic_class(self.in_topic, blocking=self.should_wait)
+        self._queue = queue.Queue(
+            maxsize=(
+                0
+                if self.queue_size is None or self.queue_size <= 0
+                else self.queue_size
+            )
+        )
+        self._topic_type, topic_str, _ = rostopic.get_topic_class(
+            self.in_topic, blocking=self.should_wait
+        )
         if self._topic_type is None:
             return
-        self._subscriber = rospy.Subscriber(self.in_topic, self._topic_type, callback=self._message_callback)
+        self._subscriber = rospy.Subscriber(
+            self.in_topic, self._topic_type, callback=self._message_callback
+        )
         self.established = True
 
     def listen(self):
@@ -425,5 +618,6 @@ class ROSMessageListener(ROSListener):
         try:
             self._queue.put(msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because listener queue is full: {self.in_topic}")
-
+            logging.warning(
+                f"[ROS] Discarding data because listener queue is full: {self.in_topic}"
+            )

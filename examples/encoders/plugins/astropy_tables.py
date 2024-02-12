@@ -24,6 +24,7 @@ from wrapyfi.utils import *
 
 try:
     from astropy.table import Table
+
     HAVE_ASTROPY = True
 except ImportError:
     HAVE_ASTROPY = False
@@ -54,9 +55,9 @@ class AstropyData(Plugin):
                 - '__wrapyfi__': A tuple containing the class name and the encoded data string
         """
         memfile = io.BytesIO()
-        obj.write(memfile, format='fits')
+        obj.write(memfile, format="fits")
         memfile.seek(0)
-        obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+        obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
         memfile.close()
         return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data))
 
@@ -74,8 +75,8 @@ class AstropyData(Plugin):
         """
         encoded_str = obj_full[1]
         if isinstance(encoded_str, str):
-            encoded_str = encoded_str.encode('ascii')
+            encoded_str = encoded_str.encode("ascii")
         with io.BytesIO(base64.b64decode(encoded_str)) as memfile:
             memfile.seek(0)
-            obj = Table.read(memfile, format='fits')
+            obj = Table.read(memfile, format="fits")
         return True, obj

@@ -22,20 +22,38 @@ PARAM_PUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_PUB_PORT", 5655))
 PARAM_SUB_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_SUB_PORT", 5656))
 PARAM_REQREP_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_REQREP_PORT", 5659))
 PARAM_POLL_INTERVAL = int(os.environ.get("WRAPYFI_ZEROMQ_PARAM_POLL_INTERVAL", 1))
-START_PROXY_BROKER = os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
+START_PROXY_BROKER = (
+    os.environ.get("WRAPYFI_ZEROMQ_START_PROXY_BROKER", True) != "False"
+)
 PROXY_BROKER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN", "process")
-ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC", "ZEROMQ/CONNECTIONS")
-ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = os.environ.get("WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN", "process")
+ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get(
+    "WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC", "ZEROMQ/CONNECTIONS"
+)
+ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = os.environ.get(
+    "WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN", "process"
+)
 WATCHDOG_POLL_REPEAT = None
 
 
 class ZeroMQPublisher(Publisher):
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
-                 socket_ip: str = SOCKET_IP, socket_pub_port: int = SOCKET_PUB_PORT, socket_sub_port: int = SOCKET_SUB_PORT,
-                 start_proxy_broker: bool = START_PROXY_BROKER, proxy_broker_spawn: str = PROXY_BROKER_SPAWN,
-                 pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
-                 pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
-                 zeromq_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        socket_ip: str = SOCKET_IP,
+        socket_pub_port: int = SOCKET_PUB_PORT,
+        socket_sub_port: int = SOCKET_SUB_PORT,
+        start_proxy_broker: bool = START_PROXY_BROKER,
+        proxy_broker_spawn: str = PROXY_BROKER_SPAWN,
+        pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
+        pubsub_monitor_listener_spawn: Optional[
+            str
+        ] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
+        zeromq_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the publisher and start the proxy broker if necessary.
 
@@ -54,24 +72,32 @@ class ZeroMQPublisher(Publisher):
         :param kwargs: Additional kwargs for the publisher
         """
         if carrier or carrier != "tcp":
-            logging.warning("[ZeroMQ] ZeroMQ does not support other carriers than TCP for PUB/SUB pattern. Using TCP.")
+            logging.warning(
+                "[ZeroMQ] ZeroMQ does not support other carriers than TCP for PUB/SUB pattern. Using TCP."
+            )
             carrier = "tcp"
-        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
+        super().__init__(
+            name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs
+        )
 
         self.socket_pub_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
 
-        ZeroMQMiddlewarePubSub.activate(socket_pub_address=self.socket_pub_address,
-                                        socket_sub_address=self.socket_sub_address,
-                                        start_proxy_broker=start_proxy_broker,
-                                        proxy_broker_spawn=proxy_broker_spawn,
-                                        pubsub_monitor_topic=pubsub_monitor_topic,
-                                        pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
-                                        **zeromq_kwargs or {})
+        ZeroMQMiddlewarePubSub.activate(
+            socket_pub_address=self.socket_pub_address,
+            socket_sub_address=self.socket_sub_address,
+            start_proxy_broker=start_proxy_broker,
+            proxy_broker_spawn=proxy_broker_spawn,
+            pubsub_monitor_topic=pubsub_monitor_topic,
+            pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
+            **zeromq_kwargs or {},
+        )
 
         ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.out_topic)
 
-    def await_connection(self, out_topic: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(
+        self, out_topic: Optional[str] = None, repeats: Optional[int] = None
+    ):
         """
         Wait for the connection to be established.
 
@@ -90,7 +116,9 @@ class ZeroMQPublisher(Publisher):
                 return True
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(out_topic)
+            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(
+                out_topic
+            )
             if connected:
                 break
             time.sleep(0.02)
@@ -115,8 +143,15 @@ class ZeroMQPublisher(Publisher):
 @Publishers.register("NativeObject", "zeromq")
 class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
-                 serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The NativeObjectPublisher using the ZeroMQ message construct assuming a combination of python native objects
         and numpy arrays as input. Serializes the data (including plugins) using the encoder and sends it as a string.
@@ -128,7 +163,9 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param kwargs: dict: Additional kwargs for the publisher
         """
-        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
+        super().__init__(
+            name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs
+        )
         self._socket = self._netconnect = None
 
         self._plugin_encoder = JsonEncoder
@@ -148,9 +185,13 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         self._socket = zmq.Context.instance().socket(zmq.PUB)
         for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
-                self._socket.setsockopt_string(getattr(zmq, socket_property[0]), socket_property[1])
+                self._socket.setsockopt_string(
+                    getattr(zmq, socket_property[0]), socket_property[1]
+                )
             else:
-                self._socket.setsockopt(getattr(zmq, socket_property[0]), socket_property[1])
+                self._socket.setsockopt(
+                    getattr(zmq, socket_property[0]), socket_property[1]
+                )
         self._socket.connect(self.socket_sub_address)
         self._topic = self.out_topic.encode()
         established = self.await_connection(repeats=repeats)
@@ -168,16 +209,31 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
                 return
             else:
                 time.sleep(0.2)
-        obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
-                             serializer_kwrags=self._serializer_kwargs)
+        obj_str = json.dumps(
+            obj,
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         self._socket.send_multipart([self._topic, obj_str.encode()])
 
 
 @Publishers.register("Image", "zeromq")
 class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        jpg: bool = False,
+        **kwargs,
+    ):
         """
         The ImagePublisher using the ZeroMQ message construct assuming a numpy array as input.
 
@@ -191,7 +247,9 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
-        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs)
+        super().__init__(
+            name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs
+        )
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -215,25 +273,44 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
                 return
             else:
                 time.sleep(0.2)
-        if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
-                not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+        if (
+            0 < self.width != img.shape[1]
+            or 0 < self.height != img.shape[0]
+            or not (
+                (img.ndim == 2 and not self.rgb)
+                or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
+            )
+        ):
             raise ValueError("Incorrect image shape for publisher")
-        if not img.flags['C_CONTIGUOUS']:
+        if not img.flags["C_CONTIGUOUS"]:
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            img_str = np.array(cv2.imencode('.jpg', img)[1]).tostring()
+            img_str = np.array(cv2.imencode(".jpg", img)[1]).tostring()
         else:
-            img_str = json.dumps(img, cls=self._plugin_encoder, **self._plugin_kwargs,
-                                 serializer_kwrags=self._serializer_kwargs).encode()
-        img_header = '{timestamp:' + str(time.time()) + '}'
+            img_str = json.dumps(
+                img,
+                cls=self._plugin_encoder,
+                **self._plugin_kwargs,
+                serializer_kwrags=self._serializer_kwargs,
+            ).encode()
+        img_header = "{timestamp:" + str(time.time()) + "}"
         self._socket.send_multipart([self._topic, img_header.encode(), img_str])
 
 
 @Publishers.register("AudioChunk", "zeromq")
 class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", should_wait: bool = True,
-                 channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        should_wait: bool = True,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        **kwargs,
+    ):
         """
         The AudioChunkPublisher using the ZeroMQ message construct assuming a numpy array as input.
 
@@ -245,8 +322,18 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
         """
-        super().__init__(name, out_topic, carrier=carrier, should_wait=should_wait,
-                         width=chunk, height=channels, rgb=False, fp=True, jpg=False, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            width=chunk,
+            height=channels,
+            rgb=False,
+            fp=True,
+            jpg=False,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -274,11 +361,15 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
         self.channels = channels if self.channels == -1 else self.channels
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
-        aud = np.require(aud, dtype=np.float32, requirements='C')
+        aud = np.require(aud, dtype=np.float32, requirements="C")
 
-        aud_str = json.dumps((chunk, channels, rate, aud), cls=self._plugin_encoder, **self._plugin_kwargs,
-                             serializer_kwrags=self._serializer_kwargs).encode()
-        aud_header = '{timestamp:' + str(time.time()) + '}'
+        aud_str = json.dumps(
+            (chunk, channels, rate, aud),
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        ).encode()
+        aud_header = "{timestamp:" + str(time.time()) + "}"
         self._socket.send_multipart([self._topic, aud_header.encode(), aud_str])
 
 
