@@ -32,44 +32,73 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 class Notifier(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "Properties", "ros", "Notifier", "/notify/test_property_exchange",
-        should_wait=True
+        "Properties",
+        "ros",
+        "Notifier",
+        "/notify/test_property_exchange",
+        should_wait=True,
     )
     @MiddlewareCommunicator.register(
-        "Properties", "ros", "Notifier", "/notify/test_property_exchange/a",
-        should_wait=True
+        "Properties",
+        "ros",
+        "Notifier",
+        "/notify/test_property_exchange/a",
+        should_wait=True,
     )
     @MiddlewareCommunicator.register(
-        "Properties", "ros", "Notifier", "/notify/test_property_exchange/e",
-        persistent=False, should_wait=True
+        "Properties",
+        "ros",
+        "Notifier",
+        "/notify/test_property_exchange/e",
+        persistent=False,
+        should_wait=True,
     )
     def set_property(self):
-        """Exchange ROS properties over ROS."""
+        """
+        Exchange ROS properties over ROS.
+        """
         ret_str = input("Type your message: ")
-        ret_multiprops = {"b": [1,2,3,4], "c": False, "d": 12.3}
-        ret_non_persistent = "Non-persistent property which should be deleted on closure"
+        ret_multiprops = {"b": [1, 2, 3, 4], "c": False, "d": 12.3}
+        ret_non_persistent = (
+            "Non-persistent property which should be deleted on closure"
+        )
         return ret_multiprops, ret_str, ret_non_persistent
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message publisher and listener for ROS properties using Wrapyfi.")
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A message publisher and listener for ROS properties using Wrapyfi."
+    )
     parser.add_argument(
-        "--mode", type=str, default="publish",
+        "--mode",
+        type=str,
+        default="publish",
         choices={"publish", "listen"},
-        help="The transmission mode"
+        help="The transmission mode",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate Notify class and communication."""
+    """
+    Main function to initiate Notify class and communication.
+    """
     ros_message = Notifier()
     ros_message.activate_communication(Notifier.set_property, mode=args.mode)
 
     while True:
-        my_dict_message, my_string_message, my_nonpersistent_message = ros_message.set_property()
-        print("Method result:", my_string_message, my_dict_message, my_nonpersistent_message)
+        my_dict_message, my_string_message, my_nonpersistent_message = (
+            ros_message.set_property()
+        )
+        print(
+            "Method result:",
+            my_string_message,
+            my_dict_message,
+            my_nonpersistent_message,
+        )
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ class ROSMiddleware(metaclass=SingletonOptimized):
     and destroy all connections. The ``activate`` and ``deinit`` methods are automatically called when the class is
     instantiated and when the program exits, respectively.
     """
+
     @staticmethod
     def activate(**kwargs):
         """
@@ -26,7 +27,14 @@ class ROSMiddleware(metaclass=SingletonOptimized):
         """
         ROSMiddleware(**kwargs)
 
-    def __init__(self, node_name: str = "wrapyfi", anonymous: bool = True, disable_signals: bool = True, *args, **kwargs):
+    def __init__(
+        self,
+        node_name: str = "wrapyfi",
+        anonymous: bool = True,
+        disable_signals: bool = True,
+        *args,
+        **kwargs,
+    ):
         """
         Initialize the ROS middleware. This method is automatically called when the class is instantiated.
 
@@ -47,18 +55,18 @@ class ROSMiddleware(metaclass=SingletonOptimized):
         Deinitialize the ROS middleware. This method is automatically called when the program exits.
         """
         logging.info("Deinitializing ROS middleware")
-        rospy.signal_shutdown('Deinit')
+        rospy.signal_shutdown("Deinit")
 
 
 class ROSNativeObjectService(object):
-  _type           = 'wrapyfi_services/ROSNativeObject'
-  _md5sum         = '46a550fd1ca640b396e26ebf988aed7b'  # AddTwoInts '6a2e34150c00229791cc89ff309fff21'
-  _request_class  = std_msgs.msg.String
-  _response_class = std_msgs.msg.String
+    _type = "wrapyfi_services/ROSNativeObject"
+    _md5sum = "46a550fd1ca640b396e26ebf988aed7b"  # AddTwoInts '6a2e34150c00229791cc89ff309fff21'
+    _request_class = std_msgs.msg.String
+    _response_class = std_msgs.msg.String
 
 
 class ROSImageService(object):
-  _type           = 'wrapyfi_services/ROSImage'
-  _md5sum         = 'f720f2021b4bbbe86b0f93b08906381c'  # AddTwoInts '6a2e34150c00229791cc89ff309fff21'
-  _request_class  = std_msgs.msg.String
-  _response_class = sensor_msgs.msg.Image
+    _type = "wrapyfi_services/ROSImage"
+    _md5sum = "f720f2021b4bbbe86b0f93b08906381c"  # AddTwoInts '6a2e34150c00229791cc89ff309fff21'
+    _request_class = std_msgs.msg.String
+    _response_class = sensor_msgs.msg.Image

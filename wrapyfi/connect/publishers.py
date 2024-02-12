@@ -9,6 +9,7 @@ class PublisherWatchDog(metaclass=SingletonOptimized):
     """
     A watchdog that scans for publishers and removes them from the ring if they are not established.
     """
+
     def __init__(self, repeats: int = 10, inner_repeats: int = 10):
         """
         Initialize the PublisherWatchDog.
@@ -53,6 +54,7 @@ class Publishers(object):
     """
     A class that holds all publishers and their corresponding middleware communicators.
     """
+
     registry = {}
     mwares = set()
 
@@ -65,10 +67,12 @@ class Publishers(object):
         :param communicator: str: The middleware communicator to register the publisher for e.g., "ros", "ros2", "yarp", "zeromq", etc.
         :return: Callable[..., Any]: A decorator function that registers the decorated class as a publisher for the given data type and middleware communicator
         """
+
         def decorator(cls_):
             cls.registry[data_type + ":" + communicator] = cls_
             cls.mwares.add(communicator)
             return cls_
+
         return decorator
 
     @staticmethod
@@ -76,9 +80,15 @@ class Publishers(object):
         """
         Scan for publishers and add them to the registry.
         """
-        modules = glob(os.path.join(os.path.dirname(__file__), "..", "publishers", "*.py"), recursive=True)
-        modules = ["wrapyfi.publishers." + module.replace(os.path.dirname(__file__) + "/../publishers/", "") for module in
-                   modules]
+        modules = glob(
+            os.path.join(os.path.dirname(__file__), "..", "publishers", "*.py"),
+            recursive=True,
+        )
+        modules = [
+            "wrapyfi.publishers."
+            + module.replace(os.path.dirname(__file__) + "/../publishers/", "")
+            for module in modules
+        ]
         dynamic_module_import(modules, globals())
 
 
@@ -86,7 +96,15 @@ class Publisher(object):
     """
     A base class for all publishers.
     """
-    def __init__(self, name: str, out_topic: str, carrier: str = "", should_wait: bool = True, **kwargs):
+
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "",
+        should_wait: bool = True,
+        **kwargs,
+    ):
         """
         Initialize the Publisher.
 

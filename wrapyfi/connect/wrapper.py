@@ -29,7 +29,9 @@ class MiddlewareCommunicator(object):
                 self.activate_communication(getattr(self.__class__, key), mode=value)
 
     @classmethod
-    def __trigger_publish(cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds):
+    def __trigger_publish(
+        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+    ):
         """
         Triggers the publish mode of the middleware communicator.
 
@@ -42,60 +44,97 @@ class MiddlewareCommunicator(object):
 
         :raises: KeyError: If the intended publisher type and middleware are unavailable, resorting to a fallback publisher
         """
-        if "wrapped_executor" not in \
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
+        if (
+            "wrapped_executor"
+            not in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"][0]
+        ):
             # instantiate the publishers
-            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
-            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
-                "communicator"]:
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                "communicator"
+            ].reverse()
+            for communicator in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"]:
                 # single element
                 if isinstance(communicator["return_func_type"], str):
-                    return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"])
-                    return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
+                    return_func_pub_kwargs = deepcopy(
+                        communicator["return_func_kwargs"]
+                    )
+                    return_func_pub_kwargs.update(
+                        return_func_pub_kwargs.get("publisher_kwargs", {})
+                    )
                     return_func_pub_kwargs.pop("listener_kwargs", None)
                     return_func_pub_kwargs.pop("publisher_kwargs", None)
                     new_args, new_kwargs = match_args(
-                        communicator["return_func_args"], return_func_pub_kwargs, wds[1:], kwd)
+                        communicator["return_func_args"],
+                        return_func_pub_kwargs,
+                        wds[1:],
+                        kwd,
+                    )
                     return_func_type = communicator["return_func_type"]
-                    return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                    return_func_middleware = new_kwargs.pop(
+                        "middleware", DEFAULT_COMMUNICATOR
+                    )
                     try:
                         communicator["wrapped_executor"] = pub.Publishers.registry[
-                            return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                            return_func_type + return_func_middleware
+                        ](*new_args, **new_kwargs)
                     except KeyError:
                         communicator["wrapped_executor"] = pub.Publishers.registry[
-                            "MMO:fallback"](*new_args,
-                                            missing_middleware_object=return_func_type + return_func_middleware,
-                                            **new_kwargs)
+                            "MMO:fallback"
+                        ](
+                            *new_args,
+                            missing_middleware_object=return_func_type
+                            + return_func_middleware,
+                            **new_kwargs,
+                        )
                         communicator["return_func_type"] = "MMO:"
                 # list for single return
                 elif isinstance(communicator["return_func_type"], list):
                     communicator["wrapped_executor"] = []
                     for comm_idx in range(len(communicator["return_func_type"])):
-                        return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
-                        return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
+                        return_func_pub_kwargs = deepcopy(
+                            communicator["return_func_kwargs"][comm_idx]
+                        )
+                        return_func_pub_kwargs.update(
+                            return_func_pub_kwargs.get("publisher_kwargs", {})
+                        )
                         return_func_pub_kwargs.pop("listener_kwargs", None)
                         return_func_pub_kwargs.pop("publisher_kwargs", None)
                         new_args, new_kwargs = match_args(
-                            communicator["return_func_args"][comm_idx], return_func_pub_kwargs, wds[1:], kwd)
+                            communicator["return_func_args"][comm_idx],
+                            return_func_pub_kwargs,
+                            wds[1:],
+                            kwd,
+                        )
                         return_func_type = communicator["return_func_type"][comm_idx]
-                        return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                        return_func_middleware = new_kwargs.pop(
+                            "middleware", DEFAULT_COMMUNICATOR
+                        )
                         try:
                             communicator["wrapped_executor"].append(
-                                pub.Publishers.registry[return_func_type + return_func_middleware](*new_args,
-                                                                                                   **new_kwargs))
+                                pub.Publishers.registry[
+                                    return_func_type + return_func_middleware
+                                ](*new_args, **new_kwargs)
+                            )
                         except KeyError:
                             communicator["wrapped_executor"].append(
-                                pub.Publishers.registry[
-                                    "MMO:fallback"](*new_args,
-                                                    missing_middleware_object=return_func_type + return_func_middleware,
-                                                    **new_kwargs))
+                                pub.Publishers.registry["MMO:fallback"](
+                                    *new_args,
+                                    missing_middleware_object=return_func_type
+                                    + return_func_middleware,
+                                    **new_kwargs,
+                                )
+                            )
                             communicator["return_func_type"][comm_idx] = "MMO:"
 
         returns = func(*wds, **kwds)
         for ret_idx, ret in enumerate(returns):
-            wrp_exec = \
-            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][ret_idx][
-                "wrapped_executor"]
+            wrp_exec = cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"][ret_idx]["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, pub.Publisher):
                 wrp_exec.publish(ret)
@@ -106,7 +145,9 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def __trigger_listen(cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds):
+    def __trigger_listen(
+        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+    ):
         """
         Triggers the listen mode of the middleware communicator.
 
@@ -119,59 +160,104 @@ class MiddlewareCommunicator(object):
 
         :raises: KeyError: If the intended listener type and middleware are unavailable, resorting to a fallback listener
         """
-        if "wrapped_executor" not in \
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
+        if (
+            "wrapped_executor"
+            not in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"][0]
+        ):
             # instantiate the listeners
-            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
-            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                "communicator"
+            ].reverse()
+            for communicator in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"]:
                 # single element
                 if isinstance(communicator["return_func_type"], str):
-                    return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"])
-                    return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                    return_func_lsn_kwargs = deepcopy(
+                        communicator["return_func_kwargs"]
+                    )
+                    return_func_lsn_kwargs.update(
+                        return_func_lsn_kwargs.get("listener_kwargs", {})
+                    )
                     return_func_lsn_kwargs.pop("listener_kwargs", None)
                     return_func_lsn_kwargs.pop("publisher_kwargs", None)
-                    new_args, new_kwargs = match_args(communicator["return_func_args"], return_func_lsn_kwargs, wds[1:],
-                                                      kwd)
+                    new_args, new_kwargs = match_args(
+                        communicator["return_func_args"],
+                        return_func_lsn_kwargs,
+                        wds[1:],
+                        kwd,
+                    )
                     return_func_type = communicator["return_func_type"]
-                    return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                    return_func_middleware = new_kwargs.pop(
+                        "middleware", DEFAULT_COMMUNICATOR
+                    )
                     try:
                         communicator["wrapped_executor"] = lsn.Listeners.registry[
-                            return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                            return_func_type + return_func_middleware
+                        ](*new_args, **new_kwargs)
                     except KeyError:
                         communicator["wrapped_executor"] = lsn.Listeners.registry[
-                            "MMO:fallback"](*new_args,
-                                            missing_middleware_object=return_func_type + return_func_middleware,
-                                            **new_kwargs)
+                            "MMO:fallback"
+                        ](
+                            *new_args,
+                            missing_middleware_object=return_func_type
+                            + return_func_middleware,
+                            **new_kwargs,
+                        )
                         communicator["return_func_type"] = "MMO:"
 
                 # list for single return
                 elif isinstance(communicator["return_func_type"], list):
                     communicator["wrapped_executor"] = []
                     for comm_idx in range(len(communicator["return_func_type"])):
-                        return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
-                        return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                        return_func_lsn_kwargs = deepcopy(
+                            communicator["return_func_kwargs"][comm_idx]
+                        )
+                        return_func_lsn_kwargs.update(
+                            return_func_lsn_kwargs.get("listener_kwargs", {})
+                        )
                         return_func_lsn_kwargs.pop("listener_kwargs", None)
                         return_func_lsn_kwargs.pop("publisher_kwargs", None)
-                        new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx],
-                                                          return_func_lsn_kwargs, wds[1:], kwd)
+                        new_args, new_kwargs = match_args(
+                            communicator["return_func_args"][comm_idx],
+                            return_func_lsn_kwargs,
+                            wds[1:],
+                            kwd,
+                        )
                         return_func_type = communicator["return_func_type"][comm_idx]
-                        return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                        return_func_middleware = new_kwargs.pop(
+                            "middleware", DEFAULT_COMMUNICATOR
+                        )
                         try:
                             communicator["wrapped_executor"].append(
-                                lsn.Listeners.registry[return_func_type + return_func_middleware](*new_args, **new_kwargs))
+                                lsn.Listeners.registry[
+                                    return_func_type + return_func_middleware
+                                ](*new_args, **new_kwargs)
+                            )
                         except KeyError:
                             communicator["wrapped_executor"].append(
-                                lsn.Listeners.registry[
-                                    "MMO:fallback"](*new_args,
-                                                    missing_middleware_object=return_func_type + return_func_middleware,
-                                                    **new_kwargs))
+                                lsn.Listeners.registry["MMO:fallback"](
+                                    *new_args,
+                                    missing_middleware_object=return_func_type
+                                    + return_func_middleware,
+                                    **new_kwargs,
+                                )
+                            )
                             communicator["return_func_type"][comm_idx] = "MMO:"
 
         returns = []
         for ret_idx in range(
-                len(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"])):
-            wrp_exec = cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][ret_idx][
-                "wrapped_executor"]
+            len(
+                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                    "communicator"
+                ]
+            )
+        ):
+            wrp_exec = cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"][ret_idx]["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, lsn.Listener):
                 returns.append(wrp_exec.listen())
@@ -184,7 +270,9 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def __trigger_reply(cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds):
+    def __trigger_reply(
+        cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
+    ):
         """
         Triggers the reply mode of the middleware communicator.
 
@@ -197,60 +285,99 @@ class MiddlewareCommunicator(object):
 
         :raises: KeyError: If the intended server type and middleware are unavailable, resorting to a fallback server
         """
-        if "wrapped_executor" not in \
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
+        if (
+            "wrapped_executor"
+            not in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"][0]
+        ):
             # instantiate the publishers
-            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
-            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                "communicator"
+            ].reverse()
+            for communicator in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"]:
                 # single element
                 if isinstance(communicator["return_func_type"], str):
-                    return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"])
-                    return_func_pub_kwargs.update(return_func_pub_kwargs.get("publisher_kwargs", {}))
+                    return_func_pub_kwargs = deepcopy(
+                        communicator["return_func_kwargs"]
+                    )
+                    return_func_pub_kwargs.update(
+                        return_func_pub_kwargs.get("publisher_kwargs", {})
+                    )
                     return_func_pub_kwargs.pop("listener_kwargs", None)
                     return_func_pub_kwargs.pop("publisher_kwargs", None)
                     new_args, new_kwargs = match_args(
-                        communicator["return_func_args"], return_func_pub_kwargs, wds[1:], kwd)
+                        communicator["return_func_args"],
+                        return_func_pub_kwargs,
+                        wds[1:],
+                        kwd,
+                    )
                     return_func_type = communicator["return_func_type"]
-                    return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                    return_func_middleware = new_kwargs.pop(
+                        "middleware", DEFAULT_COMMUNICATOR
+                    )
                     try:
                         communicator["wrapped_executor"] = srv.Servers.registry[
-                            return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                            return_func_type + return_func_middleware
+                        ](*new_args, **new_kwargs)
                     except KeyError:
                         communicator["wrapped_executor"] = srv.Servers.registry[
-                            "MMO:fallback"](*new_args,
-                                            missing_middleware_object=return_func_type + return_func_middleware,
-                                            **new_kwargs)
+                            "MMO:fallback"
+                        ](
+                            *new_args,
+                            missing_middleware_object=return_func_type
+                            + return_func_middleware,
+                            **new_kwargs,
+                        )
                         communicator["return_func_type"] = "MMO:"
 
                 # list for single return
                 elif isinstance(communicator["return_func_type"], list):
                     communicator["wrapped_executor"] = []
                     for comm_idx in range(len(communicator["return_func_type"])):
-                        return_func_pub_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
+                        return_func_pub_kwargs = deepcopy(
+                            communicator["return_func_kwargs"][comm_idx]
+                        )
                         return_func_pub_kwargs.update(
-                            return_func_pub_kwargs.get("publisher_kwargs", {}))
+                            return_func_pub_kwargs.get("publisher_kwargs", {})
+                        )
                         return_func_pub_kwargs.pop("listener_kwargs", None)
                         return_func_pub_kwargs.pop("publisher_kwargs", None)
                         new_args, new_kwargs = match_args(
-                            communicator["return_func_args"][comm_idx], return_func_pub_kwargs, wds[1:],
-                            kwd)
+                            communicator["return_func_args"][comm_idx],
+                            return_func_pub_kwargs,
+                            wds[1:],
+                            kwd,
+                        )
                         return_func_type = communicator["return_func_type"][comm_idx]
-                        return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                        return_func_middleware = new_kwargs.pop(
+                            "middleware", DEFAULT_COMMUNICATOR
+                        )
                         try:
                             communicator["wrapped_executor"].append(
-                                srv.Servers.registry[return_func_type + return_func_middleware](
-                                    *new_args, **new_kwargs))
+                                srv.Servers.registry[
+                                    return_func_type + return_func_middleware
+                                ](*new_args, **new_kwargs)
+                            )
                         except KeyError:
                             communicator["wrapped_executor"].append(
-                                srv.Servers.registry[
-                                    "MMO:fallback"](*new_args,
-                                                    missing_middleware_object=return_func_type + return_func_middleware,
-                                                    **new_kwargs))
+                                srv.Servers.registry["MMO:fallback"](
+                                    *new_args,
+                                    missing_middleware_object=return_func_type
+                                    + return_func_middleware,
+                                    **new_kwargs,
+                                )
+                            )
                             communicator["return_func_type"][comm_idx] = "MMO:"
 
         returns = None
         for ret_idx, functor in enumerate(
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                "communicator"
+            ]
+        ):
             wrp_exec = functor["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, srv.Server):
@@ -270,7 +397,9 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def __trigger_request(cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds):
+    def __trigger_request(
+        cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
+    ):
         """
         Triggers the request mode of the middleware communicator.
 
@@ -283,57 +412,99 @@ class MiddlewareCommunicator(object):
 
         :raises: KeyError: If the intended client type and middleware are unavailable, resorting to a fallback client
         """
-        if "wrapped_executor" not in \
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"][0]:
+        if (
+            "wrapped_executor"
+            not in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"][0]
+        ):
             # instantiate the listeners
-            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"].reverse()
-            for communicator in cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]:
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                "communicator"
+            ].reverse()
+            for communicator in cls._MiddlewareCommunicator__registry[
+                func.__qualname__ + instance_id
+            ]["communicator"]:
                 # single element
                 if isinstance(communicator["return_func_type"], str):
-                    return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"])
-                    return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                    return_func_lsn_kwargs = deepcopy(
+                        communicator["return_func_kwargs"]
+                    )
+                    return_func_lsn_kwargs.update(
+                        return_func_lsn_kwargs.get("listener_kwargs", {})
+                    )
                     return_func_lsn_kwargs.pop("listener_kwargs", None)
                     return_func_lsn_kwargs.pop("publisher_kwargs", None)
-                    new_args, new_kwargs = match_args(communicator["return_func_args"], return_func_lsn_kwargs, wds[1:],
-                                                      kwd)
+                    new_args, new_kwargs = match_args(
+                        communicator["return_func_args"],
+                        return_func_lsn_kwargs,
+                        wds[1:],
+                        kwd,
+                    )
                     return_func_type = communicator["return_func_type"]
-                    return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                    return_func_middleware = new_kwargs.pop(
+                        "middleware", DEFAULT_COMMUNICATOR
+                    )
                     try:
                         communicator["wrapped_executor"] = clt.Clients.registry[
-                            return_func_type + return_func_middleware](*new_args, **new_kwargs)
+                            return_func_type + return_func_middleware
+                        ](*new_args, **new_kwargs)
                     except KeyError:
                         communicator["wrapped_executor"] = clt.Clients.registry[
-                            "MMO:fallback"](*new_args,
-                                            missing_middleware_object=return_func_type + return_func_middleware,
-                                            **new_kwargs)
+                            "MMO:fallback"
+                        ](
+                            *new_args,
+                            missing_middleware_object=return_func_type
+                            + return_func_middleware,
+                            **new_kwargs,
+                        )
                         communicator["return_func_type"] = "MMO:"
 
                 # list for single return
                 elif isinstance(communicator["return_func_type"], list):
                     communicator["wrapped_executor"] = []
                     for comm_idx in range(len(communicator["return_func_type"])):
-                        return_func_lsn_kwargs = deepcopy(communicator["return_func_kwargs"][comm_idx])
-                        return_func_lsn_kwargs.update(return_func_lsn_kwargs.get("listener_kwargs", {}))
+                        return_func_lsn_kwargs = deepcopy(
+                            communicator["return_func_kwargs"][comm_idx]
+                        )
+                        return_func_lsn_kwargs.update(
+                            return_func_lsn_kwargs.get("listener_kwargs", {})
+                        )
                         return_func_lsn_kwargs.pop("listener_kwargs", None)
                         return_func_lsn_kwargs.pop("publisher_kwargs", None)
-                        new_args, new_kwargs = match_args(communicator["return_func_args"][comm_idx],
-                                                          return_func_lsn_kwargs, wds[1:], kwd)
+                        new_args, new_kwargs = match_args(
+                            communicator["return_func_args"][comm_idx],
+                            return_func_lsn_kwargs,
+                            wds[1:],
+                            kwd,
+                        )
                         return_func_type = communicator["return_func_type"][comm_idx]
-                        return_func_middleware = new_kwargs.pop("middleware", DEFAULT_COMMUNICATOR)
+                        return_func_middleware = new_kwargs.pop(
+                            "middleware", DEFAULT_COMMUNICATOR
+                        )
                         try:
                             communicator["wrapped_executor"].append(
-                                clt.Clients.registry[return_func_type + return_func_middleware](*new_args, **new_kwargs))
+                                clt.Clients.registry[
+                                    return_func_type + return_func_middleware
+                                ](*new_args, **new_kwargs)
+                            )
                         except KeyError:
                             communicator["wrapped_executor"].append(
-                                clt.Clients.registry[
-                                    "MMO:fallback"](*new_args,
-                                                    missing_middleware_object=return_func_type + return_func_middleware,
-                                                    **new_kwargs))
+                                clt.Clients.registry["MMO:fallback"](
+                                    *new_args,
+                                    missing_middleware_object=return_func_type
+                                    + return_func_middleware,
+                                    **new_kwargs,
+                                )
+                            )
                             communicator["return_func_type"][comm_idx] = "MMO:"
 
         returns = []
         for ret_idx, functor in enumerate(
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"]):
+            cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                "communicator"
+            ]
+        ):
             wrp_exec = functor["wrapped_executor"]
             # single element
             if isinstance(wrp_exec, clt.Client):
@@ -349,7 +520,13 @@ class MiddlewareCommunicator(object):
         return returns
 
     @classmethod
-    def register(cls, data_type: Union[str, List[Any]], middleware: str = DEFAULT_COMMUNICATOR, *args, **kwargs):
+    def register(
+        cls,
+        data_type: Union[str, List[Any]],
+        middleware: str = DEFAULT_COMMUNICATOR,
+        *args,
+        **kwargs,
+    ):
         """
         Registers a function to the middleware communicator, defining its communication message type and associated
         middleware. Note that the function returned is a wrapper that can alter the behavior of the registered function
@@ -363,6 +540,7 @@ class MiddlewareCommunicator(object):
 
         :raises: NotImplementedError: If `data_type` is a dictionary or an unsupported type
         """
+
         def encapsulate(func):
             # define the communication message type (single element)
             if isinstance(data_type, str):
@@ -376,29 +554,45 @@ class MiddlewareCommunicator(object):
                 return_func_args, return_func_kwargs, return_func_type = [], [], []
                 for arg in data_type:
                     data_spec = arg[0] + ":"
-                    return_func_args.append([a for a in arg[2:] if not isinstance(a, dict)])
-                    return_func_kwargs.append(*[a for a in arg[2:] if isinstance(a, dict)])
+                    return_func_args.append(
+                        [a for a in arg[2:] if not isinstance(a, dict)]
+                    )
+                    return_func_kwargs.append(
+                        *[a for a in arg[2:] if isinstance(a, dict)]
+                    )
                     return_func_kwargs[-1]["middleware"] = str(arg[1])
                     return_func_type.append(data_spec)
 
             # define the communication message type (dict for single return). NOTE: supports 1 layer depth only
             elif isinstance(data_type, dict):
-                raise NotImplementedError("Dictionaries are not yet supported as a return type")
+                raise NotImplementedError(
+                    "Dictionaries are not yet supported as a return type"
+                )
 
             else:
-                raise NotImplementedError(f"Return data type not supported: {data_type}")
+                raise NotImplementedError(
+                    f"Return data type not supported: {data_type}"
+                )
 
             func_qualname = func.__qualname__
             if func_qualname in cls.__registry:
-                cls.__registry[func_qualname]["communicator"].append({
-                    "return_func_args": return_func_args,
-                    "return_func_kwargs": return_func_kwargs,
-                    "return_func_type": return_func_type})
+                cls.__registry[func_qualname]["communicator"].append(
+                    {
+                        "return_func_args": return_func_args,
+                        "return_func_kwargs": return_func_kwargs,
+                        "return_func_type": return_func_type,
+                    }
+                )
             else:
-                cls.__registry[func_qualname] = {"communicator": [{
-                    "return_func_args": return_func_args,
-                    "return_func_kwargs": return_func_kwargs,
-                    "return_func_type": return_func_type}]}
+                cls.__registry[func_qualname] = {
+                    "communicator": [
+                        {
+                            "return_func_args": return_func_args,
+                            "return_func_kwargs": return_func_kwargs,
+                            "return_func_type": return_func_type,
+                        }
+                    ]
+                }
             cls.__registry[func_qualname]["mode"] = None
 
             @wraps(func)
@@ -408,47 +602,101 @@ class MiddlewareCommunicator(object):
 
                 instance_address = hex(id(wds[0]))
                 try:
-                    instance_id = cls._MiddlewareCommunicator__registry[func.__qualname__]["__WRAPYFI_INSTANCES"].index(instance_address) + 1
+                    instance_id = (
+                        cls._MiddlewareCommunicator__registry[func.__qualname__][
+                            "__WRAPYFI_INSTANCES"
+                        ].index(instance_address)
+                        + 1
+                    )
                     instance_id = "" if instance_id <= 1 else "." + str(instance_id)
                 except KeyError:
                     instance_id = ""
 
                 # execute the method as usual
-                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] is None:
+                if (
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    is None
+                ):
                     return func(*wds, **kwds)
 
                 kwd = get_default_args(func)
                 kwd.update(kwds)
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["args"] = wds
-                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["kwargs"] = kwd
+                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                    "args"
+                ] = wds
+                cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id][
+                    "kwargs"
+                ] = kwd
 
                 # publishes the method returns
-                if cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "publish":
+                if (
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "publish"
+                ):
                     return cls.__trigger_publish(func, instance_id, kwd, *wds, **kwds)
 
                 # listens to the publisher and returns the messages
-                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "listen":
+                elif (
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "listen"
+                ):
                     return cls.__trigger_listen(func, instance_id, kwd, *wds, **kwds)
 
                 # server awaits request from client and replies with method returns
-                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "reply":
+                elif (
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "reply"
+                ):
                     return cls.__trigger_reply(func, instance_id, kwd, *wds, **kwds)
 
                 # client requests with args from server and awaits reply
-                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "request":
+                elif (
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "request"
+                ):
                     return cls.__trigger_request(func, instance_id, kwd, *wds, **kwds)
 
                 # WARNING: use with caution. This produces "None" for all the method's returns
-                elif cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["mode"] == "disable":
-                    cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"] = []
-                    for ret_idx in range(len(cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["communicator"])):
-                        cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"].append(None)
-                    return cls._MiddlewareCommunicator__registry[func.__qualname__ + instance_id]["last_results"]
+                elif (
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "disable"
+                ):
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["last_results"] = []
+                    for ret_idx in range(
+                        len(
+                            cls._MiddlewareCommunicator__registry[
+                                func.__qualname__ + instance_id
+                            ]["communicator"]
+                        )
+                    ):
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["last_results"].append(None)
+                    return cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["last_results"]
 
             return wrapper
+
         return encapsulate
 
-    def activate_communication(self, func: Union[str, Callable[..., Any]], mode: Union[str, List[str]]):
+    def activate_communication(
+        self, func: Union[str, Callable[..., Any]], mode: Union[str, List[str]]
+    ):
         """
         Activates the communication mode for a registered function in the middleware communicator.
         The mode determines how the function will interact with the middleware communicator upon invocation,
@@ -477,16 +725,24 @@ class MiddlewareCommunicator(object):
                     wrapyfi_instances.append(instance_addr)
                     instance_id = len(wrapyfi_instances)
                     if instance_id > 1:
-                        self.__registry[f"{func.__qualname__}.{instance_id}"] = deepcopy(entry, exclude_keys=["wrapped_executor"])
+                        self.__registry[f"{func.__qualname__}.{instance_id}"] = (
+                            deepcopy(entry, exclude_keys=["wrapped_executor"])
+                        )
 
-            instance_qualname = f"{func.__qualname__}.{instance_id}" if instance_id > 1 else func.__qualname__
+            instance_qualname = (
+                f"{func.__qualname__}.{instance_id}"
+                if instance_id > 1
+                else func.__qualname__
+            )
 
             if isinstance(mode, list):
                 try:
-                    self.__registry[instance_qualname]["mode"] = mode[instance_id-1]
+                    self.__registry[instance_qualname]["mode"] = mode[instance_id - 1]
                 except IndexError:
-                    raise IndexError("When mode (publish|listen|disable|null) specified in configuration file is a "
-                                     "list, No. of elements in the list should match the number of instances")
+                    raise IndexError(
+                        "When mode (publish|listen|disable|null) specified in configuration file is a "
+                        "list, No. of elements in the list should match the number of instances"
+                    )
             else:
                 self.__registry[instance_qualname]["mode"] = mode
             self.__registry[instance_qualname]["instance_addr"] = instance_addr
@@ -538,11 +794,17 @@ class MiddlewareCommunicator(object):
             for entry_key, entry_val in cls._MiddlewareCommunicator__registry.items():
                 if instance_addr in entry_val.get("__WRAPYFI_INSTANCES", []):
                     if not del_entry:
-                        del_entry_idx = entry_val["__WRAPYFI_INSTANCES"].index(instance_addr)
+                        del_entry_idx = entry_val["__WRAPYFI_INSTANCES"].index(
+                            instance_addr
+                        )
                         if del_entry_idx == 0:
                             del_entry = entry_key
                         else:
-                            del_entry = re.sub("\.\d+", "\.", entry_key) + "." + str(del_entry_idx + 1)
+                            del_entry = (
+                                re.sub("\.\d+", "\.", entry_key)
+                                + "."
+                                + str(del_entry_idx + 1)
+                            )
                         del_entry_name = re.sub("\.\d+", "\.", entry_key)
                     else:
                         if del_entry_name in entry_key:
@@ -551,7 +813,9 @@ class MiddlewareCommunicator(object):
 
             # delete registry entry and all its publishers/listeners/servers/clients
             if del_entry:
-                for communicator in cls._MiddlewareCommunicator__registry[del_entry]["communicator"]:
+                for communicator in cls._MiddlewareCommunicator__registry[del_entry][
+                    "communicator"
+                ]:
                     wrapped_executor = communicator.get("wrapped_executor", False)
                     if wrapped_executor:
                         if isinstance(wrapped_executor, list):
@@ -563,25 +827,29 @@ class MiddlewareCommunicator(object):
                 if other_entry_keys:
                     del cls._MiddlewareCommunicator__registry[del_entry]
                 else:
-                    cls._MiddlewareCommunicator__registry[del_entry].pop("__WRAPYFI_INSTANCES")
+                    cls._MiddlewareCommunicator__registry[del_entry].pop(
+                        "__WRAPYFI_INSTANCES"
+                    )
                     cls._MiddlewareCommunicator__registry[del_entry].pop("mode")
-                    cls._MiddlewareCommunicator__registry[del_entry].pop("instance_addr")
+                    cls._MiddlewareCommunicator__registry[del_entry].pop(
+                        "instance_addr"
+                    )
 
                 # shift all entries backwards following the deleted one
                 if del_entry_idx - 1 < len(other_entry_keys):
                     for other_entry_key in other_entry_keys[del_entry_idx:]:
-                            new_key = re.split("\.(\d+)", other_entry_key)
-                            if len(new_key) == 1:
-                                new_key = new_key[0]
-                            elif str(int(new_key[1]) - 1) == "1":
-                                new_key = new_key[0]
-                            else:
-                                new_key = new_key[0] + "." + str(int(new_key[1]) - 1)
-                            cls._MiddlewareCommunicator__registry[new_key] = \
-                                cls._MiddlewareCommunicator__registry.pop(other_entry_key)
+                        new_key = re.split("\.(\d+)", other_entry_key)
+                        if len(new_key) == 1:
+                            new_key = new_key[0]
+                        elif str(int(new_key[1]) - 1) == "1":
+                            new_key = new_key[0]
+                        else:
+                            new_key = new_key[0] + "." + str(int(new_key[1]) - 1)
+                        cls._MiddlewareCommunicator__registry[new_key] = (
+                            cls._MiddlewareCommunicator__registry.pop(other_entry_key)
+                        )
             else:
                 break
 
     def __del__(self):
         self.close()
-

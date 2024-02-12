@@ -19,8 +19,16 @@ WATCHDOG_POLL_REPEAT = None
 
 class YarpListener(Listener):
 
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 persistent: bool = True, yarp_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        should_wait: bool = True,
+        persistent: bool = True,
+        yarp_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the subscriber.
 
@@ -32,14 +40,18 @@ class YarpListener(Listener):
         :param yarp_kwargs: dict: Additional kwargs for  the Yarp middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs)
+        super().__init__(
+            name, in_topic, carrier=carrier, should_wait=should_wait, **kwargs
+        )
         self.style = yarp.ContactStyle()
         self.style.persistent = persistent
         self.style.carrier = self.carrier
 
         YarpMiddleware.activate(**yarp_kwargs or {})
 
-    def await_connection(self, in_topic: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(
+        self, in_topic: Optional[str] = None, repeats: Optional[int] = None
+    ):
         """
         Wait for the publisher to connect to the subscriber.
 
@@ -95,8 +107,16 @@ class YarpListener(Listener):
 @Listeners.register("NativeObject", "yarp")
 class YarpNativeObjectListener(YarpListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 persistent: bool = True, deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        should_wait: bool = True,
+        persistent: bool = True,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The NativeObject listener using the BufferedPortBottle string construct assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -108,7 +128,14 @@ class YarpNativeObjectListener(YarpListener):
         :param persistent: bool: Whether the subscriber port should remain connected after closure. Default is True
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            persistent=persistent,
+            **kwargs,
+        )
         self._port = self._netconnect = None
 
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
@@ -130,9 +157,13 @@ class YarpNativeObjectListener(YarpListener):
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port.open(self.in_topic + ":in" + rnd_id)
             if self.style.persistent:
-                self._netconnect = yarp.Network.connect(self.in_topic, self.in_topic + ":in" + rnd_id, self.style)
+                self._netconnect = yarp.Network.connect(
+                    self.in_topic, self.in_topic + ":in" + rnd_id, self.style
+                )
             else:
-                self._netconnect = yarp.Network.connect(self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier)
+                self._netconnect = yarp.Network.connect(
+                    self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier
+                )
         return self.check_establishment(established)
 
     def listen(self):
@@ -147,7 +178,11 @@ class YarpNativeObjectListener(YarpListener):
                 return None
         obj_port = self.read_port(self._port)
         if obj_port is not None:
-            return json.loads(obj_port.get(0).asString(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            return json.loads(
+                obj_port.get(0).asString(),
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
         else:
             return None
 
@@ -155,8 +190,20 @@ class YarpNativeObjectListener(YarpListener):
 @Listeners.register("Image", "yarp")
 class YarpImageListener(YarpListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 persistent: bool = True, width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False, jpg: bool = False, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        should_wait: bool = True,
+        persistent: bool = True,
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        jpg: bool = False,
+        **kwargs,
+    ):
         """
         The Image listener using the BufferedPortImage construct parsed to a numpy array.
 
@@ -171,7 +218,14 @@ class YarpImageListener(YarpListener):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be decompressed from JPG. Default is False
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            persistent=persistent,
+            **kwargs,
+        )
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -195,16 +249,30 @@ class YarpImageListener(YarpListener):
             if self.jpg:
                 self._port = yarp.BufferedPortBottle()
             elif self.rgb:
-                self._port = yarp.BufferedPortImageRgbFloat() if self.fp else yarp.BufferedPortImageRgb()
+                self._port = (
+                    yarp.BufferedPortImageRgbFloat()
+                    if self.fp
+                    else yarp.BufferedPortImageRgb()
+                )
             else:
-                self._port = yarp.BufferedPortImageFloat() if self.fp else yarp.BufferedPortImageMono()
+                self._port = (
+                    yarp.BufferedPortImageFloat()
+                    if self.fp
+                    else yarp.BufferedPortImageMono()
+                )
             self._type = np.float32 if self.fp else np.uint8
-            in_topic_connect = f"{self.in_topic}:in{np.random.randint(100000, size=1).item()}"
+            in_topic_connect = (
+                f"{self.in_topic}:in{np.random.randint(100000, size=1).item()}"
+            )
             self._port.open(in_topic_connect)
             if self.style.persistent:
-                self._netconnect = yarp.Network.connect(self.in_topic, in_topic_connect, self.style)
+                self._netconnect = yarp.Network.connect(
+                    self.in_topic, in_topic_connect, self.style
+                )
             else:
-                self._netconnect = yarp.Network.connect(self.in_topic, in_topic_connect, self.carrier)
+                self._netconnect = yarp.Network.connect(
+                    self.in_topic, in_topic_connect, self.carrier
+                )
         return self.check_establishment(established)
 
     def listen(self):
@@ -222,21 +290,34 @@ class YarpImageListener(YarpListener):
             return None
         if self.jpg:
             img_str = ret_img_msg.get(0).asString()
-            with io.BytesIO(base64.b64decode(img_str.encode('ascii'))) as memfile:
+            with io.BytesIO(base64.b64decode(img_str.encode("ascii"))) as memfile:
                 img_str = np.load(memfile)
             if self.rgb:
                 img = cv2.imdecode(np.frombuffer(img_str, np.uint8), cv2.IMREAD_COLOR)
             else:
-                img = cv2.imdecode(np.frombuffer(img_str, np.uint8), cv2.IMREAD_GRAYSCALE)
+                img = cv2.imdecode(
+                    np.frombuffer(img_str, np.uint8), cv2.IMREAD_GRAYSCALE
+                )
             return img
         else:
-            if 0 < self.width != ret_img_msg.width() or 0 < self.height != ret_img_msg.height():
+            if (
+                0 < self.width != ret_img_msg.width()
+                or 0 < self.height != ret_img_msg.height()
+            ):
                 raise ValueError("Incorrect image shape for listener")
             elif self.rgb:
-                img = np.zeros((ret_img_msg.height(), ret_img_msg.width(), 3), dtype=self._type, order='C')
+                img = np.zeros(
+                    (ret_img_msg.height(), ret_img_msg.width(), 3),
+                    dtype=self._type,
+                    order="C",
+                )
                 img_port = yarp.ImageRgbFloat() if self.fp else yarp.ImageRgb()
             else:
-                img = np.zeros((ret_img_msg.height(), ret_img_msg.width()), dtype=self._type, order='C')
+                img = np.zeros(
+                    (ret_img_msg.height(), ret_img_msg.width()),
+                    dtype=self._type,
+                    order="C",
+                )
                 img_port = yarp.ImageFloat() if self.fp else yarp.ImageMono()
             img_port.resize(img.shape[1], img.shape[0])
             img_port.setExternal(img.data, img.shape[1], img.shape[0])
@@ -247,8 +328,18 @@ class YarpImageListener(YarpListener):
 @Listeners.register("AudioChunk", "yarp")
 class YarpAudioChunkListener(YarpListener):
 
-    def __init__(self, name: str, in_topic: str, carrier: Literal["tcp", "udp", "mcast"] = "tcp", should_wait: bool = True,
-                 persistent: bool = True, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: Literal["tcp", "udp", "mcast"] = "tcp",
+        should_wait: bool = True,
+        persistent: bool = True,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        **kwargs,
+    ):
         """
         The AudioChunk listener using the Sound construct parsed as a numpy array.
 
@@ -261,7 +352,14 @@ class YarpAudioChunkListener(YarpListener):
         :param rate: int: Sampling rate of the audio. Default is 44100
         :param chunk: int: Number of samples in the audio chunk. Default is -1 (use the chunk size of the received audio)
         """
-        super().__init__(name, in_topic, carrier=carrier, should_wait=should_wait, persistent=persistent, **kwargs)
+        super().__init__(
+            name,
+            in_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            persistent=persistent,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -283,7 +381,9 @@ class YarpAudioChunkListener(YarpListener):
             rnd_id = str(np.random.randint(100000, size=1)[0])
             self._port = yarp.Port()
             self._port.open(self.in_topic + ":in" + rnd_id)
-            self._netconnect = yarp.Network.connect(self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier)
+            self._netconnect = yarp.Network.connect(
+                self.in_topic, self.in_topic + ":in" + rnd_id, self.carrier
+            )
 
             self._sound_msg = yarp.Sound()
             self._port.read(self._sound_msg)
@@ -307,7 +407,10 @@ class YarpAudioChunkListener(YarpListener):
             if not established:
                 return None
         self._port.read(self._sound_msg)
-        aud = np.array([self._sound_msg.get(i) for i in range(self._sound_msg.getSamples())], dtype=np.int16)
+        aud = np.array(
+            [self._sound_msg.get(i) for i in range(self._sound_msg.getSamples())],
+            dtype=np.int16,
+        )
         aud = aud.astype(np.float32) / 32767.0
         return aud, self.rate
 

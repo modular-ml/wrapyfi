@@ -65,9 +65,20 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 class CamMic(MiddlewareCommunicator):
     __registry__ = {}
 
-    def __init__(self, *args, stream=("audio", "video"), mic_source=0,
-                 mic_rate=44100, mic_chunk=10000, mic_channels=1, img_source=0,
-                 img_width=320, img_height=240, mware=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        stream=("audio", "video"),
+        mic_source=0,
+        mic_rate=44100,
+        mic_chunk=10000,
+        mic_channels=1,
+        img_source=0,
+        img_width=320,
+        img_height=240,
+        mware=None,
+        **kwargs,
+    ):
         super(MiddlewareCommunicator, self).__init__()
         self.mic_source = mic_source
         self.mic_rate = mic_rate
@@ -83,11 +94,22 @@ class CamMic(MiddlewareCommunicator):
 
         self.mware = mware
 
-    @MiddlewareCommunicator.register("Image", "$mware", "CamMic", "/cam_mic/cam_feed",
-                                     carrier="", width="$img_width", height="$img_height", rgb=True, jpg=True,
-                                     queue_size=10)
+    @MiddlewareCommunicator.register(
+        "Image",
+        "$mware",
+        "CamMic",
+        "/cam_mic/cam_feed",
+        carrier="",
+        width="$img_width",
+        height="$img_height",
+        rgb=True,
+        jpg=True,
+        queue_size=10,
+    )
     def collect_cam(self, img_width=320, img_height=240, mware=None):
-        """Collect images from the camera."""
+        """
+        Collect images from the camera.
+        """
         if self.vid_cap is True:
             self.vid_cap = cv2.VideoCapture(self.img_source)
             if img_width > 0 and img_height > 0:
@@ -102,25 +124,53 @@ class CamMic(MiddlewareCommunicator):
                 print("Video frame grabbed")
             else:
                 print("Video frame not grabbed")
-                img = np.random.randint(256, size=(img_height, img_width, 3), dtype=np.uint8)
+                img = np.random.randint(
+                    256, size=(img_height, img_width, 3), dtype=np.uint8
+                )
         else:
             print("Video capturer not opened")
-            img = np.random.randint(256, size=(img_height, img_width, 3), dtype=np.uint8)
-        return img,
+            img = np.random.randint(
+                256, size=(img_height, img_width, 3), dtype=np.uint8
+            )
+        return (img,)
 
-    @MiddlewareCommunicator.register("AudioChunk", "$mware", "CamMic", "/cam_mic/audio_feed",
-                                     carrier="", rate="$mic_rate", chunk="$mic_chunk", channels="$mic_channels")
-    def collect_mic(self, aud=None, mic_rate=44100, mic_chunk=int(44100 / 5), mic_channels=1, mware=None):
-        """Collect audio from the microphone."""
+    @MiddlewareCommunicator.register(
+        "AudioChunk",
+        "$mware",
+        "CamMic",
+        "/cam_mic/audio_feed",
+        carrier="",
+        rate="$mic_rate",
+        chunk="$mic_chunk",
+        channels="$mic_channels",
+    )
+    def collect_mic(
+        self,
+        aud=None,
+        mic_rate=44100,
+        mic_chunk=int(44100 / 5),
+        mic_channels=1,
+        mware=None,
+    ):
+        """
+        Collect audio from the microphone.
+        """
         aud = aud, mic_rate
-        return aud,
+        return (aud,)
 
     def capture_cam_mic(self):
-        """Capture audio and video from the camera and microphone."""
+        """
+        Capture audio and video from the camera and microphone.
+        """
         if self.enable_audio:
             # capture the audio stream from the microphone
-            with sd.InputStream(device=self.mic_source, channels=self.mic_channels, callback=self._mic_callback,
-                                blocksize=self.mic_chunk, samplerate=self.mic_rate):
+            with sd.InputStream(
+                device=self.mic_source,
+                channels=self.mic_channels,
+                callback=self._mic_callback,
+                blocksize=self.mic_chunk,
+                samplerate=self.mic_rate,
+            ):
                 while True:
                     pass
         elif self.enable_video:
@@ -128,36 +178,92 @@ class CamMic(MiddlewareCommunicator):
                 self.collect_cam(mware=self.mware)
 
     def _mic_callback(self, audio, frames, time, status):
-        """Callback for the microphone audio stream."""
+        """
+        Callback for the microphone audio stream.
+        """
         if self.enable_video:
-            self.collect_cam(img_width=self.img_width, img_height=self.img_height, mware=self.mware)
-        self.collect_mic(audio, mic_rate=self.mic_rate, mic_chunk=self.mic_chunk, mic_channels=self.mic_channels, mware=self.mware)
+            self.collect_cam(
+                img_width=self.img_width, img_height=self.img_height, mware=self.mware
+            )
+        self.collect_mic(
+            audio,
+            mic_rate=self.mic_rate,
+            mic_chunk=self.mic_chunk,
+            mic_channels=self.mic_channels,
+            mware=self.mware,
+        )
         print(audio.flatten(), audio.min(), audio.mean(), audio.max())
 
     def __del__(self):
-        """Release the video capture device."""
+        """
+        Release the video capture device.
+        """
         if not isinstance(self.vid_cap, bool):
             self.vid_cap.release()
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A streamer and listener for audio and video streams.")
-    parser.add_argument("--mode", type=str, default="publish", choices={"publish", "listen"}, help="The transmission mode")
-    parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(),
-                                                                             help="The middleware to use for transmission")
-    parser.add_argument("--stream", nargs="+", default=["video", "audio"],
-                        choices={"video", "audio"},
-                        help="The streamed sensor data")
-    parser.add_argument("--img_source", type=int, default=0, help="The video capture device id (int camera id)")
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A streamer and listener for audio and video streams."
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode",
+    )
+    parser.add_argument(
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
+        choices=MiddlewareCommunicator.get_communicators(),
+        help="The middleware to use for transmission",
+    )
+    parser.add_argument(
+        "--stream",
+        nargs="+",
+        default=["video", "audio"],
+        choices={"video", "audio"},
+        help="The streamed sensor data",
+    )
+    parser.add_argument(
+        "--img_source",
+        type=int,
+        default=0,
+        help="The video capture device id (int camera id)",
+    )
     parser.add_argument("--img_width", type=int, default=320, help="The image width")
     parser.add_argument("--img_height", type=int, default=240, help="The image height")
-    parser.add_argument("--mic_source", type=int, default=None, help="The audio capture device id (int microphone id from python3 -m sounddevice)")
-    parser.add_argument("--mic_rate", type=int, default=44100, help="The audio sampling rate")
-    parser.add_argument("--mic_channels", type=int, default=1, help="The audio channels")
-    parser.add_argument("--mic_chunk", type=int, default=10000, help="The transmitted audio chunk size")
-    parser.add_argument("--sound_device", type=int, default=0, help="The sound device to use for audio playback")
-    parser.add_argument("--list_sound_devices", action="store_true", help="List all available sound devices and exit")
+    parser.add_argument(
+        "--mic_source",
+        type=int,
+        default=None,
+        help="The audio capture device id (int microphone id from python3 -m sounddevice)",
+    )
+    parser.add_argument(
+        "--mic_rate", type=int, default=44100, help="The audio sampling rate"
+    )
+    parser.add_argument(
+        "--mic_channels", type=int, default=1, help="The audio channels"
+    )
+    parser.add_argument(
+        "--mic_chunk", type=int, default=10000, help="The transmitted audio chunk size"
+    )
+    parser.add_argument(
+        "--sound_device",
+        type=int,
+        default=0,
+        help="The sound device to use for audio playback",
+    )
+    parser.add_argument(
+        "--list_sound_devices",
+        action="store_true",
+        help="List all available sound devices and exit",
+    )
     return parser.parse_args()
 
 
@@ -174,7 +280,9 @@ def sound_play(my_aud, blocking=True, device=0):
         sd.play(*my_aud, blocking=blocking, device=device)
         return True
     except sd.PortAudioError:
-        logging.warning("PortAudioError: No device is found or the device is already in use. Will try again in 3 seconds.")
+        logging.warning(
+            "PortAudioError: No device is found or the device is already in use. Will try again in 3 seconds."
+        )
         return False
 
 
@@ -194,11 +302,21 @@ def main(args):
         cam_mic.activate_communication(CamMic.collect_mic, mode="listen")
         while True:
             if "audio" in args.stream:
-                (aud, mic_rate), = cam_mic.collect_mic(mic_rate=args.mic_rate, mic_chunk=args.mic_chunk, mic_channels=args.mic_channels, mware=args.mware)
+                ((aud, mic_rate),) = cam_mic.collect_mic(
+                    mic_rate=args.mic_rate,
+                    mic_chunk=args.mic_chunk,
+                    mic_channels=args.mic_channels,
+                    mware=args.mware,
+                )
             else:
                 aud = mic_rate = None
             if "video" in args.stream:
-                img, = cam_mic.collect_cam(img_source=args.img_source, img_width=args.img_width, img_height=args.img_height, mware=args.mware)
+                (img,) = cam_mic.collect_cam(
+                    img_source=args.img_source,
+                    img_width=args.img_width,
+                    img_height=args.img_height,
+                    mware=args.mware,
+                )
             else:
                 img = None
             if img is not None:

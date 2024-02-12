@@ -13,13 +13,24 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapyfi.connect.servers import Server, Servers
-from wrapyfi.middlewares.ros import ROSMiddleware, ROSNativeObjectService, ROSImageService
+from wrapyfi.middlewares.ros import (
+    ROSMiddleware,
+    ROSNativeObjectService,
+    ROSImageService,
+)
 from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROSServer(Server):
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp", ros_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        ros_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the server.
 
@@ -30,7 +41,9 @@ class ROSServer(Server):
         :param kwargs: dict: Additional kwargs for the server
         """
         if carrier or carrier != "tcp":
-            logging.warning("[ROS] ROS does not support other carriers than TCP for REQ/REP pattern. Using TCP.")
+            logging.warning(
+                "[ROS] ROS does not support other carriers than TCP for REQ/REP pattern. Using TCP."
+            )
             carrier = "tcp"
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
@@ -52,8 +65,15 @@ class ROSNativeObjectServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 serializer_kwargs: Optional[dict] = None, deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        serializer_kwargs: Optional[dict] = None,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
@@ -77,7 +97,9 @@ class ROSNativeObjectServer(ROSServer):
         """
         Establish the connection to the server.
         """
-        self._server = rospy.Service(self.out_topic, ROSNativeObjectService, self._service_callback)
+        self._server = rospy.Service(
+            self.out_topic, ROSNativeObjectService, self._service_callback
+        )
         self.established = True
 
     def await_request(self, *args, **kwargs):
@@ -94,7 +116,11 @@ class ROSNativeObjectServer(ROSServer):
             self.establish()
         try:
             request = ROSNativeObjectServer.RECEIVE_QUEUE.get(block=True)
-            [args, kwargs] = json.loads(request.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            [args, kwargs] = json.loads(
+                request.data,
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
             return args, kwargs
         except rospy.ServiceException as e:
             logging.error("[ROS] Service call failed: %s" % e)
@@ -118,14 +144,20 @@ class ROSNativeObjectServer(ROSServer):
         :param obj: Any: The Python object to be serialized and sent
         """
         try:
-            obj_str = json.dumps(obj, cls=self._plugin_encoder, **self._plugin_kwargs,
-                                 serializer_kwrags=self._serializer_kwargs)
+            obj_str = json.dumps(
+                obj,
+                cls=self._plugin_encoder,
+                **self._plugin_kwargs,
+                serializer_kwrags=self._serializer_kwargs,
+            )
             obj_msg = std_msgs.msg.String()
             obj_msg.data = obj_str
             ROSNativeObjectServer.SEND_QUEUE.put(obj_msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
 
 
 @Servers.register("Image", "ros")
@@ -133,9 +165,18 @@ class ROSImageServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 width: int = -1, height: int = -1, rgb: bool = True, fp: bool = False,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        fp: bool = False,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling native Python objects, serializing them to JSON strings for transmission.
 
@@ -150,7 +191,9 @@ class ROSImageServer(ROSServer):
         """
         super().__init__(name, out_topic, carrier=carrier, **kwargs)
         if "jpg" in kwargs:
-            logging.warning("[ROS] ROS currently does not support JPG encoding in REQ/REP. Using raw image.")
+            logging.warning(
+                "[ROS] ROS currently does not support JPG encoding in REQ/REP. Using raw image."
+            )
             kwargs.pop("jpg")
         self.width = width
         self.height = height
@@ -158,10 +201,10 @@ class ROSImageServer(ROSServer):
         self.fp = fp
 
         if self.fp:
-            self._encoding = '32FC3' if self.rgb else '32FC1'
+            self._encoding = "32FC3" if self.rgb else "32FC1"
             self._type = np.float32
         else:
-            self._encoding = 'bgr8' if self.rgb else 'mono8'
+            self._encoding = "bgr8" if self.rgb else "mono8"
             self._type = np.uint8
 
         self._plugin_kwargs = kwargs
@@ -174,7 +217,9 @@ class ROSImageServer(ROSServer):
         """
         Establish the connection to the server.
         """
-        self._server = rospy.Service(self.out_topic, ROSImageService, self._service_callback)
+        self._server = rospy.Service(
+            self.out_topic, ROSImageService, self._service_callback
+        )
         self.established = True
 
     def await_request(self, *args, **kwargs):
@@ -191,7 +236,11 @@ class ROSImageServer(ROSServer):
             self.establish()
         try:
             request = ROSImageServer.RECEIVE_QUEUE.get(block=True)
-            [args, kwargs] = json.loads(request.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            [args, kwargs] = json.loads(
+                request.data,
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
             return args, kwargs
         except rospy.ServiceException as e:
             logging.error("[ROS] Service call failed: %s" % e)
@@ -215,22 +264,32 @@ class ROSImageServer(ROSServer):
         :param img: np.ndarray: Image to publish
         """
         try:
-            if 0 < self.width != img.shape[1] or 0 < self.height != img.shape[0] or \
-                    not ((img.ndim == 2 and not self.rgb) or (img.ndim == 3 and self.rgb and img.shape[2] == 3)):
+            if (
+                0 < self.width != img.shape[1]
+                or 0 < self.height != img.shape[0]
+                or not (
+                    (img.ndim == 2 and not self.rgb)
+                    or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
+                )
+            ):
                 raise ValueError("Incorrect image shape for publisher")
-            img = np.require(img, dtype=self._type, requirements='C')
+            img = np.require(img, dtype=self._type, requirements="C")
             img_msg = sensor_msgs.msg.Image()
             img_msg.header.stamp = rospy.Time.now()
             img_msg.height = img.shape[0]
             img_msg.width = img.shape[1]
             img_msg.encoding = self._encoding
-            img_msg.is_bigendian = img.dtype.byteorder == '>' or (img.dtype.byteorder == '=' and sys.byteorder == 'big')
+            img_msg.is_bigendian = img.dtype.byteorder == ">" or (
+                img.dtype.byteorder == "=" and sys.byteorder == "big"
+            )
             img_msg.step = img.strides[0]
             img_msg.data = img.tobytes()
             ROSImageServer.SEND_QUEUE.put(img_msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
 
 
 @Servers.register("AudioChunk", "ros")
@@ -238,9 +297,17 @@ class ROSAudioChunkServer(ROSServer):
     SEND_QUEUE = queue.Queue(maxsize=1)
     RECEIVE_QUEUE = queue.Queue(maxsize=1)
 
-    def __init__(self, name: str, out_topic: str, carrier: str = "tcp",
-                 channels: int = 1, rate: int = 44100, chunk: int = -1,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        carrier: str = "tcp",
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Specific server handling audio data as numpy arrays.
 
@@ -271,12 +338,18 @@ class ROSAudioChunkServer(ROSServer):
             from wrapyfi_ros_interfaces.srv import ROSAudioService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS] Could not import ROSAudioService. "
-                          "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
-                          "Refer to the documentation for more information: \n" +
-                          wrapyfi.__doc__ + "ros_interfaces_lnk.html")
+
+            logging.error(
+                "[ROS] Could not import ROSAudioService. "
+                "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                "Refer to the documentation for more information: \n"
+                + wrapyfi.__doc__
+                + "ros_interfaces_lnk.html"
+            )
             sys.exit(1)
-        self._server = rospy.Service(self.out_topic, ROSAudioService, self._service_callback)
+        self._server = rospy.Service(
+            self.out_topic, ROSAudioService, self._service_callback
+        )
         self._rep_msg = ROSAudioService._response_class().response
         self.established = True
 
@@ -294,8 +367,11 @@ class ROSAudioChunkServer(ROSServer):
             self.establish()
         try:
             request = ROSAudioChunkServer.RECEIVE_QUEUE.get(block=True)
-            [args, kwargs] = json.loads(request.request, object_hook=self._plugin_decoder_hook,
-                                        **self._deserializer_kwargs)
+            [args, kwargs] = json.loads(
+                request.request,
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
             return args, kwargs
         except rospy.ServiceException as e:
             logging.error("[ROS] Service call failed: %s" % e)
@@ -329,18 +405,22 @@ class ROSAudioChunkServer(ROSServer):
             self.channels = channels if self.channels == -1 else self.channels
             if 0 < self.chunk != chunk or 0 < self.channels != channels:
                 raise ValueError("Incorrect audio shape for publisher")
-            aud = np.require(aud, dtype=np.float32, requirements='C')
+            aud = np.require(aud, dtype=np.float32, requirements="C")
 
             aud_msg = self._rep_msg
             aud_msg.header.stamp = rospy.Time.now()
             aud_msg.chunk_size = chunk
             aud_msg.channels = channels
             aud_msg.sample_rate = rate
-            aud_msg.is_bigendian = aud.dtype.byteorder == '>' or (aud.dtype.byteorder == '=' and sys.byteorder == 'big')
-            aud_msg.encoding = 'S16BE' if aud_msg.is_bigendian else 'S16LE'
+            aud_msg.is_bigendian = aud.dtype.byteorder == ">" or (
+                aud.dtype.byteorder == "=" and sys.byteorder == "big"
+            )
+            aud_msg.encoding = "S16BE" if aud_msg.is_bigendian else "S16LE"
             aud_msg.step = aud.strides[0]
             aud_msg.data = aud.tobytes()  # (aud * 32767.0).tobytes()
             ROSAudioChunkServer.SEND_QUEUE.put(aud_msg, block=False)
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )

@@ -56,16 +56,28 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 class ReqRep(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware", "ReqRep", "/req_rep/my_message",
-        carrier="tcp", persistent=True
+        "NativeObject",
+        "$mware",
+        "ReqRep",
+        "/req_rep/my_message",
+        carrier="tcp",
+        persistent=True,
     )
     @MiddlewareCommunicator.register(
-        "Image", "$mware", "ReqRep", "/req_rep/my_image_message",
-        carrier="", width="$img_width", height="$img_height", rgb=True, jpg=True,
-        persistent=True
+        "Image",
+        "$mware",
+        "ReqRep",
+        "/req_rep/my_image_message",
+        carrier="",
+        width="$img_width",
+        height="$img_height",
+        rgb=True,
+        jpg=True,
+        persistent=True,
     )
-    def send_img_message(self, msg=None, img_width=320, img_height=240,
-                         mware=None, *args, **kwargs):
+    def send_img_message(
+        self, msg=None, img_width=320, img_height=240, mware=None, *args, **kwargs
+    ):
         """
         Exchange messages with OpenCV images and other native Python objects.
         """
@@ -74,26 +86,62 @@ class ReqRep(MiddlewareCommunicator):
         # read image from file
         img = cv2.imread("../../assets/wrapyfi.png")
         img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
-        cv2.putText(img, msg,
-                    ((img.shape[1] - cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][0]) // 2,
-                     (img.shape[0] + cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][1]) // 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+        cv2.putText(
+            img,
+            msg,
+            (
+                (
+                    img.shape[1]
+                    - cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][0]
+                )
+                // 2,
+                (
+                    img.shape[0]
+                    + cv2.getTextSize(msg, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0][1]
+                )
+                // 2,
+            ),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (255, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
 
         return obj, img
 
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware", "ReqRep", "/req_rep/my_message",
-        carrier="tcp", persistent=True
+        "NativeObject",
+        "$mware",
+        "ReqRep",
+        "/req_rep/my_message",
+        carrier="tcp",
+        persistent=True,
     )
     @MiddlewareCommunicator.register(
-        "AudioChunk", "$mware", "ReqRep", "/req_rep/my_audio_message",
-        carrier="", rate="$aud_rate", chunk="$aud_chunk", channels="$aud_channels",
-        persistent=True
+        "AudioChunk",
+        "$mware",
+        "ReqRep",
+        "/req_rep/my_audio_message",
+        carrier="",
+        rate="$aud_rate",
+        chunk="$aud_chunk",
+        channels="$aud_channels",
+        persistent=True,
     )
-    def send_aud_message(self, msg=None,
-                     aud_rate=-1, aud_chunk=-1, aud_channels=2,
-                     mware=None, *args, **kwargs):
-        """Exchange messages with sounddevice audio chunks and other native Python objects."""
+    def send_aud_message(
+        self,
+        msg=None,
+        aud_rate=-1,
+        aud_chunk=-1,
+        aud_channels=2,
+        mware=None,
+        *args,
+        **kwargs,
+    ):
+        """
+        Exchange messages with sounddevice audio chunks and other native Python objects.
+        """
         obj = {"message": msg, "args": args, "kwargs": kwargs}
         # read audio from file
         aud = sf.read("../../assets/sound_test.wav", dtype="float32")
@@ -102,32 +150,46 @@ class ReqRep(MiddlewareCommunicator):
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message requester and replier for native Python objects, images using OpenCV, and sound using PortAudio.")
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A message requester and replier for native Python objects, images using OpenCV, and sound using PortAudio."
+    )
     parser.add_argument(
-        "--mode", type=str, default="request",
+        "--mode",
+        type=str,
+        default="request",
         choices={"request", "reply"},
-        help="The mode of communication, either 'request' or 'reply'"
+        help="The mode of communication, either 'request' or 'reply'",
     )
     parser.add_argument(
-        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
         choices=MiddlewareCommunicator.get_communicators(),
-        help="The middleware to use for transmission"
+        help="The middleware to use for transmission",
     )
 
     parser.add_argument(
-        "--sound_device", type=int, default=0,
-        help="The sound device to use for audio playback"
+        "--sound_device",
+        type=int,
+        default=0,
+        help="The sound device to use for audio playback",
     )
 
     parser.add_argument(
-        "--list_sound_devices", action="store_true",
-        help="List all available sound devices and exit"
+        "--list_sound_devices",
+        action="store_true",
+        help="List all available sound devices and exit",
     )
 
     parser.add_argument(
-        "--stream", type=str, default="image", choices={"image", "audio"},
-        help="The streamed data as either 'image' or 'audio'"
+        "--stream",
+        type=str,
+        default="image",
+        choices={"image", "audio"},
+        help="The streamed data as either 'image' or 'audio'",
     )
     return parser.parse_args()
 
@@ -145,7 +207,9 @@ def sound_play(my_aud, blocking=True, device=0):
         sd.play(*my_aud, blocking=blocking, device=device)
         return True
     except sd.PortAudioError:
-        logging.warning("PortAudioError: No device is found or the device is already in use. Will try again in 3 seconds.")
+        logging.warning(
+            "PortAudioError: No device is found or the device is already in use. Will try again in 3 seconds."
+        )
         return False
 
 
@@ -154,10 +218,17 @@ def main(args):
         print(sd.query_devices())
         return
 
-    """Main function to initiate ReqRep class and communication."""
+    """
+
+    Main function to initiate ReqRep class and communication.
+    """
     if args.mode == "request" and args.mware == "zeromq":
-        print("WE INTENTIONALLY WAIT 5 SECONDS TO ALLOW THE REPLIER ENOUGH TIME TO START UP. ")
-        print("THIS IS NEEDED WHEN USING ZEROMQ AS THE COMMUNICATION MIDDLEWARE IF THE SERVER ")
+        print(
+            "WE INTENTIONALLY WAIT 5 SECONDS TO ALLOW THE REPLIER ENOUGH TIME TO START UP. "
+        )
+        print(
+            "THIS IS NEEDED WHEN USING ZEROMQ AS THE COMMUNICATION MIDDLEWARE IF THE SERVER "
+        )
         print("IS SET TO SPAWN A PROXY BROKER (DEFAULT).")
         time.sleep(5)
 
@@ -175,8 +246,13 @@ def main(args):
         # but this separation is NOT necessary for the method to work
         if args.mode == "request":
             msg = input("Type your message: ")
-            my_message, my_image = req_rep.send_img_message(msg, counter=counter, mware=args.mware)
-            my_message2, my_aud, = req_rep.send_aud_message(msg, counter=counter, mware=args.mware)
+            my_message, my_image = req_rep.send_img_message(
+                msg, counter=counter, mware=args.mware
+            )
+            (
+                my_message2,
+                my_aud,
+            ) = req_rep.send_aud_message(msg, counter=counter, mware=args.mware)
             my_message = my_message2 if my_message2 is not None else my_message
             counter += 1
             if my_message is not None:
@@ -186,7 +262,9 @@ def main(args):
                 cv2.imshow("Received image", my_image)
                 while True:
                     k = cv2.waitKey(1) & 0xFF
-                    if not (cv2.getWindowProperty("Received image", cv2.WND_PROP_VISIBLE)):
+                    if not (
+                        cv2.getWindowProperty("Received image", cv2.WND_PROP_VISIBLE)
+                    ):
                         break
 
                     if cv2.waitKey(1) == 27:
@@ -204,7 +282,10 @@ def main(args):
             # The send_message() only executes in "reply" mode,
             # meaning, the method is only accessible from this code block
             my_message, my_image = req_rep.send_img_message(mware=args.mware)
-            my_message2, my_aud, = req_rep.send_aud_message(mware=args.mware)
+            (
+                my_message2,
+                my_aud,
+            ) = req_rep.send_aud_message(mware=args.mware)
             my_message = my_message2 if my_message2 is not None else my_message
             if my_message is not None:
                 print("Reply: received reply:", my_message)

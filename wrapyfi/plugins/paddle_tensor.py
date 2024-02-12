@@ -29,6 +29,7 @@ from wrapyfi.utils import *
 try:
     import paddle
     from paddle import Tensor
+
     HAVE_PADDLE = True
 except ImportError:
     HAVE_PADDLE = False
@@ -53,7 +54,7 @@ def paddle_device_to_str(device):
     elif isinstance(device, str):
         return device.replace("cuda", "gpu")
     else:
-        raise ValueError(f'Unknown device type {type(device)}')
+        raise ValueError(f"Unknown device type {type(device)}")
 
 
 @lru_cache(maxsize=None)
@@ -70,12 +71,12 @@ def paddle_str_to_device(device):
         return device
     elif isinstance(device, str):
         try:
-            device_type, device_id = device.split(':')
+            device_type, device_id = device.split(":")
         except ValueError:
             device_type = device
         return paddle.device._convert_to_place(device_type.replace("cuda", "gpu"))
     else:
-        raise ValueError(f'Unknown device type {type(device)}')
+        raise ValueError(f"Unknown device type {type(device)}")
 
 
 @PluginRegistrar.register(types=None if not HAVE_PADDLE else paddle.Tensor.__mro__[:-1])
@@ -89,7 +90,7 @@ class PaddleTensor(Plugin):
         """
         self.map_paddle_devices = map_paddle_devices or {}
         if load_paddle_device is not None:
-            self.map_paddle_devices['default'] = load_paddle_device
+            self.map_paddle_devices["default"] = load_paddle_device
         self.map_paddle_devices = paddle_device_to_str(self.map_paddle_devices)
 
     def encode(self, obj, *args, **kwargs):
@@ -106,9 +107,11 @@ class PaddleTensor(Plugin):
         """
         with io.BytesIO() as memfile:
             paddle.save(obj, memfile)
-            obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
         obj_device = paddle_device_to_str(obj.place)
-        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device))
+        return True, dict(
+            __wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device)
+        )
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
         """
@@ -122,11 +125,12 @@ class PaddleTensor(Plugin):
             - bool: Always True, indicating that the decoding was successful
             - paddle.Tensor: The decoded PaddlePaddle tensor data
         """
-        with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
-            obj_device = self.map_paddle_devices.get(obj_full[2], self.map_paddle_devices.get('default', None))
+        with io.BytesIO(base64.b64decode(obj_full[1].encode("ascii"))) as memfile:
+            obj_device = self.map_paddle_devices.get(
+                obj_full[2], self.map_paddle_devices.get("default", None)
+            )
             if obj_device is not None:
                 obj_device = paddle_str_to_device(obj_device)
                 return True, paddle.Tensor(paddle.load(memfile), place=obj_device)
             else:
                 return True, paddle.load(memfile)
-

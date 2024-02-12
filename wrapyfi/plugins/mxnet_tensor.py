@@ -28,6 +28,7 @@ from wrapyfi.utils import *
 
 try:
     import mxnet
+
     HAVE_MXNET = True
 except ImportError:
     HAVE_MXNET = False
@@ -41,7 +42,7 @@ def mxnet_device_to_str(device):
     :return: Union[str, dict]: A string or dictionary representing the MXNet device
     """
     if device is None:
-        return 'cpu:0'
+        return "cpu:0"
     elif isinstance(device, dict):
         device_rets = {}
         for k, v in device.items():
@@ -52,7 +53,7 @@ def mxnet_device_to_str(device):
     elif isinstance(device, str):
         return device.replace("gpu", "cuda")
     else:
-        raise ValueError(f'Unknown device type {type(device)}')
+        raise ValueError(f"Unknown device type {type(device)}")
 
 
 @lru_cache(maxsize=None)
@@ -69,16 +70,18 @@ def mxnet_str_to_device(device):
         return device
     elif isinstance(device, str):
         try:
-            device_type, device_id = device.split(':')
+            device_type, device_id = device.split(":")
         except ValueError:
             device_type = device
             device_id = 0
         return mxnet.Context(device_type.replace("cuda", "gpu"), int(device_id))
     else:
-        raise ValueError(f'Unknown device type {type(device)}')
+        raise ValueError(f"Unknown device type {type(device)}")
 
 
-@PluginRegistrar.register(types=None if not HAVE_MXNET else mxnet.nd.NDArray.__mro__[:-1])
+@PluginRegistrar.register(
+    types=None if not HAVE_MXNET else mxnet.nd.NDArray.__mro__[:-1]
+)
 class MXNetTensor(Plugin):
     def __init__(self, load_mxnet_device=None, map_mxnet_devices=None, **kwargs):
         """
@@ -89,7 +92,7 @@ class MXNetTensor(Plugin):
         """
         self.map_mxnet_devices = map_mxnet_devices or {}
         if load_mxnet_device is not None:
-            self.map_mxnet_devices['default'] = load_mxnet_device
+            self.map_mxnet_devices["default"] = load_mxnet_device
         self.map_mxnet_devices = mxnet_device_to_str(self.map_mxnet_devices)
 
     def encode(self, obj, *args, **kwargs):
@@ -106,9 +109,11 @@ class MXNetTensor(Plugin):
         """
         with io.BytesIO() as memfile:
             np.save(memfile, obj.asnumpy())
-            obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
         obj_device = mxnet_device_to_str(obj.context)
-        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device))
+        return True, dict(
+            __wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device)
+        )
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
         """
@@ -122,8 +127,10 @@ class MXNetTensor(Plugin):
             - bool: Always True, indicating that the decoding was successful
             - mxnet.nd.NDArray: The decoded MXNet tensor data
         """
-        with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
-            obj_device = self.map_mxnet_devices.get(obj_full[2], self.map_mxnet_devices.get('default', None))
+        with io.BytesIO(base64.b64decode(obj_full[1].encode("ascii"))) as memfile:
+            obj_device = self.map_mxnet_devices.get(
+                obj_full[2], self.map_mxnet_devices.get("default", None)
+            )
             if obj_device is not None:
                 obj_device = mxnet_str_to_device(obj_device)
                 return True, mxnet.nd.array(np.load(memfile), ctx=obj_device)

@@ -29,6 +29,7 @@ Run:
 
 
 """
+
 import argparse
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
@@ -36,22 +37,64 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 class HelloWorld(MiddlewareCommunicator):
 
-    @MiddlewareCommunicator.register("NativeObject", "$mware", "HelloWorld", "/hello/my_message",
-                                     carrier="tcp", should_wait=True)
+    @MiddlewareCommunicator.register(
+        "NativeObject",
+        "$mware",
+        "HelloWorld",
+        "/hello/my_message",
+        carrier="tcp",
+        should_wait=True,
+    )
     def send_message(self, arg_from_requester="", mware=None):
-        """Exchange messages and mirror user input."""
+        """
+        Exchange messages and mirror user input.
+        """
         msg = input("Type your message: ")
         obj = {"message": msg, "message_from_requester": arg_from_requester}
-        return obj,
+        return (obj,)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--publish", dest="mode", action="store_const", const="publish", default="listen", help="Publish mode")
-    parser.add_argument("--listen", dest="mode", action="store_const", const="listen", default="listen", help="Listen mode (default)")
-    parser.add_argument("--request", dest="mode", action="store_const", const="request", default="listen", help="Request mode")
-    parser.add_argument("--reply", dest="mode", action="store_const", const="reply", default="listen", help="Reply mode")
-    parser.add_argument("--mware", type=str, default=DEFAULT_COMMUNICATOR, choices=MiddlewareCommunicator.get_communicators(),
-                        help="The middleware to use for transmission")
+    parser.add_argument(
+        "--publish",
+        dest="mode",
+        action="store_const",
+        const="publish",
+        default="listen",
+        help="Publish mode",
+    )
+    parser.add_argument(
+        "--listen",
+        dest="mode",
+        action="store_const",
+        const="listen",
+        default="listen",
+        help="Listen mode (default)",
+    )
+    parser.add_argument(
+        "--request",
+        dest="mode",
+        action="store_const",
+        const="request",
+        default="listen",
+        help="Request mode",
+    )
+    parser.add_argument(
+        "--reply",
+        dest="mode",
+        action="store_const",
+        const="reply",
+        default="listen",
+        help="Reply mode",
+    )
+    parser.add_argument(
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
+        choices=MiddlewareCommunicator.get_communicators(),
+        help="The middleware to use for transmission",
+    )
     return parser.parse_args()
 
 
@@ -61,6 +104,9 @@ if __name__ == "__main__":
     hello_world.activate_communication(HelloWorld.send_message, mode=args.mode)
 
     while True:
-        my_message, = hello_world.send_message(arg_from_requester=f"I got this message from the script running in {args.mode} mode", mware=args.mware)
+        (my_message,) = hello_world.send_message(
+            arg_from_requester=f"I got this message from the script running in {args.mode} mode",
+            mware=args.mware,
+        )
         if my_message is not None:
             print("Method result:", my_message)

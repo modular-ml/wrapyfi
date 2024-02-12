@@ -40,44 +40,63 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 class Notifier(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware", "Notifier", "/notify/test_mxnet_exchange",
-        carrier="", should_wait=True,
-        listener_kwargs=dict(load_mxnet_device=mxnet.gpu(0), map_mxnet_devices={'cpu': 'cuda:0', 'gpu:0': 'cpu'})
+        "NativeObject",
+        "$mware",
+        "Notifier",
+        "/notify/test_mxnet_exchange",
+        carrier="",
+        should_wait=True,
+        listener_kwargs=dict(
+            load_mxnet_device=mxnet.gpu(0),
+            map_mxnet_devices={"cpu": "cuda:0", "gpu:0": "cpu"},
+        ),
     )
     def exchange_object(self, mware=None):
-        """Exchange messages with MXNet tensors and other native Python objects."""
+        """
+        Exchange messages with MXNet tensors and other native Python objects.
+        """
         msg = input("Type your message: ")
         ret = {
             "message": msg,
             "mx_ones": mxnet.nd.ones((2, 4), ctx=mxnet.cpu()),
-            "mxnet_zeros_cuda": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(0))
+            "mxnet_zeros_cuda": mxnet.nd.zeros((2, 3), ctx=mxnet.gpu(0)),
         }
-        return ret,
+        return (ret,)
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects and MXNet tensors.")
-    parser.add_argument(
-        "--mode", type=str, default="publish",
-        choices={"publish", "listen"},
-        help="The transmission mode"
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A message publisher and listener for native Python objects and MXNet tensors."
     )
     parser.add_argument(
-        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        "--mode",
+        type=str,
+        default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode",
+    )
+    parser.add_argument(
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
         choices=MiddlewareCommunicator.get_communicators(),
-        help="The middleware to use for transmission"
+        help="The middleware to use for transmission",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate Notifier class and communication."""
+    """
+    Main function to initiate Notifier class and communication.
+    """
     notifier = Notifier()
     notifier.activate_communication(Notifier.exchange_object, mode=args.mode)
 
     while True:
-        msg_object, = notifier.exchange_object(mware=args.mware)
+        (msg_object,) = notifier.exchange_object(mware=args.mware)
         print("Method result:", msg_object)
 
 

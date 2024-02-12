@@ -27,6 +27,7 @@ from wrapyfi.utils import *
 
 try:
     import cupy as cp
+
     HAVE_CUPY = True
 except ImportError:
     HAVE_CUPY = False
@@ -75,7 +76,9 @@ class CuPyArray(Plugin):
         self.map_cupy_devices = map_cupy_devices or {}
         if load_cupy_device is not None:
             self.map_cupy_devices["default"] = load_cupy_device
-        self.map_cupy_devices = {k: cupy_device_to_str(v) for k, v in self.map_cupy_devices.items()}
+        self.map_cupy_devices = {
+            k: cupy_device_to_str(v) for k, v in self.map_cupy_devices.items()
+        }
 
     def encode(self, obj, *args, **kwargs):
         """
@@ -86,9 +89,11 @@ class CuPyArray(Plugin):
         """
         with io.BytesIO() as memfile:
             np.save(memfile, cp.asnumpy(obj))
-            obj_data = base64.b64encode(memfile.getvalue()).decode('ascii')
+            obj_data = base64.b64encode(memfile.getvalue()).decode("ascii")
         obj_device = cupy_device_to_str(obj.device)
-        return True, dict(__wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device))
+        return True, dict(
+            __wrapyfi__=(str(self.__class__.__name__), obj_data, obj_device)
+        )
 
     def decode(self, obj_type, obj_full, *args, **kwargs):
         """
@@ -97,9 +102,10 @@ class CuPyArray(Plugin):
         :param obj_full: tuple: A tuple containing the encoded data string and device string
         :return: Tuple[bool, cp.ndarray]
         """
-        with io.BytesIO(base64.b64decode(obj_full[1].encode('ascii'))) as memfile:
-            obj_device_str = self.map_cupy_devices.get(obj_full[2], self.map_cupy_devices.get("default", "cuda:0"))
+        with io.BytesIO(base64.b64decode(obj_full[1].encode("ascii"))) as memfile:
+            obj_device_str = self.map_cupy_devices.get(
+                obj_full[2], self.map_cupy_devices.get("default", "cuda:0")
+            )
             obj_device = cupy_str_to_device(obj_device_str)
             with obj_device:
                 return True, cp.array(np.load(memfile))
-

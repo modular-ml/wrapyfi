@@ -39,44 +39,60 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 class CuPyNotifier(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware", "CuPyNotifier", "/notify/test_cupy_exchange",
-        carrier="", should_wait=True,
-        listener_kwargs=dict(load_cupy_device=cp.cuda.Device(0))
+        "NativeObject",
+        "$mware",
+        "CuPyNotifier",
+        "/notify/test_cupy_exchange",
+        carrier="",
+        should_wait=True,
+        listener_kwargs=dict(load_cupy_device=cp.cuda.Device(0)),
     )
     def exchange_object(self, mware=None):
-        """Exchange messages with CuPy tensors and other native Python objects."""
+        """
+        Exchange messages with CuPy tensors and other native Python objects.
+        """
         msg = input("Type your message: ")
         ret = {
             "message": msg,
             "cupy_ones_cuda": cp.ones((2, 4), dtype=cp.float32),
-            "cupy_zeros_cuda": cp.zeros((2, 3), dtype=cp.float32)
+            "cupy_zeros_cuda": cp.zeros((2, 3), dtype=cp.float32),
         }
-        return ret,
+        return (ret,)
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects and CuPy tensors.")
-    parser.add_argument(
-        "--mode", type=str, default="publish",
-        choices={"publish", "listen"},
-        help="The transmission mode"
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A message publisher and listener for native Python objects and CuPy tensors."
     )
     parser.add_argument(
-        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        "--mode",
+        type=str,
+        default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode",
+    )
+    parser.add_argument(
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
         choices=MiddlewareCommunicator.get_communicators(),
-        help="The middleware to use for transmission"
+        help="The middleware to use for transmission",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate CuPyNotifier class and communication."""
+    """
+    Main function to initiate CuPyNotifier class and communication.
+    """
     notifier = CuPyNotifier()
     notifier.activate_communication(CuPyNotifier.exchange_object, mode=args.mode)
 
     while True:
-        msg_object, = notifier.exchange_object(mware=args.mware)
+        (msg_object,) = notifier.exchange_object(mware=args.mware)
         print("Method result:", msg_object)
 
 

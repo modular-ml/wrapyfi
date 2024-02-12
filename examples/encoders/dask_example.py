@@ -40,19 +40,28 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 class Notifier(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "NativeObject", "$mware", "Notifier", "/notify/test_dask_exchange",
-        carrier="tcp", should_wait=True
+        "NativeObject",
+        "$mware",
+        "Notifier",
+        "/notify/test_dask_exchange",
+        carrier="tcp",
+        should_wait=True,
     )
     def exchange_object(self, mware=None):
-        """Exchange messages with Dask arrays/dataframes and other native Python objects."""
+        """
+        Exchange messages with Dask arrays/dataframes and other native Python objects.
+        """
         msg = input("Type your message: ")
 
         # Creating an example Dask DataFrame
-        df = pd.DataFrame({
-            'num_legs': [4, 2, 0, 4],
-            'num_wings': [0, 2, 0, 0],
-            'num_specimen_seen': [10, 2, 1, 8]
-        }, index=['falcon', 'parrot', 'fish', 'dog'])
+        df = pd.DataFrame(
+            {
+                "num_legs": [4, 2, 0, 4],
+                "num_wings": [0, 2, 0, 0],
+                "num_specimen_seen": [10, 2, 1, 8],
+            },
+            index=["falcon", "parrot", "fish", "dog"],
+        )
 
         ddf = dd.from_pandas(df, npartitions=2)
 
@@ -67,32 +76,42 @@ class Notifier(MiddlewareCommunicator):
             "dask_array": darray,
             "dask_series": dds,
         }
-        return ret,
+        return (ret,)
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message publisher and listener for native Python objects and Dask arrays/dataframes.")
-    parser.add_argument(
-        "--mode", type=str, default="publish",
-        choices={"publish", "listen"},
-        help="The transmission mode"
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A message publisher and listener for native Python objects and Dask arrays/dataframes."
     )
     parser.add_argument(
-        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        "--mode",
+        type=str,
+        default="publish",
+        choices={"publish", "listen"},
+        help="The transmission mode",
+    )
+    parser.add_argument(
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
         choices=MiddlewareCommunicator.get_communicators(),
-        help="The middleware to use for transmission"
+        help="The middleware to use for transmission",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate Notifier class and communication."""
+    """
+    Main function to initiate Notifier class and communication.
+    """
     notifier = Notifier()
     notifier.activate_communication(Notifier.exchange_object, mode=args.mode)
 
     while True:
-        msg_object, = notifier.exchange_object(mware=args.mware)
+        (msg_object,) = notifier.exchange_object(mware=args.mware)
 
         # Compute and print the actual values of the Dask objects
         for key, value in msg_object.items():

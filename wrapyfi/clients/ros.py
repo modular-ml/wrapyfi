@@ -9,13 +9,23 @@ import rospy
 import std_msgs.msg
 
 from wrapyfi.connect.clients import Client, Clients
-from wrapyfi.middlewares.ros import ROSMiddleware, ROSNativeObjectService, ROSImageService
+from wrapyfi.middlewares.ros import (
+    ROSMiddleware,
+    ROSNativeObjectService,
+    ROSImageService,
+)
 from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROSClient(Client):
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp",
-                 ros_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        ros_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initialize the client.
 
@@ -26,7 +36,9 @@ class ROSClient(Client):
         :param kwargs: dict: Additional kwargs for the client
         """
         if carrier or carrier != "tcp":
-            logging.warning("[ROS] ROS does not support other carriers than TCP for REQ/REP pattern. Using TCP.")
+            logging.warning(
+                "[ROS] ROS does not support other carriers than TCP for REQ/REP pattern. Using TCP."
+            )
             carrier = "tcp"
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         ROSMiddleware.activate(**ros_kwargs or {})
@@ -45,9 +57,16 @@ class ROSClient(Client):
 @Clients.register("NativeObject", "ros")
 class ROSNativeObjectClient(ROSClient):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", persistent: bool = True,
-                 serializer_kwargs: Optional[dict] = None,
-                 deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        persistent: bool = True,
+        serializer_kwargs: Optional[dict] = None,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The NativeObject client using the ROS String message assuming the data is serialized as a JSON string.
         Deserializes the data (including plugins) using the decoder and parses it to a Python object.
@@ -76,7 +95,9 @@ class ROSNativeObjectClient(ROSClient):
         Establish the client's connection to the ROS service.
         """
         rospy.wait_for_service(self.in_topic)
-        self._client = rospy.ServiceProxy(self.in_topic, ROSNativeObjectService, persistent=self.persistent)
+        self._client = rospy.ServiceProxy(
+            self.in_topic, ROSNativeObjectService, persistent=self.persistent
+        )
         if self.persistent:
             self.established = True
 
@@ -103,13 +124,19 @@ class ROSNativeObjectClient(ROSClient):
         :param args: tuple: Positional arguments to send in the request.
         :param kwargs: dict: Keyword arguments to send in the request.
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         args_msg = std_msgs.msg.String()
         args_msg.data = args_str
 
         msg = self._client(args_msg)
-        obj = json.loads(msg.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+        obj = json.loads(
+            msg.data, object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs
+        )
         self._queue.put(obj, block=False)
 
     def _await_reply(self) -> Any:
@@ -122,16 +149,29 @@ class ROSNativeObjectClient(ROSClient):
             reply = self._queue.get(block=True)
             return reply
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__class__.__name__}")
+            logging.warning(
+                f"[ROS] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__class__.__name__}"
+            )
             return None
 
 
 @Clients.register("Image", "ros")
 class ROSImageClient(ROSClient):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", width: int = -1, height: int = -1, persistent: bool = True,
-                 rgb: bool = True, fp: bool = False, serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        width: int = -1,
+        height: int = -1,
+        persistent: bool = True,
+        rgb: bool = True,
+        fp: bool = False,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The Image client using the ROS Image message parsed to a numpy array.
 
@@ -146,7 +186,9 @@ class ROSImageClient(ROSClient):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         if "jpg" in kwargs:
-            logging.warning("[ROS] ROS currently does not support JPG encoding in REQ/REP. Using raw image.")
+            logging.warning(
+                "[ROS] ROS currently does not support JPG encoding in REQ/REP. Using raw image."
+            )
             kwargs.pop("jpg")
         super().__init__(name, in_topic, carrier=carrier, **kwargs)
         self.width = width
@@ -155,10 +197,10 @@ class ROSImageClient(ROSClient):
         self.fp = fp
 
         if self.fp:
-            self._encoding = '32FC3' if self.rgb else '32FC1'
+            self._encoding = "32FC3" if self.rgb else "32FC1"
             self._type = np.float32
         else:
-            self._encoding = 'bgr8' if self.rgb else 'mono8'
+            self._encoding = "bgr8" if self.rgb else "mono8"
             self._type = np.uint8
         self._pixel_bytes = (3 if self.rgb else 1) * np.dtype(self._type).itemsize
 
@@ -176,7 +218,9 @@ class ROSImageClient(ROSClient):
         Establish the client's connection to the ROS service.
         """
         rospy.wait_for_service(self.in_topic)
-        self._client = rospy.ServiceProxy(self.in_topic, ROSImageService, persistent=self.persistent)
+        self._client = rospy.ServiceProxy(
+            self.in_topic, ROSImageService, persistent=self.persistent
+        )
         if self.persistent:
             self.established = True
 
@@ -203,12 +247,19 @@ class ROSImageClient(ROSClient):
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         args_msg = std_msgs.msg.String()
         args_msg.data = args_str
         msg = self._client(args_msg)
-        self._queue.put((msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data), block=False)
+        self._queue.put(
+            (msg.height, msg.width, msg.encoding, msg.is_bigendian, msg.data),
+            block=False,
+        )
 
     def _await_reply(self):
         """
@@ -220,23 +271,42 @@ class ROSImageClient(ROSClient):
             height, width, encoding, is_bigendian, data = self._queue.get(block=True)
             if encoding != self._encoding:
                 raise ValueError("Incorrect encoding for listener")
-            if 0 < self.width != width or 0 < self.height != height or len(data) != height * width * self._pixel_bytes:
+            if (
+                0 < self.width != width
+                or 0 < self.height != height
+                or len(data) != height * width * self._pixel_bytes
+            ):
                 raise ValueError("Incorrect image shape for listener")
-            img = np.frombuffer(data, dtype=np.dtype(self._type).newbyteorder('>' if is_bigendian else '<')).reshape((height, width, -1))
+            img = np.frombuffer(
+                data,
+                dtype=np.dtype(self._type).newbyteorder(">" if is_bigendian else "<"),
+            ).reshape((height, width, -1))
             if img.shape[2] == 1:
                 img = img.squeeze(axis=2)
             return img
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
             return None
 
 
 @Clients.register("AudioChunk", "ros")
 class ROSAudioChunkClient(ROSClient):
 
-    def __init__(self, name: str, in_topic: str, carrier: str = "tcp", persistent: bool = True,
-                 channels: int = 1, rate: int = 44100, chunk: int = -1, serializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        carrier: str = "tcp",
+        persistent: bool = True,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        serializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         The AudioChunk client using the ROS Audio message parsed to a numpy array.
 
@@ -271,12 +341,18 @@ class ROSAudioChunkClient(ROSClient):
             from wrapyfi_ros_interfaces.srv import ROSAudioService
         except ImportError:
             import wrapyfi
-            logging.error("[ROS] Could not import ROSAudioService. "
-                          "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
-                          "Refer to the documentation for more information: \n" +
-                          wrapyfi.__doc__ + "ros_interfaces_lnk.html")
+
+            logging.error(
+                "[ROS] Could not import ROSAudioService. "
+                "Make sure the ROS services in wrapyfi_extensions/wrapyfi_ros_interfaces are compiled. "
+                "Refer to the documentation for more information: \n"
+                + wrapyfi.__doc__
+                + "ros_interfaces_lnk.html"
+            )
             sys.exit(1)
-        self._client = rospy.ServiceProxy(self.in_topic, ROSAudioService, persistent=self.persistent)
+        self._client = rospy.ServiceProxy(
+            self.in_topic, ROSAudioService, persistent=self.persistent
+        )
         self._req_msg = ROSAudioService._request_class()
         if self.persistent:
             self.established = True
@@ -304,12 +380,26 @@ class ROSAudioChunkClient(ROSClient):
         :param args: tuple: Positional arguments to send in the request
         :param kwargs: dict: Keyword arguments to send in the request
         """
-        args_str = json.dumps([args, kwargs], cls=self._plugin_encoder, **self._plugin_kwargs,
-                              serializer_kwrags=self._serializer_kwargs)
+        args_str = json.dumps(
+            [args, kwargs],
+            cls=self._plugin_encoder,
+            **self._plugin_kwargs,
+            serializer_kwrags=self._serializer_kwargs,
+        )
         args_msg = self._req_msg
         args_msg.request = args_str
         msg = self._client(args_msg).response
-        self._queue.put((msg.chunk_size, msg.channels, msg.sample_rate, msg.encoding, msg.is_bigendian, msg.data), block=False)
+        self._queue.put(
+            (
+                msg.chunk_size,
+                msg.channels,
+                msg.sample_rate,
+                msg.encoding,
+                msg.is_bigendian,
+                msg.data,
+            ),
+            block=False,
+        )
 
     def _await_reply(self):
         """
@@ -318,19 +408,28 @@ class ROSAudioChunkClient(ROSClient):
         :return: Tuple[np.array, int]: The received audio chunk and rate from the ROS service
         """
         try:
-            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(block=True)
+            chunk, channels, rate, encoding, is_bigendian, data = self._queue.get(
+                block=True
+            )
             if 0 < self.rate != rate:
                 raise ValueError("Incorrect audio rate for client")
-            if encoding not in ['S16LE', 'S16BE']:
+            if encoding not in ["S16LE", "S16BE"]:
                 raise ValueError("Incorrect encoding for client")
-            if 0 < self.chunk != chunk or self.channels != channels or len(data) != chunk * channels * 4:
+            if (
+                0 < self.chunk != chunk
+                or self.channels != channels
+                or len(data) != chunk * channels * 4
+            ):
                 raise ValueError("Incorrect audio shape for client")
-            aud = np.frombuffer(data, dtype=np.dtype(np.float32).newbyteorder('>' if is_bigendian else '<')).reshape(
-                (chunk, channels))
+            aud = np.frombuffer(
+                data,
+                dtype=np.dtype(np.float32).newbyteorder(">" if is_bigendian else "<"),
+            ).reshape((chunk, channels))
             # aud = aud / 32767.0
             return aud, rate
         except queue.Full:
-            logging.warning(f"[ROS] Discarding data because queue is full. "
-                            f"This happened due to bad synchronization in {self.__name__}")
+            logging.warning(
+                f"[ROS] Discarding data because queue is full. "
+                f"This happened due to bad synchronization in {self.__name__}"
+            )
             return None, self.rate
-

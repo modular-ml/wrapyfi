@@ -41,37 +41,56 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 class MirrorCls(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        'NativeObject', '$mware', 'MirrorCls',
-        '/example/read_msg',
-        carrier='tcp', should_wait='$blocking')
-    def read_msg(self, mware=None, msg='', blocking=True):
-        """Exchange messages and mirror user input."""
-        msg_ip = input('Type message: ')
-        obj = {'msg': msg, 'msg_ip': msg_ip}
-        return obj,
+        "NativeObject",
+        "$mware",
+        "MirrorCls",
+        "/example/read_msg",
+        carrier="tcp",
+        should_wait="$blocking",
+    )
+    def read_msg(self, mware=None, msg="", blocking=True):
+        """
+        Exchange messages and mirror user input.
+        """
+        msg_ip = input("Type message: ")
+        obj = {"msg": msg, "msg_ip": msg_ip}
+        return (obj,)
+
 
 def parse_args():
-    """Parse command line arguments."""
+    """
+    Parse command line arguments.
+    """
     parser = argparse.ArgumentParser(description="Mirroring Example using Wrapyfi.")
     parser.add_argument(
-        "--mode", type=str, default="listen",
+        "--mode",
+        type=str,
+        default="listen",
         choices={"publish", "listen", "request", "reply"},
-        help="The communication mode (publish, listen, request, reply)"
+        help="The communication mode (publish, listen, request, reply)",
     )
     parser.add_argument(
-        "--mware", type=str, default=DEFAULT_COMMUNICATOR,
+        "--mware",
+        type=str,
+        default=DEFAULT_COMMUNICATOR,
         choices=MiddlewareCommunicator.get_communicators(),
-        help="The middleware to use for transmission"
+        help="The middleware to use for transmission",
     )
     return parser.parse_args()
 
+
 def main(args):
-    """Main function to initiate MirrorCls class and communication."""
+    """
+    Main function to initiate MirrorCls class and communication.
+    """
     mirror = MirrorCls()
     mirror.activate_communication(MirrorCls.read_msg, mode=args.mode)
 
     while True:
-        msg_object, = mirror.read_msg(mware=args.mware, msg=f"This argument message was sent by the {args.mode} script")
+        (msg_object,) = mirror.read_msg(
+            mware=args.mware,
+            msg=f"This argument message was sent by the {args.mode} script",
+        )
         if msg_object is not None:
             print(msg_object)
 

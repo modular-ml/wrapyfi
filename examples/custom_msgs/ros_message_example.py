@@ -35,15 +35,23 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 class Notifier(MiddlewareCommunicator):
     @MiddlewareCommunicator.register(
-        "ROSMessage", "ros", "Notifier", "/notify/test_ros_msg_str_exchange",
-        should_wait=True
+        "ROSMessage",
+        "ros",
+        "Notifier",
+        "/notify/test_ros_msg_str_exchange",
+        should_wait=True,
     )
     @MiddlewareCommunicator.register(
-        "ROSMessage", "ros", "Notifier", "/notify/test_ros_msg_pose_exchange",
-        should_wait=True
+        "ROSMessage",
+        "ros",
+        "Notifier",
+        "/notify/test_ros_msg_pose_exchange",
+        should_wait=True,
     )
     def send_message(self):
-        """Exchange ROS messages over ROS."""
+        """
+        Exchange ROS messages over ROS.
+        """
         msg = input("Type your message: ")
         quat = Quaternion()
         quat.x = 0.1
@@ -57,18 +65,26 @@ class Notifier(MiddlewareCommunicator):
 
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="A message publisher and listener for ROS messages using Wrapyfi.")
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="A message publisher and listener for ROS messages using Wrapyfi."
+    )
     parser.add_argument(
-        "--mode", type=str, default="publish",
+        "--mode",
+        type=str,
+        default="publish",
         choices={"publish", "listen"},
-        help="The transmission mode"
+        help="The transmission mode",
     )
     return parser.parse_args()
 
 
 def main(args):
-    """Main function to initiate Notify class and communication."""
+    """
+    Main function to initiate Notify class and communication.
+    """
     ros_message = Notifier()
     ros_message.activate_communication(Notifier.send_message, mode=args.mode)
 
