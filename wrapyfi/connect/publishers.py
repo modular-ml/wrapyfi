@@ -1,6 +1,7 @@
 import logging
 import os
 from glob import glob
+from pathlib import Path
 
 from wrapyfi.utils import SingletonOptimized, dynamic_module_import
 
@@ -80,13 +81,11 @@ class Publishers(object):
         """
         Scan for publishers and add them to the registry.
         """
-        modules = glob(
-            os.path.join(os.path.dirname(__file__), "..", "publishers", "*.py"),
-            recursive=True,
-        )
+        base_dir = Path(__file__).parent.parent / "publishers"
+        modules = glob(str(base_dir / "*.py"), recursive=True)
+
         modules = [
-            "wrapyfi.publishers."
-            + module.replace(os.path.dirname(__file__) + "/../publishers/", "")
+            "wrapyfi.publishers." + Path(module).relative_to(base_dir).as_posix()
             for module in modules
         ]
         dynamic_module_import(modules, globals())
