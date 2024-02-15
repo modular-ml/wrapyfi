@@ -4,7 +4,7 @@ For this guide, we install YARP v3.3.2 and iCub (icub-main) v1.16.0.
 
 ## Installing YARP
 
-```warning
+```{tip}
 For installing YARP on **Windows** [follow these instructions](https://www.yarp.it/latest/install_yarp_windows.html)
 or install it within a [conda or conda-like (mamba/micromamba) environment](https://github.com/conda-forge/yarp-feedstock)
 ```
