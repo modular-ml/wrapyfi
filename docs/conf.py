@@ -94,7 +94,8 @@ extensions = [
 source_suffix = [".rst", ".md"]
 exclude_patterns = ["_build"]
 
-myst_enable_extensions = ["dollarmath", "amsmath"]
+myst_enable_extensions = ["dollarmath", "amsmath", "tasklist"]
+myst_enable_checkboxes = True
 
 # mock all libraries except for the ones that are installed
 with open("exclude_packages.json", "r") as f:
