@@ -1,5 +1,6 @@
 sphinx
 sphinx_rtd_theme
 myst_parser
+sphinx-markdown-checkbox
 mdsplit
 pyyaml>=5.1.1
