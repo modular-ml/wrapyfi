@@ -1,7 +1,7 @@
 
 [project]
 name = "wrapyfi"
-version = "0.4.40"
+version = "0.4.41"
 description = "Wrapyfi is a wrapper for simplifying Middleware communication"
 readme = "README.md"
 authors = [
@@ -31,6 +31,8 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Human Machine Interfaces",
     "Topic :: System :: Distributed Computing",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
 ]
 
 [project.urls]
