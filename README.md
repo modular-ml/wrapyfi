@@ -90,7 +90,7 @@ A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/m
   * [ ] MacOS 10.14 Mojave [*planned for Wrapyfi v0.5*]
 * Python >= 3.6
 * OpenCV >= 4.2
-* Numpy >= 1.19
+* NumPy >= 1.19
 
 
 * YARP >= v3.3.2 
@@ -345,21 +345,21 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 
 Supported Objects by the `NativeObject` type include:
 
-* [x] [**Numpy Array|Generic**](https://numpy.org/doc/1.23/)
-* [x] [**Pytorch Tensor**](https://pytorch.org/docs/stable/index.html)
+* [x] [**NumPy Array | Generic**](https://numpy.org/doc/1.23/)
+* [x] [**PyTorch Tensor**](https://pytorch.org/docs/stable/index.html)
 * [x] [**Tensorflow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
 * [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
 * [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
 * [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
-* [x] [**pandas DataFrame|Series**](https://pandas.pydata.org/docs/)
+* [x] [**pandas DataFrame | Series**](https://pandas.pydata.org/docs/)
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 * [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)
 * [x] [**CuPy Array**](https://docs.cupy.dev/en/stable/index.html)
-* [x] [**Xarray DataArray|Dataset**](http://xarray.pydata.org/en/stable/)
-* [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
-* [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)
+* [x] [**Xarray DataArray | Dataset**](http://xarray.pydata.org/en/stable/)
+* [x] [**Dask Array | DataFrame**](https://www.dask.org/get-started)
+* [x] [**Zarr Array | Group**](https://zarr.readthedocs.io/en/stable/)
 * [x] [**Pint Quantity**](https://pint.readthedocs.io/en/stable/)
-* [ ] [**pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
+* [ ] [**pandas 2.0 DataFrame | Series**](https://pandas.pydata.org/docs/)
 * [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
 * [ ] [**MLX**](https://ml-explore.github.io/mlx/build/html/index.html) [*planned for Wrapyfi v0.5*]
 
@@ -367,12 +367,12 @@ Supported Objects by the `NativeObject` type include:
 
 Supported Objects by the `Image` type include:
 
-* [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
+* [x] **NumPy Array** [*supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/)*]
 
 ## Sound 
 
 Supported Objects by the `AudioChunk` type include:
 
-* [x] **Numpy Array**,int (supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format)
+* [x] Tuple(**NumPy Array**, int) [*supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format*]
 
 
