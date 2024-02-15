@@ -25,9 +25,11 @@ WATCHDOG_POLL_REPEAT = None
 
 if os.name == "nt" and PROXY_BROKER_SPAWN == "process" and START_PROXY_BROKER:
     PROXY_BROKER_SPAWN = "thread"
-    logging.warning("[ZeroMQ] Wrapyfi does not support multiprocessing on Windows. Please set "
-                    "the environment variable WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN='thread'. "
-                    "Switching automatically to 'thread' mode. ")
+    logging.warning(
+        "[ZeroMQ] Wrapyfi does not support multiprocessing on Windows. Please set "
+        "the environment variable WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN='thread'. "
+        "Switching automatically to 'thread' mode. "
+    )
 
 
 class ZeroMQServer(Server):

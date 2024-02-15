@@ -26,9 +26,11 @@ WATCHDOG_POLL_REPEAT = None
 
 if os.name == "nt" and ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN == "process":
     ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = "thread"
-    logging.warning("[ZeroMQ] Wrapyfi does not support multiprocessing on Windows. Please set "
-                    "the environment variable WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN='thread'. "
-                    "Switching automatically to 'thread' mode. ")
+    logging.warning(
+        "[ZeroMQ] Wrapyfi does not support multiprocessing on Windows. Please set "
+        "the environment variable WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN='thread'. "
+        "Switching automatically to 'thread' mode. "
+    )
 
 
 class ZeroMQListener(Listener):
