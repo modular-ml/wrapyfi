@@ -62,12 +62,12 @@ Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
 * Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md?rank=0).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
 
-* For installing ROS, follow the [ROS installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu). 
+* For installing ROS, follow the ROS installation guide [\[Ubuntu\]](http://wiki.ros.org/noetic/Installation/Ubuntu)[\[Windows\]](https://wiki.ros.org/noetic/Installation/Windows). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
 [Wrapyfi ROS interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md?rank=0) must be
 built to support messages needed for audio transmission [![ROS Package Index](https://img.shields.io/ros/v/noetic/wrapyfi_ros_interfaces)](https://index.ros.org/r/wrapyfi_ros_interfaces/#noetic)
 
-* For installing ROS 2, follow the [ROS 2 installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). 
+* For installing ROS 2, follow the ROS 2 installation guide [\[Ubuntu\]](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)[\[Windows\]](https://docs.ros.org/en/humble/Installation/Windows-Install-Binary.html). 
 We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment. Additionally, the 
 [Wrapyfi ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md?rank=0) 
 must be built to support messages and services needed for audio transmission and the REQ/REP pattern support [![ROS Package Index](https://img.shields.io/ros/v/humble/wrapyfi_ros2_interfaces)](https://index.ros.org/p/wrapyfi_ros2_interfaces/#humble)
@@ -79,10 +79,18 @@ A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/m
 
 
 #### Compatibility
-* Ubuntu >= 18.04 (Not tested with earlier versions of Ubuntu or other OS)
+* Operating System
+  * [X] Ubuntu >= 18.04 (Not tested with earlier versions of Ubuntu or other Linux distributions)
+  * [X] Windows >= 10 [*beta support*]: 
+    * Multiprocessing is disabled. ZeroMQ brokers spawn as threads only
+    * Not tested with YARP and ROS 2
+    * ROS only tested within mamba/micromamba environment installed using [RoboStack](https://github.com/RoboStack/ros-noetic)
+    * ROS and ROS 2 interfaces not tested 
+    * Installation instructions across Wrapyfi guides and tutorials are not guaranteed to be compatible with Windows 11
+  * [ ] MacOS 10.14 Mojave [*planned for Wrapyfi v0.5*]
 * Python >= 3.6
 * OpenCV >= 4.2
-* Numpy >= 1.19
+* NumPy >= 1.19
 
 
 * YARP >= v3.3.2 
@@ -323,7 +331,9 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 * [x] **YARP**
 * [x] **ROS**
 * [x] **ROS 2**
-* [x] **ZeroMQ** (beta feature: `should_wait` trigger introduced with event monitoring)
+* [x] **ZeroMQ** [*beta feature*]: 
+  * `should_wait` trigger introduced with event monitoring
+  * Event monitoring currently cannot be disabled [*planned for Wrapyfi v0.5*]
 
 
 ## Serializers
@@ -335,33 +345,34 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 
 Supported Objects by the `NativeObject` type include:
 
-* [x] [**Numpy Array|Generic**](https://numpy.org/doc/1.23/)
-* [x] [**Pytorch Tensor**](https://pytorch.org/docs/stable/index.html)
+* [x] [**NumPy Array | Generic**](https://numpy.org/doc/1.23/)
+* [x] [**PyTorch Tensor**](https://pytorch.org/docs/stable/index.html)
 * [x] [**Tensorflow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
 * [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
 * [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
 * [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
-* [x] [**pandas DataFrame|Series**](https://pandas.pydata.org/docs/)
+* [x] [**pandas DataFrame | Series**](https://pandas.pydata.org/docs/)
 * [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 * [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)
 * [x] [**CuPy Array**](https://docs.cupy.dev/en/stable/index.html)
-* [x] [**Xarray DataArray|Dataset**](http://xarray.pydata.org/en/stable/)
-* [x] [**Dask Array|DataFrame**](https://www.dask.org/get-started)
-* [x] [**Zarr Array|Group**](https://zarr.readthedocs.io/en/stable/)
+* [x] [**Xarray DataArray | Dataset**](http://xarray.pydata.org/en/stable/)
+* [x] [**Dask Array | DataFrame**](https://www.dask.org/get-started)
+* [x] [**Zarr Array | Group**](https://zarr.readthedocs.io/en/stable/)
 * [x] [**Pint Quantity**](https://pint.readthedocs.io/en/stable/)
-* [ ] [**pandas 2.0 DataFrame|Series**](https://pandas.pydata.org/docs/)
+* [ ] [**pandas 2.0 DataFrame | Series**](https://pandas.pydata.org/docs/)
 * [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
+* [ ] [**MLX**](https://ml-explore.github.io/mlx/build/html/index.html) [*planned for Wrapyfi v0.5*]
 
 ## Image
 
 Supported Objects by the `Image` type include:
 
-* [x] **Numpy Array** (supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/))
+* [x] **NumPy Array** [*supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/)*]
 
 ## Sound 
 
 Supported Objects by the `AudioChunk` type include:
 
-* [x] **Numpy Array**,int (supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format)
+* [x] Tuple(**NumPy Array**, int) [*supports the [sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.5/) format*]
 
 

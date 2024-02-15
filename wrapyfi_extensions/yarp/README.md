@@ -3,8 +3,14 @@ To run the iCub simulator, the YARP framework as well as the iCub simulator need
 For this guide, we install YARP v3.3.2 and iCub (icub-main) v1.16.0. 
 
 ## Installing YARP
+
+```warning
+For installing YARP on **Windows** [follow these instructions](https://www.yarp.it/latest/install_yarp_windows.html)
+or install it within a [conda or conda-like (mamba/micromamba) environment](https://github.com/conda-forge/yarp-feedstock)
+```
+
 Several instructional tutorials are available for installing YARP and its python bindings.
-The installation process described here works on Ubuntu 20.04 and Python 3.8.
+The installation process described here targets Ubuntu 20.04 and Python 3.8.
 Download the YARP source and install following the [official installation documentation](https://www.yarp.it/install_yarp_linux.html) (do not use the precompiled binaries).
 Set the environment variable ```YARP_ROOT``` to the YARP source location:
 

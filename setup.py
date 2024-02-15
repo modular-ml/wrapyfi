@@ -44,7 +44,7 @@ def check_cv2(default_python="opencv-python"):
 
 setuptools.setup(
     name="wrapyfi",
-    version="0.4.40",
+    version="0.4.41",
     description="Wrapyfi is a wrapper for simplifying Middleware communication",
     url="https://github.com/fabawi/wrapyfi/blob/main/",
     project_urls={
@@ -79,6 +79,8 @@ setuptools.setup(
         "Topic :: System :: Distributed Computing",
         "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows :: Windows 10",
+        "Operating System :: Microsoft :: Windows :: Windows 11",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",

@@ -14,8 +14,8 @@ class JsonEncoder(json.JSONEncoder):
     A custom JSON encoder that can encode:
     - Sets
     - Datetime objects
-    - Numpy datetime64 objects
-    - Numpy ndarray objects
+    - NumPy datetime64 objects
+    - NumPy ndarray objects
     - Objects registered with the PluginRegistrar
     """
 
@@ -104,8 +104,8 @@ class JsonDecodeHook(object):
     - Tuples
     - Sets
     - Datetime objects
-    - Numpy datetime64 objects
-    - Numpy ndarray objects
+    - NumPy datetime64 objects
+    - NumPy ndarray objects
     - Objects registered with the PluginRegistrar
     """
 

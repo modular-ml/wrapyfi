@@ -1,6 +1,7 @@
 import logging
 import os
 from glob import glob
+from pathlib import Path
 
 from wrapyfi.utils import dynamic_module_import
 
@@ -34,13 +35,11 @@ class Clients(object):
         """
         Scan for clients and add them to the registry.
         """
-        modules = glob(
-            os.path.join(os.path.dirname(__file__), "..", "clients", "*.py"),
-            recursive=True,
-        )
+        base_dir = Path(__file__).parent.parent / "clients"
+        modules = glob(str(base_dir / "*.py"), recursive=True)
+
         modules = [
-            "wrapyfi.clients."
-            + module.replace(os.path.dirname(__file__) + "/../clients/", "")
+            "wrapyfi.clients." + Path(module).relative_to(base_dir).as_posix()
             for module in modules
         ]
         dynamic_module_import(modules, globals())

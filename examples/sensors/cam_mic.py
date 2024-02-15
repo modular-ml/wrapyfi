@@ -175,7 +175,7 @@ class CamMic(MiddlewareCommunicator):
                     pass
         elif self.enable_video:
             while True:
-                self.collect_cam(mware=self.mware)
+                self.collect_cam(mware=self.mware, img_width=self.img_width, img_height=self.img_height)
 
     def _mic_callback(self, audio, frames, time, status):
         """
@@ -291,7 +291,16 @@ def main(args):
         print(sd.query_devices())
         return
 
-    cam_mic = CamMic(stream=args.stream, mic_source=args.mic_source, mware=args.mware)
+    cam_mic = CamMic(stream=args.stream,
+                     mic_source=args.mic_source,
+                     mic_rate=args.mic_rate,
+                     mic_chunk=args.mic_chunk,
+                     mic_channels=args.mic_channels,
+                     img_source=args.img_source,
+                     img_width=args.img_width,
+                     img_height=args.img_height,
+                     mware=args.mware,
+                     )
 
     if args.mode == "publish":
         cam_mic.activate_communication(CamMic.collect_cam, mode="publish")
