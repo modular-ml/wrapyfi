@@ -347,10 +347,10 @@ Supported Objects by the `NativeObject` type include:
 
 - [x] [**NumPy Array | Generic**](https://numpy.org/doc/1.23/)
 - [x] [**PyTorch Tensor**](https://pytorch.org/docs/stable/index.html)
-- [x] [**Tensorflow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
+- [x] [**TensorFlow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
 - [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
 - [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
-- [x] [**Paddlepaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
+- [x] [**PaddlePaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 - [x] [**pandas DataFrame | Series**](https://pandas.pydata.org/docs/)
 - [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 - [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)

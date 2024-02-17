@@ -4,7 +4,7 @@
   <a id="figure-1"></a>
   <img width="640" src="https://raw.githubusercontent.com/fabawi/wrapyfi/main/assets/evaluation/native_object_benchmarks_latest.png">
   <br>
-  <em>Fig 1: Latency between publishing and receiving 200$\times$200 tensors of ones transmitted using each middleware independently with blocking methods. The transmitted tensors include those of Tensorflow, JAX, MXNet, PyTorch, and PaddlePaddle. 2000 trials are conducted with a publishing rate of 100 Hz for each middleware and plugin combination. Latency indicates the time difference between transmission and reception including de/serialization.</em>
+  <em>Fig 1: Latency between publishing and receiving 200$\times$200 tensors of ones transmitted using each middleware independently with blocking methods. The transmitted tensors include those of TensorFlow, JAX, MXNet, PyTorch, and PaddlePaddle. 2000 trials are conducted with a publishing rate of 100 Hz for each middleware and plugin combination. Latency indicates the time difference between transmission and reception including de/serialization.</em>
 </p>
 
 We measure the transmission latency over multiple trials to assess the effectiveness of Wrapyfi in supporting different 
