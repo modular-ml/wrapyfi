@@ -171,6 +171,9 @@ The publisher executes the method and the subscriber (listener) merely triggers 
 The REQ/REP pattern on the other hand assumes arguments from the client (requester) are sent to the server (responder or replier). Once the server receives the request, it passes the arguments
 to its own method, executes it, and replies to the client back with its method returns.
 
+```{warning}
+in REQ/REP, the requester transmits all arguments passed to the method as a dictionary encoded as a string. This is not ideal for predefined services, where the service expects a certain object/message type. A better approach would include the option to pass a single item of a certain value and type [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+```
 
 ### Publishers and Listeners/Subscribers (PUB/SUB)
 
