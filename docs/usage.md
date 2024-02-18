@@ -91,7 +91,7 @@ Setting the decorator's keyword argument `should_wait='$blocking'` expects the d
 Currently, closing a connection requires closing all connections established by every method within that class. 
 
 ```{warning}
-Selectively deactivating method connections is planned for Wrapyfi v0.5.0.
+Selectively deactivating method connections is not supported [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 ```
 
 To close and delete a `MiddlewareCommunicator` inheriting class means that the middleware connection will be disconnected gracefully. The class references will be removed from all registries, the communication ports will be freed, and the instance will be destroyed. To close a class instance:
@@ -185,7 +185,7 @@ All messages are transmitted using the yarp python bindings
              When JPG conversion is specified, it uses a `yarp.BufferedPortBottle` message carrying a JPEG encoded string instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk with the sound properties using `yarp.Port` transporting `yarp.Sound`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays and [other formats](#data-structure-types) using `yarp.BufferedPortBottle`
-* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
+* **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
 *(ROS)*:
 
@@ -217,7 +217,7 @@ All messages are transmitted using the rclpy python bindings as topic messages
 * **Image**: Transmits and receives a `cv2` or `numpy` image using `sensor_messages.msg.Image`. When JPG conversion is specified, uses the `sensor_messages.msg.CompressedImage` message instead
 * **AudioChunk**: Transmits and receives a `numpy` audio chunk using `wrapyfi_ros2_interfaces.msg.ROS2AudioMessage`
 * **NativeObject**: Transmits and receives a `json` string supporting all native python objects, `numpy` arrays, and [other formats](#data-structure-types) using `std_msgs.msg.String`
-* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
+* **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 * **ROS2Message**: Transmits and receives a single [ROS 2 message](https://docs.ros.org/en/humble/Concepts/About-ROS-Interfaces.html) per return decorator
 
 *(ZeroMQ)*:
@@ -232,7 +232,7 @@ All messages are transmitted using the zmq python bindings. Transmission follows
                     `zmq context.socket(zmq.PUB).send_multipart` for publishing and `zmq context.socket(zmq.SUB).receive_multipart` for receiving messages.
                     The `zmq.PUB` socket is wrapped in a `zmq.proxy` to allow multiple subscribers to the same publisher. Note that all `NativeObject` types
                     are transmitted as multipart messages, where the first element is the topic name and the second element is the message itself (Except for `Image`)
-* **Properties**: Transmits properties [*planned for Wrapyfi v0.5*]
+* **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
 
 ### Servers and Clients (REQ/REP)
