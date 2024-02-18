@@ -90,7 +90,7 @@ Setting the decorator's keyword argument `should_wait='$blocking'` expects the d
 Currently, closing a connection requires closing all connections established by every method within that class. 
 
 ```{warning}
-Selectively deactivating method connections is planned for Wrapyfi v0.5.0.
+Selectively deactivating method connections is not supported [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 ```
 
 To close and delete a `MiddlewareCommunicator` inheriting class means that the middleware connection will be disconnected gracefully. The class references will be removed from all registries, the communication ports will be freed, and the instance will be destroyed. To close a class instance:
