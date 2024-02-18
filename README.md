@@ -87,7 +87,7 @@ A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/m
     * ROS only tested within mamba/micromamba environment installed using [RoboStack](https://github.com/RoboStack/ros-noetic)
     * ROS and ROS 2 interfaces not tested 
     * Installation instructions across Wrapyfi guides and tutorials are not guaranteed to be compatible with Windows 11
-  - [ ] MacOS 10.14 Mojave [*planned for Wrapyfi v0.5*]
+  - [ ] MacOS 10.14 Mojave [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 * Python >= 3.6
 * OpenCV >= 4.2
 * NumPy >= 1.19
@@ -333,7 +333,7 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 - [x] **ROS 2**
 - [x] **ZeroMQ** [*beta feature*]: 
   * `should_wait` trigger introduced with event monitoring
-  * Event monitoring currently cannot be disabled [*planned for Wrapyfi v0.5*]
+  * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
 
 ## Serializers
@@ -359,9 +359,9 @@ Supported Objects by the `NativeObject` type include:
 - [x] [**Dask Array | DataFrame**](https://www.dask.org/get-started)
 - [x] [**Zarr Array | Group**](https://zarr.readthedocs.io/en/stable/)
 - [x] [**Pint Quantity**](https://pint.readthedocs.io/en/stable/)
-- [ ] [**pandas 2.0 DataFrame | Series**](https://pandas.pydata.org/docs/)
-- [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) 
-- [ ] [**MLX**](https://ml-explore.github.io/mlx/build/html/index.html) [*planned for Wrapyfi v0.5*]
+- [ ] [**pandas 2.0 DataFrame | Series**](https://pandas.pydata.org/docs/) [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+- [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+- [ ] [**MLX Tensor**](https://ml-explore.github.io/mlx/build/html/index.html) [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
 ## Image
 
