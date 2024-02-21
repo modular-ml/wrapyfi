@@ -43,7 +43,7 @@ Due to differences in versions, the decoding may result in inconsitent outcomes,
 Other than native python objects, the following objects are supported:
 
 * `numpy.ndarray` and `numpy.generic`
-* `pandas.DataFrame` and `pandas.Series` (pandas v1)
+* `pandas.DataFrame` and `pandas.Series` with pandas v1 (*NumPy* only) and v2 (*PyArrow* and *NumPy* supported)
 * `torch.Tensor`
 * `tensorflow.Tensor` and `tensorflow.EagerTensor`
 * `mxnet.nd.NDArray`

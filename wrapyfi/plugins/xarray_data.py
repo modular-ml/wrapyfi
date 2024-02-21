@@ -15,7 +15,7 @@ Requirements:
         the plugin will be registered with no types.
 
     You can install the necessary packages using pip:
-        ``pip install "pandas<2.0" xarray``  # Basic installation of XArray
+        ``pip install pandas xarray``  # Basic installation of XArray
 """
 
 import json
