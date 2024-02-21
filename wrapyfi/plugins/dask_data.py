@@ -15,7 +15,7 @@ Requirements:
         the plugin will be registered with no types.
 
     You can install the necessary packages using pip:
-        ``pip install "pandas<2.0" dask[complete]``  # Basic installation of Dask and pandas
+        ``pip install pandas dask[complete]``  # Basic installation of Dask and pandas
 """
 
 import io
