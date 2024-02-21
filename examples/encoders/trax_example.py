@@ -31,7 +31,8 @@ import argparse
 try:
     import trax
     from trax.fastmath import numpy as fastnp
-    trax.fastmath.use_backend('tensorflow-numpy')
+
+    trax.fastmath.use_backend("tensorflow-numpy")
 except ImportError:
     print("Install Trax before running this script.")
 

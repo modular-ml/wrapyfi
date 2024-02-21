@@ -27,6 +27,7 @@ try:
     import trax
     import jax
     import jaxlib.xla_extension
+
     HAVE_TRAX = True
 except ImportError:
     HAVE_TRAX = False

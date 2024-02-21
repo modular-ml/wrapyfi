@@ -92,6 +92,14 @@ wrapyfi.plugins.tensorflow\_tensor module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.plugins.trax\_array module
+----------------------------------
+
+.. automodule:: wrapyfi.plugins.trax_array
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.plugins.xarray\_data module
 -----------------------------------
 

@@ -108,6 +108,14 @@ examples.encoders.tensorflow\_example module
    :undoc-members:
    :show-inheritance:
 
+examples.encoders.trax\_example module
+--------------------------------------
+
+.. automodule:: examples.encoders.trax_example
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 examples.encoders.xarray\_example module
 ----------------------------------------
 
