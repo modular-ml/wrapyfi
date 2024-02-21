@@ -59,7 +59,10 @@ class Notifier(MiddlewareCommunicator):
         ret = {
             "message": msg,
             "numpy_array": np.ones((2, 4)),
-            "pandas_series": pd.Series([1, 3, 5, np.nan, 6, 8], dtype="float32" if pd.__version__ < "2.0" else "float32[pyarrow]"),
+            "pandas_series": pd.Series(
+                [1, 3, 5, np.nan, 6, 8],
+                dtype="float32" if pd.__version__ < "2.0" else "float32[pyarrow]",
+            ),
             "pandas_dataframe": pd.DataFrame(
                 np.random.randn(6, 4),
                 index=pd.date_range("20130101", periods=6),
