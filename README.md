@@ -341,6 +341,7 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 - [ ] **msgpack**
 - [ ] **protobuf**
 
+
 ## Data Structures
 
 Supported Objects by the `NativeObject` type include:
@@ -349,6 +350,7 @@ Supported Objects by the `NativeObject` type include:
 - [x] [**PyTorch Tensor**](https://pytorch.org/docs/stable/index.html)
 - [x] [**TensorFlow 2 Tensor**](https://www.tensorflow.org/api_docs/python/tf)
 - [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
+- [x] [**Trax Array**](https://trax-ml.readthedocs.io/en/latest/)
 - [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
 - [x] [**PaddlePaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
 - [x] [**pandas DataFrame | Series**](https://pandas.pydata.org/docs/)
@@ -363,11 +365,13 @@ Supported Objects by the `NativeObject` type include:
 - [ ] [**Gmpy 2 MPZ**](https://gmpy2.readthedocs.io/en/latest/) [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 - [ ] [**MLX Tensor**](https://ml-explore.github.io/mlx/build/html/index.html) [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
+
 ## Image
 
 Supported Objects by the `Image` type include:
 
 - [x] **NumPy Array** [*supports many libraries including [scikit-image](https://scikit-image.org/), [imageio](https://imageio.readthedocs.io/en/stable/), [Open CV](https://opencv.org/), [imutils](https://github.com/PyImageSearch/imutils), [matplotlib.image](https://matplotlib.org/stable/api/image_api.html), and [Mahotas](https://mahotas.readthedocs.io/en/latest/)*]
+
 
 ## Sound 
 

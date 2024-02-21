@@ -65,7 +65,10 @@ A message publisher and listener for native Python objects and CuPy arrays.
 A message publisher and listener for native Python objects and Zarr arrays/groups.
 
 ## [JAX](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.jax_example)
-A message publisher and listener for native Python objects and JAX arrays.
+A message publisher and listener for native Python objects and JAX tensors.
+
+## [Trax](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.trax_example)
+A message publisher and listener for native Python objects and Trax arrays.
 
 ## [MXNet](https://wrapyfi.readthedocs.io/en/latest/examples/examples.encoders.html#module-examples.encoders.mxnet_example)
 A message publisher and listener for native Python objects and MXNet tensors.

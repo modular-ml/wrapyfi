@@ -33,7 +33,7 @@ except ImportError:
 
 try:
     # if jax 0.3.22 is installed, then jax.numpy is a module
-    types = None if not HAVE_JAX else jax.numpy.DeviceArray.__mro__[:-1] + (jax.Array,)
+    types = None if not HAVE_JAX else (jax.Array,)
 except AttributeError:
     types = None if not HAVE_JAX else jax.numpy.DeviceArray.__mro__[:-1]
 

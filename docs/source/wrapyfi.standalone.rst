@@ -4,6 +4,22 @@ wrapyfi.standalone package
 Submodules
 ----------
 
+wrapyfi.standalone.mqtt\_publisher module
+-----------------------------------------
+
+.. automodule:: wrapyfi.standalone.mqtt_publisher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+wrapyfi.standalone.mqtt\_subscriber module
+------------------------------------------
+
+.. automodule:: wrapyfi.standalone.mqtt_subscriber
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.standalone.zeromq\_param\_server module
 -----------------------------------------------
 
