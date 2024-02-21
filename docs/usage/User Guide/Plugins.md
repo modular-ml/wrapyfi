@@ -48,6 +48,7 @@ Other than native python objects, the following objects are supported:
 * `tensorflow.Tensor` and `tensorflow.EagerTensor`
 * `mxnet.nd.NDArray`
 * `jax.numpy.DeviceArray`
+* `trax.ArrayImpl` -> `jaxlib.xla_extension.ArrayImpl`
 * `paddle.Tensor`
 * `PIL.Image`
 * `pyarrow.StructArray`
