@@ -16,7 +16,7 @@ Requirements:
     - Dask, pandas: Used for handling and creating arrays and dataframes
 
     Install using pip:
-        ``pip install "pandas<2.0" dask[complete]``
+        ``pip install pandas dask[complete]``
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard input and transmits message
