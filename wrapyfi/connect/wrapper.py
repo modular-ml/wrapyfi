@@ -270,7 +270,7 @@ class MiddlewareCommunicator(object):
         cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
     ):
         """
-        Triggers the reply mode of the middleware communicator. If the intended server type and middleware are unavailable, resorts to a fallback server.
+        Triggers the reply mode of the middleware communicator. If the intended server type and middleware are unavailable, resorts to a fallback server instead.
 
         :param func: Callable[..., Any]: The function to be triggered and whose return values may be used in replies
         :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
