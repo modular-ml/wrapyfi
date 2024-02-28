@@ -33,7 +33,7 @@ class MiddlewareCommunicator(object):
         cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
     ):
         """
-        Triggers the publish mode of the middleware communicator.
+        Triggers the publish mode of the middleware communicator. If the intended publisher type and middleware are unavailable, resorts to a fallback publisher instead.
 
         :param func: Callable[..., Any]: The function to be triggered and whose return values are to be published
         :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
@@ -41,8 +41,6 @@ class MiddlewareCommunicator(object):
         :param wds: tuple: Variable positional arguments to be passed to the function
         :param kwds: dict: Additional keyword arguments to be passed to the function
         :return: Any: The return values of the triggered function (`func`). The data type and structure depend on the output of `func`
-
-        :raises: KeyError: If the intended publisher type and middleware are unavailable, resorting to a fallback publisher
         """
         if (
             "wrapped_executor"
@@ -149,7 +147,7 @@ class MiddlewareCommunicator(object):
         cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
     ):
         """
-        Triggers the listen mode of the middleware communicator.
+        Triggers the listen mode of the middleware communicator. If the intended listener type and middleware are unavailable, resorts to a fallback listener instead.
 
         :param func: Callable[..., Any]: The function associated with the listener and whose return values might be utilized
         :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
@@ -157,8 +155,6 @@ class MiddlewareCommunicator(object):
         :param wds: tuple: Variable positional arguments to be passed to the function
         :param kwds: dict: Additional keyword arguments to be passed to the function (not used since the listener does not accept any additional arguments, given that it does not execute any function or transmit any arguments)
         :return: Any: The return values obtained from the listeners. The data type and structure depend on the output of the listener
-
-        :raises: KeyError: If the intended listener type and middleware are unavailable, resorting to a fallback listener
         """
         if (
             "wrapped_executor"
@@ -274,7 +270,7 @@ class MiddlewareCommunicator(object):
         cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
     ):
         """
-        Triggers the reply mode of the middleware communicator.
+        Triggers the reply mode of the middleware communicator. If the intended server type and middleware are unavailable, resorts to a fallback server.
 
         :param func: Callable[..., Any]: The function to be triggered and whose return values may be used in replies
         :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
@@ -282,8 +278,6 @@ class MiddlewareCommunicator(object):
         :param wds: tuple: Variable positional arguments to be passed to the function
         :param kwds: dict: Additional keyword arguments to be passed to the function
         :return: Any: The return values of the triggered function (`func`). The data type and structure depend on the output of `func`
-
-        :raises: KeyError: If the intended server type and middleware are unavailable, resorting to a fallback server
         """
         if (
             "wrapped_executor"
@@ -401,7 +395,7 @@ class MiddlewareCommunicator(object):
         cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
     ):
         """
-        Triggers the request mode of the middleware communicator.
+        Triggers the request mode of the middleware communicator. If the intended client type and middleware are unavailable, resorts to a fallback client instead.
 
         :param func: Callable[..., Any]: The function associated with the client requests and might utilize the request results
         :param instance_id: str: The unique identifier of the function instance, utilized to access the middleware communicator registry and manage different instances of communications
@@ -409,8 +403,6 @@ class MiddlewareCommunicator(object):
         :param wds: tuple: Variable positional arguments to be passed to the function
         :param kwds: dict: Additional keyword arguments to be passed to the function
         :return: Any: The return values obtained from the clients' requests. The data type and structure depend on the output of the client requests
-
-        :raises: KeyError: If the intended client type and middleware are unavailable, resorting to a fallback client
         """
         if (
             "wrapped_executor"
@@ -777,13 +769,12 @@ class MiddlewareCommunicator(object):
     @classmethod
     def close_instance(cls, instance_addr: Optional[str] = None):
         """
-        Closes a specific instance of the middleware communicator.
+        Closes a specific instance of the middleware communicator. Note that the instance address is the hexadecimal 
+        representation of the instance's id. If no instance address is provided, all instances will be closed.
 
         :param instance_addr: str: The unique identifier of the instance to be closed, defaults to None
 
         :raises: ValueError: If the instance address cannot be found in the registry
-
-        Note that the instance address is the hex representation of the instance's id. If no instance address is provided, all instances will be closed.
         """
         while True:
             del_entry = False
