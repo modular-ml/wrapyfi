@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import os
+import threading
 import base64
 import io
 from typing import Optional, Tuple
@@ -166,6 +167,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         out_topic: str,
         carrier: str = "tcp",
         should_wait: bool = True,
+        multi_threaded: bool = False,
         serializer_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -177,6 +179,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param multi_threaded: bool: Whether to use a separate socket for each thread. Default is False
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param kwargs: dict: Additional kwargs for the publisher
         """
@@ -184,6 +187,8 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
             name, out_topic, carrier=carrier, should_wait=should_wait, **kwargs
         )
         self._socket = self._netconnect = None
+        if multi_threaded:
+            self._thread_local_storage = threading.local()
 
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
@@ -214,6 +219,25 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         established = self.await_connection(repeats=repeats)
         return self.check_establishment(established)
 
+    def _get_socket(self):
+        """
+        Retrieve or create a ZeroMQ socket specific to the current thread.
+        """
+        if not hasattr(self._thread_local_storage, 'socket'):
+            # Initialize a new socket for the thread
+            self._thread_local_storage.socket = zmq.Context.instance().socket(zmq.PUB)
+            for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+                if isinstance(socket_property[1], str):
+                    self._thread_local_storage.socket.setsockopt_string(
+                        getattr(zmq, socket_property[0]), socket_property[1]
+                    )
+                else:
+                    self._thread_local_storage.socket.setsockopt(
+                        getattr(zmq, socket_property[0]), socket_property[1]
+                    )
+            self._thread_local_storage.socket.connect(self.socket_sub_address)
+        return self._thread_local_storage.socket
+
     def publish(self, obj):
         """
         Publish the object to the middleware.
@@ -232,7 +256,11 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
             **self._plugin_kwargs,
             serializer_kwrags=self._serializer_kwargs,
         )
-        self._socket.send_multipart([self._topic, obj_str.encode()])
+        if hasattr(self, "_thread_local_storage"):
+            socket = self._get_socket()
+        else:
+            socket = self._socket
+        socket.send_multipart([self._topic, obj_str.encode()])
 
 
 @Publishers.register("Image", "zeromq")
@@ -244,6 +272,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         out_topic: str,
         carrier: str = "tcp",
         should_wait: bool = True,
+        multi_threaded: bool = False,
         width: int = -1,
         height: int = -1,
         rgb: bool = True,
@@ -258,6 +287,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param multi_threaded: bool: Whether to use a separate socket for each thread. Default is False
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
@@ -312,7 +342,11 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
                 serializer_kwrags=self._serializer_kwargs,
             ).encode()
         img_header = "{timestamp:" + str(time.time()) + "}"
-        self._socket.send_multipart([self._topic, img_header.encode(), img_str])
+        if hasattr(self, "_thread_local_storage"):
+            socket = self._get_socket()
+        else:
+            socket = self._socket
+        socket.send_multipart([self._topic, img_header.encode(), img_str])
 
 
 @Publishers.register("AudioChunk", "zeromq")
@@ -323,6 +357,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
         out_topic: str,
         carrier: str = "tcp",
         should_wait: bool = True,
+        multi_threaded: bool = False,
         channels: int = 1,
         rate: int = 44100,
         chunk: int = -1,
@@ -335,6 +370,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
         :param out_topic: str: Name of the output topic preceded by '/' (e.g. '/topic')
         :param carrier: str: Carrier protocol. ZeroMQ currently only supports TCP for PUB/SUB pattern. Default is 'tcp'
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
+        :param multi_threaded: bool: Whether to use a separate socket for each thread. Default is False
         :param channels: int: Number of channels. Default is 1
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
@@ -344,6 +380,7 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
             out_topic,
             carrier=carrier,
             should_wait=should_wait,
+            multi_threaded=multi_threaded,
             width=chunk,
             height=channels,
             rgb=False,
@@ -387,7 +424,11 @@ class ZeroMQAudioChunkPublisher(ZeroMQNativeObjectPublisher):
             serializer_kwrags=self._serializer_kwargs,
         ).encode()
         aud_header = "{timestamp:" + str(time.time()) + "}"
-        self._socket.send_multipart([self._topic, aud_header.encode(), aud_str])
+        if hasattr(self, "_thread_local_storage"):
+            socket = self._get_socket()
+        else:
+            socket = self._socket
+        socket.send_multipart([self._topic, aud_header.encode(), aud_str])
 
 
 @Publishers.register("Properties", "zeromq")

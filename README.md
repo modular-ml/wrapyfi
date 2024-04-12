@@ -60,7 +60,7 @@ Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm
 Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
 
 * Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md?rank=0).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
-Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend on using the iCub robot.
+Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend to use the iCub robot.
 
 * For installing ROS, follow the ROS installation guide [\[Ubuntu\]](http://wiki.ros.org/noetic/Installation/Ubuntu)[\[Windows\]](https://wiki.ros.org/noetic/Installation/Windows). 
 We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
@@ -70,7 +70,7 @@ built to support messages needed for audio transmission [![ROS Package Index](ht
 * For installing ROS 2, follow the ROS 2 installation guide [\[Ubuntu\]](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)[\[Windows\]](https://docs.ros.org/en/humble/Installation/Windows-Install-Binary.html). 
 We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment. Additionally, the 
 [Wrapyfi ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md?rank=0) 
-must be built to support messages and services needed for audio transmission and the REQ/REP pattern support [![ROS Package Index](https://img.shields.io/ros/v/humble/wrapyfi_ros2_interfaces)](https://index.ros.org/p/wrapyfi_ros2_interfaces/#humble)
+must be built to support messages and services needed for audio transmission and the REQ/REP pattern [![ROS Package Index](https://img.shields.io/ros/v/humble/wrapyfi_ros2_interfaces)](https://index.ros.org/p/wrapyfi_ros2_interfaces/#humble)
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
