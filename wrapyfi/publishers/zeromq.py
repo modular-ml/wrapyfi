@@ -223,7 +223,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         """
         Retrieve or create a ZeroMQ socket specific to the current thread.
         """
-        if not hasattr(self._thread_local_storage, 'socket'):
+        if not hasattr(self._thread_local_storage, "socket"):
             # Initialize a new socket for the thread
             self._thread_local_storage.socket = zmq.Context.instance().socket(zmq.PUB)
             for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
