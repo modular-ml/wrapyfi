@@ -1,7 +1,7 @@
 
 [project]
 name = "wrapyfi"
-version = "0.4.43"
+version = "0.4.44"
 description = "Wrapyfi is a wrapper for simplifying Middleware communication"
 readme = "README.md"
 authors = [
@@ -68,3 +68,4 @@ all = [
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[tool.pdm]

@@ -769,7 +769,7 @@ class MiddlewareCommunicator(object):
     @classmethod
     def close_instance(cls, instance_addr: Optional[str] = None):
         """
-        Closes a specific instance of the middleware communicator. Note that the instance address is the hexadecimal 
+        Closes a specific instance of the middleware communicator. Note that the instance address is the hexadecimal
         representation of the instance's id. If no instance address is provided, all instances will be closed.
 
         :param instance_addr: str: The unique identifier of the instance to be closed, defaults to None
