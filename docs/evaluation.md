@@ -24,9 +24,7 @@ PyTorch, and PaddlePaddle. pandas data frames are transmitted with the highest l
 Tests conducted using pandas version 1 with a NumPy backend 
 ```
 
-Compared to NumPy, pandas provides a wealth of tools for statistical analysis and data filtration, 
-making it the better option when data management is prioritized. In terms of optimality, NumPy uses C arrays compared to 
-pandas native Python objects, giving NumPy a significant boost in encoding and decoding performance.
+Compared to NumPy, pandas provides more tools for statistical analysis and data filtration, making it the better option when data management is prioritized. However, given that pandas relies on NumPy or pyArrow as a backend, the latency of encoding and decoding its data types is limited by that of the backend's. Additionally, the data structure of pandas objects have to be encoded, adding to the overhead. 
 
 ## Running the Benchmarks
 
