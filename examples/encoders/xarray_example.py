@@ -17,7 +17,7 @@ Requirements:
     - xarray, pandas: Used for creating and handling DataArrays
 
     Install using pip:
-        ``pip install "pandas<2.0" xarray``
+        ``pip install pandas xarray``
 
 Run:
     # On machine 1 (or process 1): Publisher waits for keyboard input and transmits message
