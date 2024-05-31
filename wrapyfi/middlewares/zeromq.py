@@ -50,10 +50,10 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             """
             self.use_multiprocessing = use_multiprocessing
             if use_multiprocessing:
-                manager = multiprocessing.Manager()
-                self.shared_topics = manager.list()
-                self.shared_connections = manager.dict()
-                self.lock = manager.Lock()
+                self.manager = multiprocessing.Manager()
+                self.shared_topics = self.manager.list()
+                self.shared_connections = self.manager.dict()
+                self.lock = self.manager.Lock()
             else:
                 self.shared_topics = []
                 self.shared_connections = {}
@@ -74,9 +74,14 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
 
             :param topic: str: The topic to remove
             """
-            with self.lock:
-                if topic in self.shared_topics:
-                    self.shared_topics.remove(topic)
+            try:
+                with self.lock:
+                    if topic in self.shared_topics:
+                        self.shared_topics.remove(topic)
+            except (FileNotFoundError, EOFError):
+                if self.use_multiprocessing:
+                    # TODO(fabawi): this is can break in many ways, and shutting down the topic monitor is not the right solution, since all topics will be affected 
+                    self.manager.shutdown()
 
         def get_topics(self):
             """
