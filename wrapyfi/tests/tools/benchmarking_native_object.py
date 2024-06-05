@@ -258,8 +258,7 @@ if __name__ == "__main__":
                     if args.trials - 1 == native_objects["count"]:
                         break
                     if counter > args.skip_trials:
-                        benchmark_logger = benchmark_logger.append(
-                            pd.DataFrame(
+                        new_row = pd.DataFrame(
                                 {
                                     "middleware": [middleware_name],
                                     "plugin": [plugin_name],
@@ -267,9 +266,9 @@ if __name__ == "__main__":
                                     "count": [native_objects["count"]],
                                     "delay": [time_acc_native_objects[-1]],
                                 }
-                            ),
-                            ignore_index=True,
-                        )
+                            )
+                        benchmark_logger = pd.concat([benchmark_logger, new_row], ignore_index=True)
+                        
                     if counter == 0:
                         if args.mode == "publish":
                             time.sleep(5)
