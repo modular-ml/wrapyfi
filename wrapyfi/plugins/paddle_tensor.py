@@ -14,7 +14,7 @@ Requirements:
         the plugin will be registered with no types.
 
     You can install the necessary packages using pip:
-        ``pip install paddlepaddle``  # Basic installation of PaddlePaddle
+        ``pip install paddlepaddle-gpu<2.6.0``  # Basic installation of PaddlePaddle
 """
 
 import io
