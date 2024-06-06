@@ -352,7 +352,7 @@ Supported Objects by the `NativeObject` type include:
 - [x] [**JAX Tensor**](https://jax.readthedocs.io/en/latest/)
 - [x] [**Trax Array**](https://trax-ml.readthedocs.io/en/latest/)
 - [x] [**MXNet Tensor**](https://mxnet.apache.org/versions/1.9.1/api/python.html)
-- [x] [**PaddlePaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
+- [x] [**PaddlePaddle Tensor**](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html) [![limitation](https://custom-icon-badges.demolab.com/badge/version%20<%202.6.0-red.svg?logo=dependency&logoColor=white)](https://github.com/PaddlePaddle/Paddle/issues/62967 "issue link")
 - [x] [**pandas DataFrame | Series**](https://pandas.pydata.org/docs/)
 - [x] [**Pillow Image**](https://pillow.readthedocs.io/en/stable/reference/Image.html)
 - [x] [**PyArrow Array**](https://arrow.apache.org/docs/python/index.html)
