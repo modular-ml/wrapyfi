@@ -8,14 +8,18 @@
 # trax==1.4.1
 # tensorflow[and-cuda]==2.12.0
 # tensorflow-text==2.12.0
+## Wrapyfi supports the fluid api in paddlepaddle which was deprecated in version > 2.5.2
 # paddlepaddle-gpu==2.5.2
 ## better to install jaxlib within trax rather than directly
 # jax[cuda11_cudnn805] -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 # jaxlib==0.3.22 -f https://storage.googleapis.com/jax-releases/jax_releases.html
-## MXNet is deprecated, and supports old numpy.bool. You can install numpy versions < 1.20 or have to override numpy.__init__.py bool exit manually. You might also need to install cudatoolkit=11.2 before updating to 11.8 to download some cuda dependencies needed by MXNet.
+## MXNet is deprecated, and supports old numpy.bool. You can install numpy versions < 1.20 or have to override numpy.__init__.py bool exit manually. You might also 
+## need to install cudatoolkit=11.2 before updating to 11.8 to download some cuda dependencies (libnccl.so.2) needed by MXNet. e.g., need to export the link after 
+## installing cudatoolkit=11.2 inside micromamba env named `my_env` -> 
+##   echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAMBA_ROOT_PREFIX/envs/my_env/lib/python3.11/site-packages/nvidia/nccl/lib' > $MAMBA_ROOT_PREFIX/envs/my_env/etc/conda/activate.d/env_vars.sh
 # mxnet-cu112
 pandas==1.3.5
-# numpy==1.26.4
+# numpy==1.23.5
 xarray==2023.1.0
 # dask[complete]==2023.1.1
 ## on Python 3.11, older versions of dask don't work use
