@@ -1,14 +1,21 @@
 ## deep learning libraries should be installed according to your system requirements. For reproducability, we display the versions below but comment them out
-# torch==2.0.0
-# tensorflow-gpu==2.12.0
-## install with micromamba: micromamba install cudatoolkit=10.2 -c nvidia -c conda-forge
-# paddlepaddle-gpu==0.0.0.post116 -f https://www.paddlepaddle.org.cn/whl/linux/gpu/develop.html
+## install with micromamba: micromamba install cudatoolkit=11.8 -c nvidia -c conda-forge
+# --find-links https://download.pytorch.org/whl/cu118
+# torch==2.2.2 
+# torchvision==0.17.2 
+# torchaudio==2.2.2 
+# tensorflow[and-cuda]==2.12.0
+# paddlepaddle-gpu==2.5.2
 # jax[cuda11_cudnn805] -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 # jaxlib==0.3.22 -f https://storage.googleapis.com/jax-releases/jax_releases.html
+## better to install jaxlib within trax rather than directly
+# trax
+## MXNet is deprecated, and supports old numpy.bool. You can install numpy versions < 1.20 or have to override numpy.__init__.py bool exit manually. You also might need to install cudatoolkit=11.2 before updating to 11.8 to download some cuda dependencies needed by MXNet.
+# mxnet-cu112
 pandas==1.3.5
-numpy==1.26.4
+# numpy==1.26.4
 xarray==2023.1.0
-dask[complete]==2023.1.1
+# dask[complete]==2023.1.1
 ## on Python 3.11, older versions of dask don't work use
 # dask[complete]==2024.4.1
 cupy-cuda11x==13.1.0
