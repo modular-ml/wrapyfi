@@ -53,9 +53,17 @@ pyzmq = [
 numpy = [
     "numpy>=1.19.2",
 ]
+websocket = [
+    "python-socketio>=5.0.4",
+]
 headless = [
     "wrapyfi[numpy]",
     "wrapyfi[pyzmq]",
+    "opencv-python-headless>=4.2.0",
+]
+headless_websocket = [
+    "wrapyfi[numpy]",
+    "wrapyfi[websocket]",
     "opencv-python-headless>=4.2.0",
 ]
 all = [

@@ -34,7 +34,7 @@ Wrapyfi is a middleware communication wrapper for transmitting data across nodes
 altering the operation pipeline of your Python scripts. Wrapyfi introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
-Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), and [ZeroMQ](http://zeromq.org/).
+Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), [ZeroMQ](http://zeromq.org/), and [Websocket](https://socket.io/).
 
 To integrate Wrapyfi with your scripts, add the decorators describing the transmitting and listening method parameters.
 
@@ -77,7 +77,12 @@ The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy bro
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
 A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/standalone/zeromq_proxy_broker.py)
 
-
+* Websocket can be installed using pip: `pip install python-socketio`. 
+The xpub-xsub pattern followed in our Websocket implementation requires a socket server. We recommend setting the server 
+to run using [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) which can be installed with `pip install flask-socketio`.
+Note that the server must be running and also scripted to forward messages to the listening from the publishing client as demonstrated in the example found 
+[here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py)
+* 
 #### Compatibility
 * Operating System
   - [x] Ubuntu >= 18.04 (Not tested with earlier versions of Ubuntu or other Linux distributions)
@@ -97,6 +102,7 @@ A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/m
 * ROS Noetic Ninjemys
 * ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
+* Python-SocketIO >= 5.0.4
 
 
 ## Installation
@@ -147,7 +153,13 @@ or when installing Wrapyfi on a *server* (headless) including `numpy`, `opencv-p
 pip install .[headless]
 ```
 
-or install Wrapyfi *without* NumPy, OpenCV, and ZeroMQ:
+or when installing Wrapyfi to work with websockets (headless) including `numpy`, `opencv-python-headless`, and `python-socketio`:
+
+```
+pip install .[headless_websockets]
+```
+
+or install Wrapyfi *without* NumPy, OpenCV, ZeroMQ, and Websockets:
 
 ```
 pip install .
@@ -334,7 +346,7 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 - [x] **ZeroMQ** [*beta feature*]: 
   * `should_wait` trigger introduced with event monitoring
   * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
-
+- [x] **Websockets** *Only PUB/SUB* [*alpha support*]: 
 
 ## Serializers
 - [x] **JSON**

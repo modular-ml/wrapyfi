@@ -80,6 +80,20 @@ All messages are transmitted using the `zmq` Python bindings. Transmission follo
                     are transmitted as multipart messages, where the first element is the topic name and the second element is the message itself (Except for `Image`)
 * **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
+#### Websocket:
+
+```{note}
+Websocket assumes a server is running on the specified address and port. The forwarding of messages canonly be done manually by the user. An example server can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py) 
+```
+
+All messages are transmitted using the `python-socketio` Python bindings. Transmission follows the [socket.io protocol](https://socket.io/docs/v4/)
+
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
+* **NativeObject**: Transmits and receives a `json` string supporting all native Python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) using 
+                    `socketio.emit` for publishing and `socketio.on` for receiving messages
+* **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+
 
 ### Servers and Clients (REQ/REP)
 

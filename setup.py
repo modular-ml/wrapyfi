@@ -44,7 +44,7 @@ def check_cv2(default_python="opencv-python"):
 
 setuptools.setup(
     name="wrapyfi",
-    version="0.4.44",
+    version="0.4.45",
     description="Wrapyfi is a wrapper for simplifying Middleware communication",
     url="https://github.com/fabawi/wrapyfi/blob/main/",
     project_urls={
@@ -61,7 +61,10 @@ setuptools.setup(
         "docs": ["sphinx", "sphinx_rtd_theme", "myst_parser"],
         "pyzmq": ["pyzmq>=19.0.0"],
         "numpy": ["numpy>=1.19.2"],
+        "websocket": ["python_socketio>=5.0.4"],
         "headless": ["wrapyfi[pyzmq]", "wrapyfi[numpy]"]
+        + check_cv2("opencv-python-headless"),
+        "headless_websocket": ["wrapyfi[websocket]", "wrapyfi[numpy]"]
         + check_cv2("opencv-python-headless"),
         "all": ["wrapyfi[pyzmq]", "wrapyfi[numpy]"]
         + check_cv2("opencv-contrib-python"),

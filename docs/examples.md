@@ -1,7 +1,7 @@
 # Basic Examples
 
 ## [Hello World](https://wrapyfi.readthedocs.io/en/latest/examples/examples.html#module-examples.hello_world)
-This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the functionality of the middleware using the PUB/SUB pattern and the REQ/REP pattern. The example can be run on a single machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected using the `--mware` argument. The default is ZeroMQ, but YARP, ROS, and ROS 2 are also supported.
+This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the functionality of the middleware using the PUB/SUB pattern and the REQ/REP pattern. The example can be run on a single machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected using the `--mware` argument. The default is ZeroMQ, but YARP, ROS, ROS 2, and Websocket (assuming server that forwards the topic is running) are also supported.
 
 
 # Communication Schemes
@@ -23,6 +23,9 @@ This script demonstrates message channeling through three different middleware (
 
 ## [REQ/REP](https://wrapyfi.readthedocs.io/en/latest/examples/examples.communication_patterns.html#module-examples.communication_patterns.request_reply_example)
 This script demonstrates the capability to request and reply to messages using the MiddlewareCommunicator within the Wrapyfi library. The communication follows the REQ/REP pattern, allowing message requesting and replying functionalities between processes or machines.
+
+## [PUB/SUB](https://wrapyfi.readthedocs.io/en/latest/examples/examples.html#module-examples.hello_world)
+Most examples support PUB/SUB as the default protocol. This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the functionality of the middleware using the PUB/SUB pattern. The example can be run on a single machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected using the `--mware` argument. The default is ZeroMQ, but YARP, ROS, ROS 2, and Websocket (assuming server that forwards the topic is running) are also supported.
 
 # Custom Messages
 
@@ -91,3 +94,11 @@ This script demonstrates the capability to control the iCub robot’s head and v
 
 ## [Camera and microphone](https://wrapyfi.readthedocs.io/en/latest/examples/examples.sensors.html#module-examples.sensors.cam_mic)
 This script demonstrates the capability to transmit audio and video streams using the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern allowing message publishing and listening functionalities between processes or machines.
+
+# Websockets
+
+## [Websocket Publishing Client](https://wrapyfi.readthedocs.io/en/latest/examples/examples.websockets.html#module-examples.websockets.publisher_client)
+This is a simple message example that demonstrates how to publish messages using the Websocket publisher. Note that the Websocket server must be running
+
+## [Websocket Listening Client](https://wrapyfi.readthedocs.io/en/latest/examples/examples.websockets.html#module-examples.websockets.listener_client)
+This is a simple message example that demonstrates how to listen to messages using the Websocket listener. Note that the Websocket server must be running
