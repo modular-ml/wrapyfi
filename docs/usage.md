@@ -519,6 +519,10 @@ This can be achieved by setting:
 * `WRAPYFI_ZEROMQ_PARAM_REQREP_PORT`: The parameter server request-reply port. Defaults to 5659 (**currently not supported**)
 * `WRAPYFI_ZEROMQ_PARAM_PUB_PORT`: The parameter server pub-socket port. Defaults to 5655 (**currently not supported**)
 * `WRAPYFI_ZEROMQ_PARAM_SUB_PORT`: The parameter server sub-socket port. Defaults to 5656 (**currently not supported**)
+* `WRAPYFI_WEBSOCKET_SOCKET_IP`: IP address of the socket. Defaults to "127.0.0.1"
+* `WRAPYFI_WEBSOCKET_SOCKET_PORT`: The socket port. Defaults to 5000
+* `WRAPYFI_WEBSOCKET_NAMESPACE`: The socket namespace. Defaults to "/"
+* `WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN`: Either spawn the websocket monitor listener as a "process" or "thread". Defaults to "thread" which is the only supported option for now
 
 ROS and ROS 2 queue sizes can be set by:
 
