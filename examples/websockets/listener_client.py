@@ -33,7 +33,7 @@ class HelloWorld(MiddlewareCommunicator):
         """
         Exchange messages and mirror user input.
         """
-        return None,
+        return (None,)
 
 
 if __name__ == "__main__":

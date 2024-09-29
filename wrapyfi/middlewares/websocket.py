@@ -25,11 +25,18 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         :param kwargs: dict: Additional keyword arguments for the middleware
         """
         if WebSocketMiddlewarePubSub._instance is None:
-            WebSocketMiddlewarePubSub._instance = WebSocketMiddlewarePubSub(socket_address=socket_address, **kwargs)
+            WebSocketMiddlewarePubSub._instance = WebSocketMiddlewarePubSub(
+                socket_address=socket_address, **kwargs
+            )
         return WebSocketMiddlewarePubSub._instance
 
-    def __init__(self, socket_address: str = "http://127.0.0.1:5000",
-                 monitor_listener_spawn: str = None, websocket_kwargs: dict = None, **kwargs):
+    def __init__(
+        self,
+        socket_address: str = "http://127.0.0.1:5000",
+        monitor_listener_spawn: str = None,
+        websocket_kwargs: dict = None,
+        **kwargs,
+    ):
         """
         Initialize the WebSocket middleware. This method is automatically called when the class is instantiated.
 
@@ -54,12 +61,16 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         # Register event handlers for connection
         @self.socketio_client.event
         def connect():
-            logging.info(f"[WebSocketMiddlewarePubSub] Connected to {self.socket_address}")
+            logging.info(
+                f"[WebSocketMiddlewarePubSub] Connected to {self.socket_address}"
+            )
             self.connected = True
 
         @self.socketio_client.event
         def disconnect():
-            logging.info(f"[WebSocketMiddlewarePubSub] Disconnected from {self.socket_address}")
+            logging.info(
+                f"[WebSocketMiddlewarePubSub] Disconnected from {self.socket_address}"
+            )
             self.connected = False
 
         # Start the connection in a background thread
@@ -74,10 +85,14 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
     def _connect_client(self):
         """Connect the WebSocket client."""
         try:
-            self.socketio_client.connect(self.socket_address, namespaces=['/'], **self.websocket_kwargs)
+            self.socketio_client.connect(
+                self.socket_address, namespaces=["/"], **self.websocket_kwargs
+            )
             self.socketio_client.wait()  # Wait for messages
         except Exception as e:
-            logging.error(f"[WebSocketMiddlewarePubSub] Error connecting to {self.socket_address}: {e}")
+            logging.error(
+                f"[WebSocketMiddlewarePubSub] Error connecting to {self.socket_address}: {e}"
+            )
 
     def register_callback(self, topic: str, callback):
         """
@@ -87,7 +102,9 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         :param callback: callable: The function to call when the event occurs
         """
         self.socketio_client.on(topic, callback)
-        logging.info(f"[WebSocketMiddlewarePubSub] Registered callback for topic {topic}")
+        logging.info(
+            f"[WebSocketMiddlewarePubSub] Registered callback for topic {topic}"
+        )
 
     def is_connected(self) -> bool:
         """
@@ -103,6 +120,9 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         Deinitialize the WebSocket middleware. This method is automatically called when the program exits.
         """
         logging.info("[WebSocketMiddlewarePubSub] Deinitializing WebSocket client")
-        if WebSocketMiddlewarePubSub._instance and WebSocketMiddlewarePubSub._instance.socketio_client.connected:
+        if (
+            WebSocketMiddlewarePubSub._instance
+            and WebSocketMiddlewarePubSub._instance.socketio_client.connected
+        ):
             WebSocketMiddlewarePubSub._instance.socketio_client.disconnect()
             WebSocketMiddlewarePubSub._instance.connected = False

@@ -14,6 +14,7 @@ Subpackages
    examples.encoders
    examples.robots
    examples.sensors
+   examples.websockets
 
 Submodules
 ----------

@@ -20,6 +20,14 @@ wrapyfi.middlewares.ros2 module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.middlewares.websocket module
+------------------------------------
+
+.. automodule:: wrapyfi.middlewares.websocket
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.middlewares.yarp module
 -------------------------------
 
