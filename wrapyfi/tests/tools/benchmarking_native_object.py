@@ -35,32 +35,37 @@ class Benchmarker(MiddlewareCommunicator):
                 np.ones(dims), index=None, columns=list(range(dims[-1]))
             )
         }
-        
+
     @staticmethod
     def get_cupy_gpu_object(dims, gpu=0):
         import cupy as cp
+
         with cp.cuda.Device(gpu):
             cp_ones = cp.ones(dims, dtype=cp.float32)
         return {"cupy_gpu": cp_ones}
-    
+
     @staticmethod
     def get_pyarrow_object(dims):
         import pyarrow as pa
-        return {"pyarrow": pa.array(np.ones(dims).flatten())}    
-    
+
+        return {"pyarrow": pa.array(np.ones(dims).flatten())}
+
     @staticmethod
     def get_xarray_object(dims):
         import xarray as xr
+
         return {"xarray": xr.DataArray(np.ones(dims), name="example")}
-    
+
     @staticmethod
     def get_dask_object(dims):
         import dask.array as da
+
         return {"dask": da.ones(dims)}
-        
+
     @staticmethod
     def get_pillow_object(dims):
         from PIL import Image
+
         return {"pillow": Image.fromarray(np.ones(dims, dtype=np.uint8))}
 
     @staticmethod
@@ -70,38 +75,45 @@ class Benchmarker(MiddlewareCommunicator):
     @staticmethod
     def get_jax_object(dims):
         import jax as jx
+
         return {"jax": jx.numpy.ones(dims)}
 
     @staticmethod
     def get_mxnet_object(dims):
         import mxnet as mx
+
         return {"mxnet": mx.nd.ones(dims)}
 
     @staticmethod
     def get_mxnet_gpu_object(dims, gpu=0):
         import mxnet as mx
+
         return {"mxnet_gpu": mx.nd.ones(dims, ctx=mx.gpu(gpu))}
 
     @staticmethod
     def get_pytorch_object(dims):
         import torch as th
+
         return {"pytorch": th.ones(dims)}
 
     @staticmethod
     def get_pytorch_gpu_object(dims, gpu=0):
         import torch as th
+
         return {"pytorch_gpu": th.ones(dims, device=f"cuda:{gpu}")}
 
     @staticmethod
     def get_paddle_object(dims):
         import paddle as pa
+
         return {"paddle": pa.Tensor(pa.ones(dims), place=pa.CPUPlace())}
 
     @staticmethod
     def get_paddle_gpu_object(dims, gpu=0):
         import paddle as pa
+
         return {"paddle_gpu": pa.Tensor(pa.zeros(dims), place=pa.CUDAPlace(gpu))}
-        
+
     def get_all_objects(self, count, plugin_name):
         obj = {"count": count, "timestamp": time.time()}
         object_creator = getattr(self, f"get_{plugin_name}_object")
@@ -246,7 +258,9 @@ if __name__ == "__main__":
                 counter += 1
                 (native_objects,) = method(counter, plugin_name)
                 if native_objects is not None:
-                    time_acc_native_objects.append(time.time() - native_objects["timestamp"])
+                    time_acc_native_objects.append(
+                        time.time() - native_objects["timestamp"]
+                    )
                     print(
                         f"{middleware_name} :: {plugin_name} :: delay:",
                         time_acc_native_objects[-1],
@@ -259,16 +273,18 @@ if __name__ == "__main__":
                         break
                     if counter > args.skip_trials:
                         new_row = pd.DataFrame(
-                                {
-                                    "middleware": [middleware_name],
-                                    "plugin": [plugin_name],
-                                    "timestamp": [native_objects["timestamp"]],
-                                    "count": [native_objects["count"]],
-                                    "delay": [time_acc_native_objects[-1]],
-                                }
-                            )
-                        benchmark_logger = pd.concat([benchmark_logger, new_row], ignore_index=True)
-                        
+                            {
+                                "middleware": [middleware_name],
+                                "plugin": [plugin_name],
+                                "timestamp": [native_objects["timestamp"]],
+                                "count": [native_objects["count"]],
+                                "delay": [time_acc_native_objects[-1]],
+                            }
+                        )
+                        benchmark_logger = pd.concat(
+                            [benchmark_logger, new_row], ignore_index=True
+                        )
+
                     if counter == 0:
                         if args.mode == "publish":
                             time.sleep(5)

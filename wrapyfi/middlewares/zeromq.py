@@ -80,7 +80,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
                         self.shared_topics.remove(topic)
             except (FileNotFoundError, EOFError):
                 if self.use_multiprocessing:
-                    # TODO(fabawi): this is can break in many ways, and shutting down the topic monitor is not the right solution, since all topics will be affected 
+                    # TODO(fabawi): this is can break in many ways, and shutting down the topic monitor is not the right solution, since all topics will be affected
                     self.manager.shutdown()
 
         def get_topics(self):

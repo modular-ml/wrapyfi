@@ -67,7 +67,9 @@ class WebSocketListener(Listener):
         )
 
         # Register the callback for the topic
-        WebSocketMiddlewarePubSub._instance.register_callback(self.in_topic, self.on_message)
+        WebSocketMiddlewarePubSub._instance.register_callback(
+            self.in_topic, self.on_message
+        )
 
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
@@ -91,7 +93,9 @@ class WebSocketListener(Listener):
         while repeats > 0 or repeats == -1:
             if repeats != -1:
                 repeats -= 1
-            connected = WebSocketMiddlewarePubSub._instance.is_connected()  # Use the instance
+            connected = (
+                WebSocketMiddlewarePubSub._instance.is_connected()
+            )  # Use the instance
             logging.debug(f"Connection status: {connected}")
             if connected:
                 logging.info(f"[WebSocket] Connected to input port: {in_topic}")
@@ -215,7 +219,7 @@ class WebSocketImageListener(WebSocketListener):
 
     def on_message(self, data):
         if self.jpg:
-            img_bytes = data.get('image_bytes', None)
+            img_bytes = data.get("image_bytes", None)
             if img_bytes is not None:
                 img_array = np.frombuffer(img_bytes, dtype=np.uint8)
                 if self.rgb:
@@ -224,9 +228,9 @@ class WebSocketImageListener(WebSocketListener):
                     img = cv2.imdecode(img_array, cv2.IMREAD_GRAYSCALE)
                 self._message_queue.put(img)
         else:
-            img_bytes = data.get('image_bytes', None)
-            shape = data.get('shape', None)
-            dtype = data.get('dtype', None)
+            img_bytes = data.get("image_bytes", None)
+            shape = data.get("shape", None)
+            dtype = data.get("dtype", None)
             if img_bytes is not None and shape is not None and dtype is not None:
                 img_array = np.frombuffer(img_bytes, dtype=dtype)
                 img = img_array.reshape(shape)
@@ -255,11 +259,11 @@ class WebSocketImageListener(WebSocketListener):
         try:
             img = self._message_queue.get(block=self.should_wait)
             if (
-                (self.width > 0 and self.width != img.shape[1]) or
-                (self.height > 0 and self.height != img.shape[0]) or
-                not (
-                    (img.ndim == 2 and not self.rgb) or
-                    (img.ndim == 3 and self.rgb and img.shape[2] == 3)
+                (self.width > 0 and self.width != img.shape[1])
+                or (self.height > 0 and self.height != img.shape[0])
+                or not (
+                    (img.ndim == 2 and not self.rgb)
+                    or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
                 )
             ):
                 raise ValueError("Incorrect image shape for listener")
@@ -299,17 +303,17 @@ class WebSocketAudioChunkListener(WebSocketListener):
         self._message_queue = queue.Queue()
 
     def on_message(self, data):
-        chunk = data.get('chunk')
-        channels = data.get('channels')
-        rate = data.get('rate')
-        aud = data.get('aud')
+        chunk = data.get("chunk")
+        channels = data.get("channels")
+        rate = data.get("rate")
+        aud = data.get("aud")
 
         if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for listener")
         if (
-            (0 < self.chunk != chunk) or
-            self.channels != channels or
-            len(aud) != chunk * channels
+            (0 < self.chunk != chunk)
+            or self.channels != channels
+            or len(aud) != chunk * channels
         ):
             raise ValueError("Incorrect audio shape for listener")
         aud = np.array(aud, dtype=np.float32).reshape((chunk, channels))

@@ -20,6 +20,14 @@ wrapyfi.listeners.ros2 module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.listeners.websocket module
+----------------------------------
+
+.. automodule:: wrapyfi.listeners.websocket
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.listeners.yarp module
 -----------------------------
 

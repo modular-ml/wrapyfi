@@ -20,6 +20,14 @@ wrapyfi.publishers.ros2 module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.publishers.websocket module
+-----------------------------------
+
+.. automodule:: wrapyfi.publishers.websocket
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.publishers.yarp module
 ------------------------------
 

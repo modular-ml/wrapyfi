@@ -55,9 +55,7 @@ class WebSocketPublisher(Publisher):
         :param websocket_kwargs: dict: Additional kwargs for the WebSocket middleware
         :param kwargs: Additional kwargs for the publisher
         """
-        super().__init__(
-            name, out_topic, should_wait=should_wait, **kwargs
-        )
+        super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
 
         self.socket_address = f"http://{socket_ip}:{socket_port}{namespace}"
 
@@ -128,9 +126,7 @@ class WebSocketNativeObjectPublisher(WebSocketPublisher):
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param kwargs: dict: Additional kwargs for the publisher
         """
-        super().__init__(
-            name, out_topic, should_wait=should_wait, **kwargs
-        )
+        super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
         if multi_threaded:
             self._thread_local_storage = threading.local()
 
@@ -203,9 +199,7 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
         :param jpg: bool: True if the image should be compressed as JPG. Default is False
         """
-        super().__init__(
-            name, out_topic, should_wait=should_wait, **kwargs
-        )
+        super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -246,21 +240,18 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
 
         if self.jpg:
             # Encode image as JPEG
-            _, img_encoded = cv2.imencode('.jpg', img)
+            _, img_encoded = cv2.imencode(".jpg", img)
             img_bytes = img_encoded.tobytes()
-            data = {
-                'image_bytes': img_bytes,
-                'timestamp': time.time()
-            }
+            data = {"image_bytes": img_bytes, "timestamp": time.time()}
             socketio_client.emit(self.out_topic, data, binary=True)
         else:
             # Serialize numpy array to bytes
             img_bytes = img.tobytes()
             data = {
-                'image_bytes': img_bytes,
-                'shape': img.shape,
-                'dtype': str(img.dtype),
-                'timestamp': time.time()
+                "image_bytes": img_bytes,
+                "shape": img.shape,
+                "dtype": str(img.dtype),
+                "timestamp": time.time(),
             }
             socketio_client.emit(self.out_topic, data, binary=True)
 
@@ -318,7 +309,9 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
             return
         if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for publisher")
-        chunk, channels = aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
+        chunk, channels = (
+            aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
+        )
         self.chunk = chunk if self.chunk == -1 else self.chunk
         self.channels = channels if self.channels == -1 else self.channels
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
@@ -329,10 +322,10 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
 
         aud_bytes = aud_array.tobytes()
         data = {
-            'aud_bytes': aud_bytes,
-            'shape': aud_array.shape,
-            'rate': rate,
-            'timestamp': time.time()
+            "aud_bytes": aud_bytes,
+            "shape": aud_array.shape,
+            "rate": rate,
+            "timestamp": time.time(),
         }
         socketio_client.emit(self.out_topic, data, binary=True)
 
