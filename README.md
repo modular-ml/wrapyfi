@@ -73,16 +73,33 @@ We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/
 must be built to support messages and services needed for audio transmission and the REQ/REP pattern [![ROS Package Index](https://img.shields.io/ros/v/humble/wrapyfi_ros2_interfaces)](https://index.ros.org/p/wrapyfi_ros2_interfaces/#humble)
 
 * ZeroMQ can be installed using pip: `pip install pyzmq`. 
-The xpub-xsub pattern followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
+The XPUB/XSUB and XREQ/XREP patterns followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
 A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/standalone/zeromq_proxy_broker.py)
 
 * Websocket can be installed using pip: `pip install python-socketio`. 
-The xpub-xsub pattern followed in our Websocket implementation requires a socket server. We recommend setting the server 
+The PUB/SUB pattern followed in our Websocket implementation requires a socket server. We recommend setting the server 
 to run using [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) which can be installed with `pip install flask-socketio`.
 Note that the server must be running and also scripted to forward messages to the listening from the publishing client as demonstrated in the example found 
 [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py)
-* 
+
+* MQTT can be installed using pip: `pip install paho-mqtt`.
+The PUB/SUB pattern followed in our MQTT implementation requires a broker. The default broker used by Wrapyfi [broker.emqx.io](https://broker.emqx.io). However, 
+this broker is not recommended for production use or for transmitting video/audio as it is a public online broker and requires an internet connection (not secure and suffers high latency). We recommend setting up a local broker
+using [Mosquitto](https://mosquitto.org/download/). A Dockerized bersion can be found [here](https://github.com/sukesh-ak/setup-mosquitto-with-docker). The broker must be running and the `WRAPYFI_MQTT_BROKER_ADDRESS` as well as `WRAPYFI_MQTT_BROKER_PORT` environment variables must be set to the 
+broker's address and port respectively. When setting up a local broker with a username and password, they can be passed through the Wrapyfi method decorator as follows:
+
+```python
+@MiddlewareCommunicator.register("NativeObject", "mqtt",
+                                 "HelloWorld", 
+                                 "/hello/my_message", 
+                                 carrier="", should_wait=True,
+                                 mqtt_kwargs=dict(username="username", password="password"))
+def send_message(self):
+    ...
+```
+
+
 #### Compatibility
 * Operating System
   - [x] Ubuntu >= 18.04 (Not tested with earlier versions of Ubuntu or other Linux distributions)
@@ -103,6 +120,7 @@ Note that the server must be running and also scripted to forward messages to th
 * ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
 * Python-SocketIO >= 5.0.4
+* Paho-MQTT >= 2.0 *(Hard-coded to v2 in Wrapyfi and not compatible with v1)*
 
 
 ## Installation
@@ -159,7 +177,13 @@ or when installing Wrapyfi to work with websockets (headless) including `numpy`,
 pip install .[headless_websockets]
 ```
 
-or install Wrapyfi *without* NumPy, OpenCV, ZeroMQ, and Websockets:
+or when installing Wrapyfi to work with MQTT (headless) including `numpy`, `opencv-python-headless`, and `paho-mqtt`:
+
+```
+pip install .[headless_mqtt]
+```
+
+or install Wrapyfi *without* NumPy, OpenCV, ZeroMQ, Websocket, and MQTT:
 
 ```
 pip install .
@@ -346,7 +370,8 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 - [x] **ZeroMQ** [*beta feature*]: 
   * `should_wait` trigger introduced with event monitoring
   * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
-- [x] **Websockets** *Only PUB/SUB* [*alpha support*]: 
+- [x] **Websocket** *Only PUB/SUB* [*alpha support*]
+- [x] **MQTT** *Only PUB/SUB* [*alpha support*]
 
 ## Serializers
 - [x] **JSON**

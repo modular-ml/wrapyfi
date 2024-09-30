@@ -94,6 +94,20 @@ All messages are transmitted using the `python-socketio` Python bindings. Transm
                     `socketio.emit` for publishing and `socketio.on` for receiving messages
 * **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 
+#### MQTT:
+
+```{note}
+MQTT runs on a public online broker by default broker.emqx.io for convenience (no setup required), however, it is recommended to use a local broker like [Mosquitto](https://mosquitto.org/download/) for production.   
+```
+
+All messages are transmitted using the `paho-mqtt` Python bindings. Transmission follows the [MQTT protocol](https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html)
+
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct
+* **NativeObject**: Transmits and receives a `json` string supporting all native Python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) using 
+                    `client.publish` for publishing and `client.on_message` for receiving messages
+* **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+
 
 ### Servers and Clients (REQ/REP)
 

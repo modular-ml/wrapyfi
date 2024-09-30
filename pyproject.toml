@@ -57,6 +57,9 @@ websocket = [
     "python-socketio>=5.0.4",
     "python_socketio>=5.0.4",
 ]
+mqtt = [
+    "paho-mqtt>=2.0",
+]
 headless = [
     "wrapyfi[numpy]",
     "wrapyfi[pyzmq]",
@@ -65,6 +68,11 @@ headless = [
 headless_websocket = [
     "wrapyfi[numpy]",
     "wrapyfi[websocket]",
+    "opencv-python-headless>=4.2.0",
+]
+headless_mqtt = [
+    "wrapyfi[numpy]",
+    "wrapyfi[mqtt]",
     "opencv-python-headless>=4.2.0",
 ]
 all = [

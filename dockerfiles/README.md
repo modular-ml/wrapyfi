@@ -4,6 +4,10 @@ Images of supported middleware with [Wrapyfi](https://github.com/fabawi/wrapyfi)
 
 You can pull the Docker image which suits your needs. Some images are loaded with two middleware, and others with three. Note that ROS and ROS 2 cannot be installed withing the same environment, which is why you won't find a docker with all middleware. Since we use micromamba inside the images, all middleware could be installed within an image. Given they are in separate mamba environments, we chose to keep them in separate images as well.
 
+```{warning}
+MQTT and Websocket docker images are not yet available. These middleware are also not included in the test suite at the moment.
+```
+
 ## Installation
 
 There are two ways to install a Wrapyfi Docker image. You can build any of the [Dockerfiles](https://github.com/fabawi/wrapyfi/tree/main/dockerfiles) found in the Wrapyfi repository. Alternatively, you can pull the image directly from the [modularml/wrapyfi](https://hub.docker.com/repository/docker/modularml/wrapyfi) repository on the Docker Hub.

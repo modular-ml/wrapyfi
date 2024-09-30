@@ -24,6 +24,8 @@ This can be achieved by setting:
 * `WRAPYFI_WEBSOCKET_SOCKET_PORT`: The socket port. Defaults to 5000
 * `WRAPYFI_WEBSOCKET_NAMESPACE`: The socket namespace. Defaults to "/"
 * `WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN`: Either spawn the websocket monitor listener as a "process" or "thread". Defaults to "thread" which is the only supported option for now
+* `WRAPYFI_MQTT_BROKER_ADDRESS`: The MQTT broker address. Defaults to "broker.emqx.io"
+* `WRAPYFI_MQTT_BROKER_PORT`: The MQTT broker port. Defaults to 1883
 
 ROS and ROS 2 queue sizes can be set by:
 
