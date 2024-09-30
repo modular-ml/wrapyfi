@@ -86,8 +86,8 @@ Note that the server must be running and also scripted to forward messages to th
 * MQTT can be installed using pip: `pip install paho-mqtt`.
 The PUB/SUB pattern followed in our MQTT implementation requires a broker. The default broker used by Wrapyfi [broker.emqx.io](https://broker.emqx.io). However, 
 this broker is not recommended for production use or for transmitting video/audio as it is a public online broker and requires an internet connection (not secure and suffers high latency). We recommend setting up a local broker
-using [Mosquitto](https://mosquitto.org/download/). A Dockerized bersion can be found [here](https://github.com/sukesh-ak/setup-mosquitto-with-docker). The broker must be running and the `WRAPYFI_MQTT_BROKER_ADDRESS` as well as `WRAPYFI_MQTT_BROKER_PORT` environment variables must be set to the 
-broker's address and port respectively. When setting up a local broker with a username and password, they can be passed through the Wrapyfi method decorator as follows:
+using [Mosquitto](https://mosquitto.org/download/). A Dockerized version can be found [here](https://github.com/sukesh-ak/setup-mosquitto-with-docker). The broker must be running, and the `WRAPYFI_MQTT_BROKER_ADDRESS` as well as `WRAPYFI_MQTT_BROKER_PORT` environment variables must be set to the 
+broker's address and port, respectively. When setting up a local broker with a username and password, they can be passed through the Wrapyfi method decorator as follows:
 
 ```python
 @MiddlewareCommunicator.register("NativeObject", "mqtt",
