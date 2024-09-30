@@ -22,6 +22,7 @@ class MyCustomNamespace(Namespace):
     This is a custom namespace class that extends the Flask-SocketIO Namespace class.
     This class is used to handle custom events and manage connected clients.
     """
+
     connected_sids = set()
 
     def on_connect(self, sid, environ, auth):
@@ -76,6 +77,7 @@ def my_img_message(data):
     """
     print("Received 'my_message' in client script")
     socketio.emit("/cam_mic/cam_feed", data, namespace="/")
+
 
 @socketio.on("/cam_mic/audio_feed", namespace="/")
 def my_aud_message(data):

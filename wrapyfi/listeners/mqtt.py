@@ -53,13 +53,17 @@ class MqttListener(Listener):
 
         # Activate the MQTT middleware
         MqttMiddlewarePubSub.activate(
-            broker_address=broker_address, broker_port=broker_port, **(mqtt_kwargs or {})
+            broker_address=broker_address,
+            broker_port=broker_port,
+            **(mqtt_kwargs or {}),
         )
 
         if not self.should_wait:
             ListenerWatchDog().add_listener(self)
 
-    def await_connection(self, in_topic: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(
+        self, in_topic: Optional[str] = None, repeats: Optional[int] = None
+    ):
         """
         Wait until the MQTT connection is established.
 
@@ -146,7 +150,9 @@ class MqttNativeObjectListener(MqttListener):
         established = self.await_connection(repeats=repeats)
         established = self.check_establishment(established)
         if established:
-            MqttMiddlewarePubSub._instance.register_callback(self.in_topic, self.on_message)
+            MqttMiddlewarePubSub._instance.register_callback(
+                self.in_topic, self.on_message
+            )
         return established
 
     def listen(self):
@@ -212,13 +218,13 @@ class MqttImageListener(MqttNativeObjectListener):
             payload = msg.payload
             # Read the first 4 bytes to get the header length
             header_length_packed = payload[:4]
-            header_length = struct.unpack('!I', header_length_packed)[0]
+            header_length = struct.unpack("!I", header_length_packed)[0]
             # Read the header bytes
-            header_bytes = payload[4:4 + header_length]
-            header_json = header_bytes.decode('utf-8')
+            header_bytes = payload[4 : 4 + header_length]
+            header_json = header_bytes.decode("utf-8")
             header = json.loads(header_json)
             # Remaining bytes are image bytes
-            img_bytes = payload[4 + header_length:]
+            img_bytes = payload[4 + header_length :]
 
             if self.jpg:
                 # JPEG case: decode the JPEG image
@@ -237,7 +243,9 @@ class MqttImageListener(MqttNativeObjectListener):
                     img = img_array.reshape(shape)
                     self._message_queue.put(img)
                 else:
-                    logging.error("Missing 'shape' or 'dtype' in header for non-JPEG image")
+                    logging.error(
+                        "Missing 'shape' or 'dtype' in header for non-JPEG image"
+                    )
         except Exception as e:
             logging.error(f"Failed to process message from topic {self.in_topic}: {e}")
 
@@ -255,12 +263,12 @@ class MqttImageListener(MqttNativeObjectListener):
         try:
             img = self._message_queue.get(block=self.should_wait)
             if (
-                    (self.width > 0 and self.width != img.shape[1])
-                    or (self.height > 0 and self.height != img.shape[0])
-                    or not (
+                (self.width > 0 and self.width != img.shape[1])
+                or (self.height > 0 and self.height != img.shape[0])
+                or not (
                     (img.ndim == 2 and not self.rgb)
                     or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-            )
+                )
             ):
                 raise ValueError("Incorrect image shape for listener")
             return img
@@ -311,7 +319,7 @@ class MqttAudioChunkListener(MqttNativeObjectListener):
 
             # Read the first 4 bytes to get the header length
             header_length_packed = payload[:4]
-            header_length = struct.unpack('!I', header_length_packed)[0]
+            header_length = struct.unpack("!I", header_length_packed)[0]
 
             # Ensure payload is long enough to contain the header
             if len(payload) < 4 + header_length:
@@ -319,12 +327,12 @@ class MqttAudioChunkListener(MqttNativeObjectListener):
                 return
 
             # Read the header bytes
-            header_bytes = payload[4:4 + header_length]
-            header_json = header_bytes.decode('utf-8')
+            header_bytes = payload[4 : 4 + header_length]
+            header_json = header_bytes.decode("utf-8")
             header = json.loads(header_json)
 
             # Remaining bytes are audio bytes
-            aud_bytes = payload[4 + header_length:]
+            aud_bytes = payload[4 + header_length :]
 
             # Extract metadata from header
             shape = header.get("shape")
@@ -351,10 +359,7 @@ class MqttAudioChunkListener(MqttNativeObjectListener):
                 aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
             )
 
-            if (
-                    (0 < self.chunk != chunk)
-                    or (0 < self.channels != channels)
-            ):
+            if (0 < self.chunk != chunk) or (0 < self.channels != channels):
                 raise ValueError("Incorrect audio shape for listener")
 
             self._message_queue.put((aud_array, rate))

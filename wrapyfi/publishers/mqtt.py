@@ -53,10 +53,14 @@ class MqttPublisher(Publisher):
 
         # Activate the MQTT middleware
         MqttMiddlewarePubSub.activate(
-            broker_address=broker_address, broker_port=broker_port, **(mqtt_kwargs or {})
+            broker_address=broker_address,
+            broker_port=broker_port,
+            **(mqtt_kwargs or {}),
         )
 
-    def await_connection(self, out_topic: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(
+        self, out_topic: Optional[str] = None, repeats: Optional[int] = None
+    ):
         """
         Wait for the connection to be established.
 
@@ -213,12 +217,12 @@ class MqttImagePublisher(MqttNativeObjectPublisher):
                 time.sleep(0.2)
 
         if (
-                0 < self.width != img.shape[1]
-                or 0 < self.height != img.shape[0]
-                or not (
+            0 < self.width != img.shape[1]
+            or 0 < self.height != img.shape[0]
+            or not (
                 (img.ndim == 2 and not self.rgb)
                 or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-        )
+            )
         ):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags["C_CONTIGUOUS"]:
@@ -241,10 +245,10 @@ class MqttImagePublisher(MqttNativeObjectPublisher):
 
         # Serialize header to JSON and encode to bytes
         header_json = json.dumps(header)
-        header_bytes = header_json.encode('utf-8')
+        header_bytes = header_json.encode("utf-8")
         header_length = len(header_bytes)
         # Pack header length into 4 bytes (big-endian)
-        header_length_packed = struct.pack('!I', header_length)
+        header_length_packed = struct.pack("!I", header_length)
 
         # Construct the payload: header length + header bytes + image bytes
         payload = header_length_packed + header_bytes + img_bytes
@@ -333,10 +337,10 @@ class MqttAudioChunkPublisher(MqttNativeObjectPublisher):
 
         # Serialize header to JSON and encode to bytes
         header_json = json.dumps(header)
-        header_bytes = header_json.encode('utf-8')
+        header_bytes = header_json.encode("utf-8")
         header_length = len(header_bytes)
         # Pack header length into 4 bytes (big-endian)
-        header_length_packed = struct.pack('!I', header_length)
+        header_length_packed = struct.pack("!I", header_length)
 
         # Get audio bytes
         aud_bytes = aud_array.tobytes()
