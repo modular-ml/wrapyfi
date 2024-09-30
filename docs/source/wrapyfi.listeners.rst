@@ -4,6 +4,14 @@ wrapyfi.listeners package
 Submodules
 ----------
 
+wrapyfi.listeners.mqtt module
+-----------------------------
+
+.. automodule:: wrapyfi.listeners.mqtt
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.listeners.ros module
 ----------------------------
 

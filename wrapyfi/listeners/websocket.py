@@ -240,7 +240,9 @@ class WebSocketImageListener(WebSocketNativeObjectListener):
                     img = img_array.reshape(shape)
                     self._message_queue.put(img)
                 else:
-                    logging.error("Missing 'shape' or 'dtype' in header for non-JPEG image")
+                    logging.error(
+                        "Missing 'shape' or 'dtype' in header for non-JPEG image"
+                    )
         except Exception as e:
             logging.error(f"Failed to process message: {e}")
 
@@ -334,10 +336,7 @@ class WebSocketAudioChunkListener(WebSocketNativeObjectListener):
                 aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
             )
 
-            if (
-                    (0 < self.chunk != chunk)
-                    or (0 < self.channels != channels)
-            ):
+            if (0 < self.chunk != chunk) or (0 < self.channels != channels):
                 raise ValueError("Incorrect audio shape for listener")
 
             self._message_queue.put((aud_array, rate))

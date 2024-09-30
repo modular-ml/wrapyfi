@@ -19,9 +19,9 @@ class MqttMiddlewarePubSub(metaclass=SingletonOptimized):
 
     @staticmethod
     def activate(
-            broker_address: str = "broker.emqx.io",
-            broker_port: int = 1883,
-            **kwargs,
+        broker_address: str = "broker.emqx.io",
+        broker_port: int = 1883,
+        **kwargs,
     ):
         """
         Activate the MQTT middleware. Initializes the MQTT client with the provided address and options.
@@ -37,11 +37,11 @@ class MqttMiddlewarePubSub(metaclass=SingletonOptimized):
         return MqttMiddlewarePubSub._instance
 
     def __init__(
-            self,
-            broker_address: str = "broker.emqx.io",
-            broker_port: int = 1883,
-            client_id: str = None,
-            **kwargs,
+        self,
+        broker_address: str = "broker.emqx.io",
+        broker_port: int = 1883,
+        client_id: str = None,
+        **kwargs,
     ):
         """
         Initialize the MQTT middleware. This method is automatically called when the class is instantiated.
@@ -59,7 +59,9 @@ class MqttMiddlewarePubSub(metaclass=SingletonOptimized):
         self.client_id = client_id
 
         # Create a MQTT client
-        self.mqtt_client = mqtt_client.Client(mqtt_client.CallbackAPIVersion.VERSION2, client_id=self.client_id)
+        self.mqtt_client = mqtt_client.Client(
+            mqtt_client.CallbackAPIVersion.VERSION2, client_id=self.client_id
+        )
 
         # Set up callbacks
         self.mqtt_client.on_connect = self._on_connect
@@ -94,12 +96,16 @@ class MqttMiddlewarePubSub(metaclass=SingletonOptimized):
 
     def _on_connect(self, client, userdata, flags, rc, properties):
         """Callback for when the MQTT client connects to the broker."""
-        logging.info(f"[MqttMiddlewarePubSub] Connected to {self.broker_address}:{self.port}")
+        logging.info(
+            f"[MqttMiddlewarePubSub] Connected to {self.broker_address}:{self.port}"
+        )
         self.connected = True
 
     def _on_disconnect(self, client, userdata, rc):
         """Callback for when the MQTT client disconnects from the broker."""
-        logging.info(f"[MqttMiddlewarePubSub] Disconnected from {self.broker_address}:{self.port}")
+        logging.info(
+            f"[MqttMiddlewarePubSub] Disconnected from {self.broker_address}:{self.port}"
+        )
         self.connected = False
 
     def _on_message(self, client, userdata, msg):

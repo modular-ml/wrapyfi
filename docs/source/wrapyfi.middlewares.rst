@@ -4,6 +4,14 @@ wrapyfi.middlewares package
 Submodules
 ----------
 
+wrapyfi.middlewares.mqtt module
+-------------------------------
+
+.. automodule:: wrapyfi.middlewares.mqtt
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.middlewares.ros module
 ------------------------------
 

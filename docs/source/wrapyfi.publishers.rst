@@ -4,6 +4,14 @@ wrapyfi.publishers package
 Submodules
 ----------
 
+wrapyfi.publishers.mqtt module
+------------------------------
+
+.. automodule:: wrapyfi.publishers.mqtt
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.publishers.ros module
 -----------------------------
 

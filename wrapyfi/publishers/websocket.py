@@ -225,12 +225,12 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
                 time.sleep(0.2)
 
         if (
-                0 < self.width != img.shape[1]
-                or 0 < self.height != img.shape[0]
-                or not (
+            0 < self.width != img.shape[1]
+            or 0 < self.height != img.shape[0]
+            or not (
                 (img.ndim == 2 and not self.rgb)
                 or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-        )
+            )
         ):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags["C_CONTIGUOUS"]:
