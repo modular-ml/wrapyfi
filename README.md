@@ -57,7 +57,7 @@ Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm
 
 # Getting Started
 
-Before using Wrapyfi, YARP, ROS, or ZeroMQ must be installed.
+Before using Wrapyfi, YARP, ROS, ZeroMQ, Websocket, or MQTT must be installed.
 
 * Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md?rank=0).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
 Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend to use the iCub robot.
