@@ -225,12 +225,12 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
                 time.sleep(0.2)
 
         if (
-            0 < self.width != img.shape[1]
-            or 0 < self.height != img.shape[0]
-            or not (
+                0 < self.width != img.shape[1]
+                or 0 < self.height != img.shape[0]
+                or not (
                 (img.ndim == 2 and not self.rgb)
                 or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-            )
+        )
         ):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags["C_CONTIGUOUS"]:
@@ -242,18 +242,18 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
             # Encode image as JPEG
             _, img_encoded = cv2.imencode(".jpg", img)
             img_bytes = img_encoded.tobytes()
-            data = {"image_bytes": img_bytes, "timestamp": time.time()}
-            socketio_client.emit(self.out_topic, data, binary=True)
+            header = {"timestamp": time.time()}
         else:
             # Serialize numpy array to bytes
             img_bytes = img.tobytes()
-            data = {
-                "image_bytes": img_bytes,
+            header = {
+                "timestamp": time.time(),
                 "shape": img.shape,
                 "dtype": str(img.dtype),
-                "timestamp": time.time(),
             }
-            socketio_client.emit(self.out_topic, data, binary=True)
+
+        # Emit the header and image bytes as separate items in a list
+        socketio_client.emit(self.out_topic, [header, img_bytes])
 
 
 @Publishers.register("AudioChunk", "websocket")
@@ -321,13 +321,14 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
         socketio_client = WebSocketMiddlewarePubSub._instance.socketio_client
 
         aud_bytes = aud_array.tobytes()
-        data = {
-            "aud_bytes": aud_bytes,
+        header = {
             "shape": aud_array.shape,
+            "dtype": str(aud_array.dtype),
             "rate": rate,
             "timestamp": time.time(),
         }
-        socketio_client.emit(self.out_topic, data, binary=True)
+        # Emit the header and audio bytes as a list
+        socketio_client.emit(self.out_topic, [header, aud_bytes])
 
 
 @Publishers.register("Properties", "websocket")

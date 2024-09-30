@@ -181,7 +181,7 @@ class WebSocketNativeObjectListener(WebSocketListener):
 
 
 @Listeners.register("Image", "websocket")
-class WebSocketImageListener(WebSocketListener):
+class WebSocketImageListener(WebSocketNativeObjectListener):
 
     def __init__(
         self,
@@ -218,23 +218,31 @@ class WebSocketImageListener(WebSocketListener):
         self._message_queue = queue.Queue()
 
     def on_message(self, data):
-        if self.jpg:
-            img_bytes = data.get("image_bytes", None)
-            if img_bytes is not None:
+        """
+        Callback for handling incoming image messages.
+        """
+        try:
+            header, img_bytes = data
+            if self.jpg:
+                # JPEG case: decode the JPEG image
                 img_array = np.frombuffer(img_bytes, dtype=np.uint8)
                 if self.rgb:
                     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
                 else:
                     img = cv2.imdecode(img_array, cv2.IMREAD_GRAYSCALE)
                 self._message_queue.put(img)
-        else:
-            img_bytes = data.get("image_bytes", None)
-            shape = data.get("shape", None)
-            dtype = data.get("dtype", None)
-            if img_bytes is not None and shape is not None and dtype is not None:
-                img_array = np.frombuffer(img_bytes, dtype=dtype)
-                img = img_array.reshape(shape)
-                self._message_queue.put(img)
+            else:
+                # Non-JPEG case: reconstruct the numpy array
+                shape = header.get("shape", None)
+                dtype = header.get("dtype", None)
+                if shape is not None and dtype is not None:
+                    img_array = np.frombuffer(img_bytes, dtype=dtype)
+                    img = img_array.reshape(shape)
+                    self._message_queue.put(img)
+                else:
+                    logging.error("Missing 'shape' or 'dtype' in header for non-JPEG image")
+        except Exception as e:
+            logging.error(f"Failed to process message: {e}")
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
@@ -273,7 +281,7 @@ class WebSocketImageListener(WebSocketListener):
 
 
 @Listeners.register("AudioChunk", "websocket")
-class WebSocketAudioChunkListener(WebSocketListener):
+class WebSocketAudioChunkListener(WebSocketNativeObjectListener):
 
     def __init__(
         self,
@@ -303,21 +311,38 @@ class WebSocketAudioChunkListener(WebSocketListener):
         self._message_queue = queue.Queue()
 
     def on_message(self, data):
-        chunk = data.get("chunk")
-        channels = data.get("channels")
-        rate = data.get("rate")
-        aud = data.get("aud")
+        """
+        Callback for handling incoming audio messages.
+        """
+        try:
+            header, aud_bytes = data
+            shape = header.get("shape")
+            dtype = header.get("dtype")
+            rate = header.get("rate")
+            timestamp = header.get("timestamp")
 
-        if 0 < self.rate != rate:
-            raise ValueError("Incorrect audio rate for listener")
-        if (
-            (0 < self.chunk != chunk)
-            or self.channels != channels
-            or len(aud) != chunk * channels
-        ):
-            raise ValueError("Incorrect audio shape for listener")
-        aud = np.array(aud, dtype=np.float32).reshape((chunk, channels))
-        self._message_queue.put((aud, rate))
+            if shape is None or dtype is None or rate is None:
+                raise ValueError("Missing 'shape', 'dtype', or 'rate' in header")
+
+            if 0 < self.rate != rate:
+                raise ValueError("Incorrect audio rate for listener")
+
+            # Reconstruct the audio array from the binary data
+            aud_array = np.frombuffer(aud_bytes, dtype=dtype).reshape(shape)
+
+            chunk, channels = (
+                aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
+            )
+
+            if (
+                    (0 < self.chunk != chunk)
+                    or (0 < self.channels != channels)
+            ):
+                raise ValueError("Incorrect audio shape for listener")
+
+            self._message_queue.put((aud_array, rate))
+        except Exception as e:
+            logging.error(f"Failed to process message: {e}")
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
@@ -347,7 +372,7 @@ class WebSocketAudioChunkListener(WebSocketListener):
 
 
 @Listeners.register("Properties", "websocket")
-class WebSocketPropertiesListener(WebSocketListener):
+class WebSocketPropertiesListener(WebSocketNativeObjectListener):
     def __init__(self, name, in_topic, **kwargs):
         super().__init__(name, in_topic, **kwargs)
         raise NotImplementedError

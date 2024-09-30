@@ -1,7 +1,8 @@
 import logging
 import atexit
-import socketio
 import threading
+
+import socketio
 
 from wrapyfi.utils import SingletonOptimized
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
