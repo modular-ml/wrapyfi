@@ -7,7 +7,7 @@ Wrapyfi Documentation
   :alt: Wrapyfi logo
 
 
-Wrapyfi is multi-middleware Python package supporting ROS, ROS 2, YARP and ZeroMQ.
+Wrapyfi is multi-middleware Python wrapper supporting ROS, ROS 2, YARP, ZeroMQ, Websocket, and MQTT.
 
 
 .. toctree::
