@@ -2,8 +2,9 @@
 
 Wrapyfi reserves specific environment variable names for the functionality of its internal components:
 
-* `WRAPYFI_PLUGINS_PATH`: Path/s to [plugin](<Plugins.md#plugins>) extension directories 
-* `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided): Name of default [<Communicator>](<../User Guide.md#usage>) when non is provided as the second argument to the Wrapyfi decorator. 
+* `WRAPYFI_PLUGIN_PATHS`: Path/s to [plugin](<Plugins.md#plugins>) extension directories 
+* `WRAPYFI_MWARE_PATHS`: Path/s to [middleware](<Middleware.md#middleware>) extension directories. These are simply middleware classes that are not part of the core library
+* `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided): Name of default [<Communicator>](<../User Guide.md#usage>) when none is provided as the second argument to the Wrapyfi decorator
 
 ZeroMQ requires socket configurations that can be passed as arguments to the respective middleware constructor (through the Wrapyfi decorator) or using environment variables. Note that these configurations are needed both by the proxy and the message publisher and listener. 
 The downside to such an approach is that all messages share the same configs. Since the proxy broker spawns once on first trigger (if enabled) as well as a singleton subscriber monitoring instance, using environment variables is the recommended approach to avoid unintended behavior. 

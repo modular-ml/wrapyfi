@@ -32,19 +32,19 @@ Run:
 import os
 import argparse
 
+# Modifying the WRAPYFI_PLUGINS_PATH environment variable to include the plugins directory
+script_dir = os.path.dirname(os.path.realpath(__file__))
+if "WRAPYFI_PLUGIN_PATHS" in os.environ:
+    os.environ["WRAPYFI_PLUGIN_PATHS"] += os.pathsep + script_dir
+else:
+    os.environ["WRAPYFI_PLUGIN_PATHS"] = script_dir
+
 try:
     from astropy.table import Table
 except ImportError:
     print("Install Astropy before running this script.")
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
-
-# Modifying the WRAPYFI_PLUGINS_PATH environment variable to include the plugins directory
-script_dir = os.path.dirname(os.path.realpath(__file__))
-if "WRAPYFI_PLUGINS_PATH" in os.environ:
-    os.environ["WRAPYFI_PLUGINS_PATH"] += os.pathsep + script_dir
-else:
-    os.environ["WRAPYFI_PLUGINS_PATH"] = script_dir
 
 
 class Notifier(MiddlewareCommunicator):
