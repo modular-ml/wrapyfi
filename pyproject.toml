@@ -1,7 +1,7 @@
 
 [project]
 name = "wrapyfi"
-version = "0.4.46"
+version = "0.4.50"
 description = "Wrapyfi is a wrapper for simplifying Middleware communication"
 readme = "README.md"
 authors = [
@@ -55,6 +55,7 @@ numpy = [
 ]
 websocket = [
     "python-socketio>=5.0.4",
+    "python_socketio>=5.0.4",
 ]
 mqtt = [
     "paho-mqtt>=2.0",

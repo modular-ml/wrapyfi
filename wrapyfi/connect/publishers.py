@@ -3,7 +3,12 @@ import os
 from glob import glob
 from pathlib import Path
 
-from wrapyfi.utils import SingletonOptimized, dynamic_module_import, scan_external, WRAPYFI_MWARE_PATHS
+from wrapyfi.utils import (
+    SingletonOptimized,
+    dynamic_module_import,
+    scan_external,
+    WRAPYFI_MWARE_PATHS,
+)
 
 
 class PublisherWatchDog(metaclass=SingletonOptimized):
