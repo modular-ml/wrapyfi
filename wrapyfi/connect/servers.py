@@ -4,7 +4,7 @@ from glob import glob
 from typing import Optional
 from pathlib import Path
 
-from wrapyfi.utils import dynamic_module_import
+from wrapyfi.utils import dynamic_module_import, scan_external, WRAPYFI_MWARE_PATHS
 
 
 class Servers(object):
@@ -45,6 +45,7 @@ class Servers(object):
             for module in modules
         ]
         dynamic_module_import(modules, globals())
+        scan_external(os.environ.get(WRAPYFI_MWARE_PATHS, ""), "servers")
 
 
 class Server(object):

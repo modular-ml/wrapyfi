@@ -32,7 +32,7 @@ methods for a given class, the class should inherit the `MiddlewareCommunicator`
 `@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Topic name>)` is automatically registered by Wrapyfi. 
 
 The `<Data structure type>` is the publisher/listener type for a given method's return. The supported data
-types are listed [here](<User Guide/Plugins.md#data-structure-types>) section.
+types are listed [here](<User Guide/Plugins.md#data-structure-types>).
 
 The `<Communicator>` defines the communication medium e.g.: `yarp`, `ros2`, `ros`, or `zeromq`. The default communicator is `zeromq` but can be replaced by setting the environment variables `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided) to the middleware of choice e.g.: 
         

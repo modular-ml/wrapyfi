@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from glob import glob
 import threading
 import importlib.util
@@ -7,7 +8,7 @@ from typing import Union, Callable, Any, Optional, List
 
 
 WRAPYFI_PLUGIN_PATHS = "WRAPYFI_PLUGIN_PATHS"
-
+WRAPYFI_MWARE_PATHS = "WRAPYFI_MWARE_PATHS"
 
 lock = threading.Lock()
 
@@ -141,6 +142,37 @@ def dynamic_module_import(modules: List[str], globals: dict):
         globals.update({name: getattr(module, name) for name in all_names})
 
 
+def scan_external(module_paths: str, component: str):
+    """
+    Scan external directories specified in module_paths for a specified component directory
+    and dynamically import the modules.
+
+    Args:
+    :param module_paths: str: Colon-separated paths for external directories to scan.
+    :param component: str: Type of module to scan for i.e., "listeners", "publishers", "servers", "clients", "plugins"
+    """
+    # Split the provided paths and iterate through them
+    extern_modules_paths = module_paths.split(":")
+
+    for mod_group_idx, extern_module_path in enumerate(extern_modules_paths):
+        # Define the directory to search based on the component type
+        extern_base_dir = Path(extern_module_path) / component
+        extern_modules = list(extern_base_dir.glob("*.py"))
+
+        for mod_idx, extern_module in enumerate(extern_modules):
+            # Generate a unique name for each module
+            spec_name = f"wrapyfi.extern{mod_group_idx}.{component}.{extern_module.stem}"
+
+            # Dynamically load and execute the module
+            spec = importlib.util.spec_from_file_location(spec_name, extern_module)
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+
+            # Register the loaded module in the global scope
+            dynamic_module_import([spec.name], globals())
+
+
 class SingletonOptimized(type):
     """
     A singleton metaclass that is thread-safe and optimized for speed.
@@ -222,30 +254,13 @@ class PluginRegistrar(object):
         Scan the plugins directory (Wrapyfi builtin and external) for plugins to register.
         This method is called automatically when the module is imported.
         """
-        modules = glob(
-            os.path.join(os.path.dirname(__file__), "plugins", "*.py"), recursive=True
-        )
+        base_dir = Path(__file__).parent / "plugins"
+        modules = glob(str(base_dir / "*.py"), recursive=True)
+
         modules = [
-            "wrapyfi.plugins."
-            + module.replace(os.path.dirname(__file__) + "/plugins/", "")
+            "wrapyfi.plugins." + Path(module).relative_to(base_dir).as_posix()
             for module in modules
         ]
         dynamic_module_import(modules, globals())
+        scan_external(os.environ.get(WRAPYFI_PLUGIN_PATHS, ""), "plugins")
 
-        extern_modules_paths = os.environ.get(WRAPYFI_PLUGIN_PATHS, "").split(":")
-        for mod_group_idx, extern_module_path in enumerate(extern_modules_paths):
-            extern_modules = glob(
-                os.path.join(extern_module_path, "plugins", "*.py"), recursive=True
-            )
-            for mod_idx, extern_module in enumerate(extern_modules):
-                spec = importlib.util.spec_from_file_location(
-                    f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}", extern_module
-                )
-                module = importlib.util.module_from_spec(spec)
-                sys.modules[spec.name] = module
-                spec.loader.exec_module(module)
-                extern_modules = [
-                    f"wrapyfi.extern{mod_group_idx}.plugins{mod_idx}."
-                    + extern_module.replace(extern_module_path + "/plugins/", "")
-                ]
-                dynamic_module_import(extern_modules, globals())

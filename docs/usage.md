@@ -32,7 +32,7 @@ methods for a given class, the class should inherit the `MiddlewareCommunicator`
 `@MiddlewareCommunicator.register(<Data structure type>, <Communicator>, <Class name>, <Topic name>)` is automatically registered by Wrapyfi. 
 
 The `<Data structure type>` is the publisher/listener type for a given method's return. The supported data
-types are listed [here](#data-structure-types) section.
+types are listed [here](#data-structure-types).
 
 The `<Communicator>` defines the communication medium e.g.: `yarp`, `ros2`, `ros`, or `zeromq`. The default communicator is `zeromq` but can be replaced by setting the environment variables `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided) to the middleware of choice e.g.: 
         
@@ -395,6 +395,32 @@ can then choose to receive one or more of these data types, depending on the mid
 channels is not provided, it automatically disables the topic for that channel/s and returns a `None` type value. 
 The example can be run from the [examples/communication_schemes/](https://github.com/fabawi/wrapyfi/blob/main/examples/communication_schemes) directory.
 
+## Middleware
+
+```{note}
+The `<Data structure type>` is the object type for a given method's return. The supported data types are listed [here](<#data-structure-types>) section.
+```
+
+Wrapyfi natively supports a [number of middleware](#middleware). However, more middleware could be added by:
+* Creating a derived class that inherits from the base classes `wrapyfi.connect.Listener`, `wrapyfi.connect.Publisher`, `wrapyfi.connect.Client`, or `wrapyfi.connect.Server` depending on the communication pattern to be supported
+* Decorating the classes inside scripts residing within:
+  * the `listeners` directory with `@Listeners.register(<Data structure type>, <Communicator>)` 
+  * the `publishers` directory with `@Publishers.register(<Data structure type>, <Communicator>)`
+  * the `clients` directory with `@Clients.register(<Data structure type>, <Communicator>)`
+  * the `servers` directory with `@Servers.register(<Data structure type>, <Communicator>)`
+* Appending the script path where the class is defined to the `WRAPYFI_MWARE_PATHS` environment variable
+* Ensure that the middleware communication pattern scripts reside within directories named `listeners`, `publishers`, `clients`, or `servers` nested inside the `WRAPYFI_MWARE_PATH` and that the directory contains an `__init__.py` file
+
+### Natively Supported Middleware
+- **YARP**
+- **ROS**
+- **ROS 2**
+- **ZeroMQ** [*beta feature*]: 
+  * `should_wait` trigger introduced with event monitoring
+  * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+- **Websocket** *Only PUB/SUB* [*alpha support*]
+- **MQTT** *Only PUB/SUB* [*alpha support*]
+
 
 ## Plugins
 
@@ -403,13 +429,13 @@ The **NativeObject** message type supports structures beyond native Python objec
 * Overriding the `encode` method for converting the object to a `json` serializable string. Deserializing the string is performed within the overridden `decode` method
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
 * Decorating the class with `@PluginRegistrar.register` and appending the plugin to the list of supported objects
-* Appending the script path where the class is defined to the `WRAPYFI_PLUGINS_PATH` environment variable
-* Ensure that the plugin resides within a directory named `plugins` nested inside the `WRAPYFI_PLUGINS_PATH` and that the directory contains an `__init__.py` file
+* Appending the script path where the class is defined to the `WRAPYFI_PLUGIN_PATHS` environment variable
+* Ensure that the plugin resides within a directory named `plugins` nested inside the `WRAPYFI_PLUGIN_PATHS` and that the directory contains an `__init__.py` file
 
 #### Plugin Example
 
 An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/astropy_example.py).
-In the example, we append the example's directory to the `WRAPYFI_PLUGINS_PATH` environment variable and import the plugin. 
+In the example, we append the example's directory to the `WRAPYFI_PLUGIN_PATHS` environment variable and import the plugin. 
 The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins) directory
 is then used to encode and decode the custom object (from within the `examples/encoders/` directory): 
 
@@ -438,7 +464,8 @@ Due to differences in versions, the decoding may result in inconsitent outcomes,
 
 ### Data Structure Types
 
-Other than native Python objects, the following objects are supported:
+Wrapyfi primarily supports `Image`, `AudioChunk`, and `NativeObject` types, with additional types supported for different [middleware](#natively-supported-middleware) and [communication patterns](#communication-patterns).
+Other than native Python objects, the following objects are supported by `NativeObject`:
 
 * `numpy.ndarray` and `numpy.generic`
 * `pandas.DataFrame` and `pandas.Series` (pandas v1)
@@ -515,8 +542,10 @@ Wrapyfi currently supports JSON as the only serializer. This introduces a number
 
 Wrapyfi reserves specific environment variable names for the functionality of its internal components:
 
-* `WRAPYFI_PLUGINS_PATH`: Path/s to [plugin](#plugins) extension directories 
-* `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided): Name of default [<Communicator>](#usage) when non is provided as the second argument to the Wrapyfi decorator. 
+
+* `WRAPYFI_PLUGIN_PATHS`: Path/s to [plugin](<#plugins>) extension directories 
+* `WRAPYFI_MWARE_PATHS`: Path/s to [middleware](<#middleware>) extension directories. These are simply middleware classes that are not part of the core library
+* `WRAPYFI_DEFAULT_COMMUNICATOR` or `WRAPYFI_DEFAULT_MWARE` (`WRAPYFI_DEFAULT_MWARE` overrides `WRAPYFI_DEFAULT_COMMUNICATOR` when both are provided): Name of default [<Communicator>](<#usage>) when none is provided as the second argument to the Wrapyfi decorator
 
 ZeroMQ requires socket configurations that can be passed as arguments to the respective middleware constructor (through the Wrapyfi decorator) or using environment variables. Note that these configurations are needed both by the proxy and the message publisher and listener. 
 The downside to such an approach is that all messages share the same configs. Since the proxy broker spawns once on first trigger (if enabled) as well as a singleton subscriber monitoring instance, using environment variables is the recommended approach to avoid unintended behavior. 

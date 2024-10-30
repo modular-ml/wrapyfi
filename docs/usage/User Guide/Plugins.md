@@ -1,17 +1,17 @@
 ## Plugins
 
-The **NativeObject** message type supports structures beyond native python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](../wrapyfi/plugins). Plugins can be added by:
+The **NativeObject** message type supports structures beyond native Python objects. Wrapyfi already supports a number of non-native objects including numpy arrays and tensors. Wrapyfi can be extended to support objects by using the plugin API. All currently supported plugins by Wrapyfi can be found in the [plugins directory](../wrapyfi/plugins). Plugins can be added by:
 * Creating a derived class that inherits from the base class `wrapyfi.utils.Plugin`
 * Overriding the `encode` method for converting the object to a `json` serializable string. Deserializing the string is performed within the overridden `decode` method
 * Specifying custom object properties by defining keyword arguments for the class constructor. These properties can be passed directly to the Wrapyfi decorator
 * Decorating the class with `@PluginRegistrar.register` and appending the plugin to the list of supported objects
-* Appending the script path where the class is defined to the `WRAPYFI_PLUGINS_PATH` environment variable
-* Ensure that the plugin resides within a directory named `plugins` nested inside the `WRAPYFI_PLUGINS_PATH` and that the directory contains an `__init__.py` file
+* Appending the script path where the class is defined to the `WRAPYFI_PLUGIN_PATHS` environment variable
+* Ensure that the plugin resides within a directory named `plugins` nested inside the `WRAPYFI_PLUGIN_PATHS` and that the directory contains an `__init__.py` file
 
 #### Plugin Example
 
 An example for adding a plugin for a custom [Astropy](https://www.astropy.org/) object is provided in the [astropy_example.py example](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/astropy_example.py).
-In the example, we append the example's directory to the `WRAPYFI_PLUGINS_PATH` environment variable and import the plugin. 
+In the example, we append the example's directory to the `WRAPYFI_PLUGIN_PATHS` environment variable and import the plugin. 
 The plugin ([astropy_tables.py](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins/astropy_tables.py)) in the [plugins](https://github.com/fabawi/wrapyfi/blob/main/examples/encoders/plugins) directory
 is then used to encode and decode the custom object (from within the `examples/encoders/` directory): 
 
@@ -40,7 +40,8 @@ Due to differences in versions, the decoding may result in inconsitent outcomes,
 
 ### Data Structure Types
 
-Other than native python objects, the following objects are supported:
+Wrapyfi primarily supports `Image`, `AudioChunk`, and `NativeObject` types, with additional types supported for different [middleware](<Middleware.md#natively-supported-middleware>) and [communication patterns](<Communication Patterns.md#communication-patterns>).
+Other than native Python objects, the following objects are supported by `NativeObject`:
 
 * `numpy.ndarray` and `numpy.generic`
 * `pandas.DataFrame` and `pandas.Series` with pandas v1 (*NumPy* only) and v2 (*PyArrow* and *NumPy* supported)
@@ -108,7 +109,7 @@ The plugins supporting remapping are:
 When encoding dictionaries, `json` supports string keys only and converts any instances of `int` keys to string, causing a difference between the publisher and subscriber returns. It is best to avoid using `int` keys, otherwise handle the difference on the receiving end.
 ```
 
-Wrapyfi currently supports JSON as the only serializer. This introduces a number of limitations (beyond serializing native python objects only by default), including:
+Wrapyfi currently supports JSON as the only serializer. This introduces a number of limitations (beyond serializing native Python objects only by default), including:
 
 * dictionary keys cannot be integers. Integers are automatically converted to strings
 * Tuples are converted to lists. Sets are not serializable. Tuples and sets are encoded as strings and restored on listening, which resolves this limitation but adds to the encoding overhead. This conversion is supported in Wrapyfi
