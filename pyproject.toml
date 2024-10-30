@@ -55,7 +55,6 @@ numpy = [
 ]
 websocket = [
     "python-socketio>=5.0.4",
-    "python_socketio>=5.0.4",
 ]
 mqtt = [
     "paho-mqtt>=2.0",

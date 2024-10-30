@@ -34,8 +34,8 @@ import argparse
 
 # Modifying the WRAPYFI_PLUGINS_PATH environment variable to include the plugins directory
 script_dir = os.path.dirname(os.path.realpath(__file__))
-if "WRAPYFI_PLUGINS_PATH" in os.environ:
-    os.environ["WRAPYFI_PLUGINS_PATHS"] += os.pathsep + script_dir
+if "WRAPYFI_PLUGIN_PATHS" in os.environ:
+    os.environ["WRAPYFI_PLUGIN_PATHS"] += os.pathsep + script_dir
 else:
     os.environ["WRAPYFI_PLUGIN_PATHS"] = script_dir
 
