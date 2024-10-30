@@ -161,7 +161,9 @@ def scan_external(module_paths: str, component: str):
 
         for mod_idx, extern_module in enumerate(extern_modules):
             # Generate a unique name for each module
-            spec_name = f"wrapyfi.extern{mod_group_idx}.{component}.{extern_module.stem}"
+            spec_name = (
+                f"wrapyfi.extern{mod_group_idx}.{component}.{extern_module.stem}"
+            )
 
             # Dynamically load and execute the module
             spec = importlib.util.spec_from_file_location(spec_name, extern_module)
@@ -263,4 +265,3 @@ class PluginRegistrar(object):
         ]
         dynamic_module_import(modules, globals())
         scan_external(os.environ.get(WRAPYFI_PLUGIN_PATHS, ""), "plugins")
-
