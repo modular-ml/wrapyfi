@@ -44,7 +44,7 @@ def check_cv2(default_python="opencv-python"):
 
 setuptools.setup(
     name="wrapyfi",
-    version="0.4.50",
+    version="0.4.51",
     description="Wrapyfi is a wrapper for simplifying Middleware communication",
     url="https://github.com/fabawi/wrapyfi/blob/main/",
     project_urls={
@@ -62,14 +62,19 @@ setuptools.setup(
         "pyzmq": ["pyzmq>=19.0.0"],
         "numpy": ["numpy>=1.19.2"],
         "websocket": ["python_socketio>=5.0.4"],
+        "zenoh": ["eclipse-zenoh>=1.0.0"],
         "mqtt": ["paho-mqtt>=2.0"],
         "headless": ["wrapyfi[pyzmq]", "wrapyfi[numpy]"]
         + check_cv2("opencv-python-headless"),
         "headless_websocket": ["wrapyfi[websocket]", "wrapyfi[numpy]"]
         + check_cv2("opencv-python-headless"),
+        "headless_zenoh": ["wrapyfi[zenoh]", "wrapyfi[numpy]"]
+        + check_cv2("opencv-python-headless"),
         "headless_mqtt": ["wrapyfi[mqtt]", "wrapyfi[numpy]"]
         + check_cv2("opencv-python-headless"),
-        "all": ["wrapyfi[pyzmq]", "wrapyfi[numpy]"]
+        "complete": ["wrapyfi[numpy]", "sounddevice", "soundfile", "Pillow", "pandas", "wrapyfi[pyzmq]", "wrapyfi[websocket]", "wrapyfi[zenoh]", "wrapyfi[mqtt]", "wrapyfi[docs]"]
+        + check_cv2("opencv-contrib-python"),
+        "all": ["wrapyfi[numpy]", "wrapyfi[pyzmq]"]
         + check_cv2("opencv-contrib-python"),
     },
     install_requires=["pyyaml>=5.1.1"],

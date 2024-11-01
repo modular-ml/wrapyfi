@@ -83,7 +83,7 @@ All messages are transmitted using the `zmq` Python bindings. Transmission follo
 #### Websocket:
 
 ```{note}
-Websocket assumes a server is running on the specified address and port. The forwarding of messages canonly be done manually by the user. An example server can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py) 
+Websocket assumes a server is running on the specified address and port. The forwarding of messages can only be done manually by the user. An example server can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py) 
 ```
 
 All messages are transmitted using the `python-socketio` Python bindings. Transmission follows the [socket.io protocol](https://socket.io/docs/v4/)
@@ -93,6 +93,15 @@ All messages are transmitted using the `python-socketio` Python bindings. Transm
 * **NativeObject**: Transmits and receives a `json` string supporting all native Python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) using 
                     `socketio.emit` for publishing and `socketio.on` for receiving messages
 * **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+
+#### Zenoh:
+
+All messages are transmitted using the `eclipse-zenoh` Python bindings. Transmission follows the [zenoh protocol](https://zenoh.io/)
+
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct as `zenoh.Bytes`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct as `zenoh.Bytes`
+* **NativeObject**: Transmits and receives a `json` string supporting all native Python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) as `zenoh.Bytes` using 
+                    `zenoh.session.key.put` for publishing and an asynchronus callback for receiving messages
 
 #### MQTT:
 

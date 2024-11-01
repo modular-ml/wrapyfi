@@ -15,11 +15,12 @@ Wrapyfi natively supports a [number of middleware](#middleware). However, more m
 * Ensure that the middleware communication pattern scripts reside within directories named `listeners`, `publishers`, `clients`, or `servers` nested inside the `WRAPYFI_MWARE_PATH` and that the directory contains an `__init__.py` file
 
 ### Natively Supported Middleware
-- **YARP**
-- **ROS**
-- **ROS 2**
-- **ZeroMQ** [*beta feature*]: 
+- [YARP](https://www.yarp.it/yarp_swig.html)
+- [ROS](http://wiki.ros.org/rospy)
+- [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html)
+- [ZeroMQ](http://zeromq.org/) [*beta feature*]: 
   * `should_wait` trigger introduced with event monitoring
   * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
-- **Websocket** *Only PUB/SUB* [*alpha support*]
-- **MQTT** *Only PUB/SUB* [*alpha support*]
+- [Websocket](https://socket.io/) *Only PUB/SUB* [*alpha support*]
+- [Zenoh](https://zenoh.io/) *Only PUB/SUB* [*alpha support*]
+- [MQTT](https://mqtt.org) *Only PUB/SUB* [*alpha support*]

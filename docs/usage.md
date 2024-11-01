@@ -248,7 +248,7 @@ All messages are transmitted using the `zmq` Python bindings. Transmission follo
 #### Websocket:
 
 ```{note}
-Websocket assumes a server is running on the specified address and port. The forwarding of messages canonly be done manually by the user. An example server can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py) 
+Websocket assumes a server is running on the specified address and port. The forwarding of messages can only be done manually by the user. An example server can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py) 
 ```
 
 All messages are transmitted using the `python-socketio` Python bindings. Transmission follows the [socket.io protocol](https://socket.io/docs/v4/)
@@ -258,6 +258,15 @@ All messages are transmitted using the `python-socketio` Python bindings. Transm
 * **NativeObject**: Transmits and receives a `json` string supporting all native Python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) using 
                     `socketio.emit` for publishing and `socketio.on` for receiving messages
 * **Properties**: Transmits properties [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+
+#### Zenoh:
+
+All messages are transmitted using the `eclipse-zenoh` Python bindings. Transmission follows the [zenoh protocol](https://zenoh.io/)
+
+* **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct as `zenoh.Bytes`
+* **AudioChunk**: Transmits and receives a `numpy` audio chunk wrapped in the `NativeObject` construct as `zenoh.Bytes`
+* **NativeObject**: Transmits and receives a `json` string supporting all native Python objects, `numpy` arrays and [other formats](<Plugins.md#data-structure-types>) as `zenoh.Bytes` using 
+                    `zenoh.session.key.put` for publishing and an asynchronus callback for receiving messages
 
 #### MQTT:
 
@@ -412,15 +421,15 @@ Wrapyfi natively supports a [number of middleware](#middleware). However, more m
 * Ensure that the middleware communication pattern scripts reside within directories named `listeners`, `publishers`, `clients`, or `servers` nested inside the `WRAPYFI_MWARE_PATH` and that the directory contains an `__init__.py` file
 
 ### Natively Supported Middleware
-- **YARP**
-- **ROS**
-- **ROS 2**
-- **ZeroMQ** [*beta feature*]: 
+- [YARP](https://www.yarp.it/yarp_swig.html)
+- [ROS](http://wiki.ros.org/rospy)
+- [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html)
+- [ZeroMQ](http://zeromq.org/) [*beta feature*]: 
   * `should_wait` trigger introduced with event monitoring
   * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
-- **Websocket** *Only PUB/SUB* [*alpha support*]
-- **MQTT** *Only PUB/SUB* [*alpha support*]
-
+- [Websocket](https://socket.io/) *Only PUB/SUB* [*alpha support*]
+- [Zenoh](https://zenoh.io/) *Only PUB/SUB* [*alpha support*]
+- [MQTT](https://mqtt.org) *Only PUB/SUB* [*alpha support*]
 
 ## Plugins
 
@@ -566,6 +575,12 @@ This can be achieved by setting:
 * `WRAPYFI_WEBSOCKET_SOCKET_PORT`: The socket port. Defaults to 5000
 * `WRAPYFI_WEBSOCKET_NAMESPACE`: The socket namespace. Defaults to "/"
 * `WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN`: Either spawn the websocket monitor listener as a "process" or "thread". Defaults to "thread" which is the only supported option for now
+* `WRAPYFI_ZENOH_IP`: IP address of the Zenoh socket. Defaults to "127.0.0.1"
+* `WRAPYFI_ZENOH_PORT`: The Zenoh socket port. Defaults to 7447
+* `WRAPYFI_ZENOH_MODE`: The Zenoh mode indicating whether to use the router as a broker or adopt peer-to-peer communication. Defaults to "peer"
+* `WRAPYFI_ZENOH_CONNECT`: The Zenoh connect endpoints seperated by a comma e.g., "tcp/127.0.0.1:7447,udp/127.0.0.1:7448". This overrides `WRAPYFI_ZENOH_IP` and `WRAPYFI_ZENOH_PORT`. Defaults to an empty list
+* `WRAPYFI_ZENOH_LISTEN`: The Zenoh listen endpoints seperated by a comma e.g., "tcp/127.0.0.1:7446". Defaults to an empty list
+* `WRAPYFI_ZENOH_CONFIG_FILEPATH`: The Zenoh configuration file path. Defaults to None. Conflicting keys are overriden by `WRAPYFI_ZENOH_IP`, `WRAPYFI_ZENOH_PORT`, `WRAPYFI_ZENOH_CONNECT`, and `WRAPYFI_ZENOH_LISTEN`
 * `WRAPYFI_MQTT_BROKER_ADDRESS`: The MQTT broker address. Defaults to "broker.emqx.io"
 * `WRAPYFI_MQTT_BROKER_PORT`: The MQTT broker port. Defaults to 1883
 

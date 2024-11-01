@@ -37,9 +37,7 @@ Wrapyfi is a middleware communication wrapper for transmitting data across nodes
 altering the operation pipeline of your Python scripts. Wrapyfi introduces
 a number of helper functions to make middleware integration possible without the need to learn an entire framework, just to parallelize your processes on 
 multiple machines. 
-Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), [ZeroMQ](http://zeromq.org/), [Websocket](https://socket.io/), and [MQTT](https://mqtt.org).
-
-
+Wrapyfi supports [YARP](https://www.yarp.it/yarp_swig.html), [ROS](http://wiki.ros.org/rospy), [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html), [ZeroMQ](http://zeromq.org/), [Websocket](https://socket.io/), [Zenoh](https://zenoh.io/) and [MQTT](https://mqtt.org).
 
 
 # Attribution
@@ -61,33 +59,37 @@ Please refer to the following [paper](https://www2.informatik.uni-hamburg.de/wtm
 
 # Getting Started
 
-Before using Wrapyfi, YARP, ROS, ZeroMQ, Websocket, or MQTT must be installed.
+Before using Wrapyfi, YARP, ROS, ZeroMQ, Websocket, Zenoh, or MQTT must be installed.
 
-* Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md?rank=0).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
-Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend to use the iCub robot.
+* **YARP**: Follow the [YARP installation guide](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi_extensions/yarp/README.md?rank=0).<!-- [YARP installation guide](docs/yarp_install_lnk.md). -->
+The `yarpserver` server must be running before running any YARP-based scripts. Note that the iCub package is not needed for Wrapyfi to work and does not have to be installed if you do not intend to use the iCub robot. 
 
-* For installing ROS, follow the ROS installation guide [\[Ubuntu\]](http://wiki.ros.org/noetic/Installation/Ubuntu)[\[Windows\]](https://wiki.ros.org/noetic/Installation/Windows). 
-We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. Additionally, the 
+* **ROS**: For installing ROS, follow the ROS installation guide [\[Ubuntu\]](http://wiki.ros.org/noetic/Installation/Ubuntu)[\[Windows\]](https://wiki.ros.org/noetic/Installation/Windows). 
+We recommend installing ROS on Conda using the [RoboStack](https://github.com/RoboStack/ros-noetic) environment. The `roscore` server must be running before running any ROS-based scripts. Additionally, the 
 [Wrapyfi ROS interfaces](https://github.com/modular-ml/wrapyfi_ros_interfaces/blob/master/README.md?rank=0) must be
 built to support messages needed for audio transmission [![ROS Package Index](https://img.shields.io/ros/v/noetic/wrapyfi_ros_interfaces)](https://index.ros.org/r/wrapyfi_ros_interfaces/#noetic)
 
-* For installing ROS 2, follow the ROS 2 installation guide [\[Ubuntu\]](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)[\[Windows\]](https://docs.ros.org/en/humble/Installation/Windows-Install-Binary.html). 
+* **ROS 2**: For installing ROS 2, follow the ROS 2 installation guide [\[Ubuntu\]](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)[\[Windows\]](https://docs.ros.org/en/humble/Installation/Windows-Install-Binary.html). 
 We recommend installing ROS 2 on Conda using the [RoboStack](https://github.com/RoboStack/ros-humble) environment. Additionally, the 
 [Wrapyfi ROS 2 interfaces](https://github.com/modular-ml/wrapyfi_ros2_interfaces/blob/master/README.md?rank=0) 
 must be built to support messages and services needed for audio transmission and the REQ/REP pattern [![ROS Package Index](https://img.shields.io/ros/v/humble/wrapyfi_ros2_interfaces)](https://index.ros.org/p/wrapyfi_ros2_interfaces/#humble)
 
-* ZeroMQ can be installed using pip: `pip install pyzmq`. 
+* **ZeroMQ**: ZeroMQ can be installed using pip: `pip install pyzmq`. 
 The XPUB/XSUB and XREQ/XREP patterns followed in our ZeroMQ implementation requires a proxy broker. A broker is spawned by default as a daemon process.
 To avoid automatic spawning, pass the argument `start_proxy_broker=False` to the method register decorator. 
 A standalone broker can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/standalone/zeromq_proxy_broker.py)
 
-* Websocket can be installed using pip: `pip install python-socketio`. 
+* **Websocket**: Websocket can be installed using pip: `pip install python-socketio`. 
 The PUB/SUB pattern followed in our Websocket implementation requires a socket server. We recommend setting the server 
 to run using [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) which can be installed with `pip install flask-socketio`.
 Note that the server must be running and also scripted to forward messages to the listening from the publishing client as demonstrated in the example found 
 [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py)
 
-* MQTT can be installed using pip: `pip install paho-mqtt`.
+* **Zenoh**: Zenoh can be installed using pip: `pip install zenoh`. It is recommended to use the `WRAPYFI_ZENOH_MODE` environment variable to set the mode to `peer` for running in peer-to-peer mode. 
+The PUB/SUB pattern followed in our Zenoh implementation requires a router. To install the Zenoh router, follow the instructions found [here](https://github.com/eclipse-zenoh/zenoh/?tab=readme-ov-file#how-to-install-it). 
+The `zenohd` router must be running before running any Zenoh-based scripts. *NOTE*: The `zenohd --rest-http-port 8082` command must be executed with an arbitrary (non-conflicting) port to avoid collision with other services occupying the default port (8000).
+
+* **MQTT**: MQTT can be installed using pip: `pip install paho-mqtt`.
 The PUB/SUB pattern followed in our MQTT implementation requires a broker. The default broker used by Wrapyfi [broker.emqx.io](https://broker.emqx.io). However, 
 this broker is not recommended for production use or for transmitting video/audio as it is a public online broker and requires an internet connection (not secure and suffers high latency). We recommend setting up a local broker
 using [Mosquitto](https://mosquitto.org/download/). A Dockerized version can be found [here](https://github.com/sukesh-ak/setup-mosquitto-with-docker). The broker must be running, and the `WRAPYFI_MQTT_BROKER_ADDRESS` as well as `WRAPYFI_MQTT_BROKER_PORT` environment variables must be set to the 
@@ -124,6 +126,7 @@ def send_message(self):
 * ROS 2 Humble Hawksbill **|** Galactic Geochelone **|** Foxy Fitzroy 
 * PyZMQ 16.0, 17.1 and 19.0
 * Python-SocketIO >= 5.0.4
+* Eclipse-Zenoh >= 1.0.0
 * Paho-MQTT >= 2.0 *(Hard-coded to v2 in Wrapyfi and not compatible with v1)*
 
 
@@ -181,13 +184,19 @@ or when installing Wrapyfi to work with websockets (headless) including `numpy`,
 pip install .[headless_websockets]
 ```
 
+or when installing Wrapyfi to work with Zenoh (headless) including `numpy`, `opencv-python-headless`, and `eclipse-zenoh`:
+
+```
+pip install .[headless_zenoh]
+```
+
 or when installing Wrapyfi to work with MQTT (headless) including `numpy`, `opencv-python-headless`, and `paho-mqtt`:
 
 ```
 pip install .[headless_mqtt]
 ```
 
-or install Wrapyfi *without* NumPy, OpenCV, ZeroMQ, Websocket, and MQTT:
+or install Wrapyfi *without* NumPy, OpenCV, ZeroMQ, Websocket, Zenoh, and MQTT:
 
 ```
 pip install .
@@ -367,21 +376,10 @@ For more examples of usage, refer to the [user guide](docs/usage.md). Run script
 
 # Supported Formats
 
-## Middleware
-- [x] **YARP**
-- [x] **ROS**
-- [x] **ROS 2**
-- [x] **ZeroMQ** [*beta feature*]: 
-  * `should_wait` trigger introduced with event monitoring
-  * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
-- [x] **Websocket** *Only PUB/SUB* [*alpha support*]
-- [x] **MQTT** *Only PUB/SUB* [*alpha support*]
-
 ## Serializers
 - [x] **JSON**
 - [ ] **msgpack**
 - [ ] **protobuf**
-
 
 ## Data Structures
 
