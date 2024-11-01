@@ -44,6 +44,14 @@ wrapyfi.middlewares.yarp module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.middlewares.zenoh module
+--------------------------------
+
+.. automodule:: wrapyfi.middlewares.zenoh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.middlewares.zeromq module
 ---------------------------------
 

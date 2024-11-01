@@ -21,7 +21,9 @@ ZENOH_MODE = os.getenv("WRAPYFI_ZENOH_MODE", "peer")
 ZENOH_CONNECT = json.loads(os.getenv("WRAPYFI_ZENOH_CONNECT", "[]"))
 ZENOH_LISTEN = json.loads(os.getenv("WRAPYFI_ZENOH_LISTEN", "[]"))
 ZENOH_CONFIG_FILEPATH = os.getenv("WRAPYFI_ZENOH_CONFIG_FILEPATH", None)
-ZENOH_MONITOR_LISTENER_SPAWN = os.getenv("WRAPYFI_ZENOH_MONITOR_LISTENER_SPAWN", "thread")
+ZENOH_MONITOR_LISTENER_SPAWN = os.getenv(
+    "WRAPYFI_ZENOH_MONITOR_LISTENER_SPAWN", "thread"
+)
 
 WATCHDOG_POLL_INTERVAL = float(os.getenv("WRAPYFI_ZENOH_RETRY_INTERVAL", 0.2))
 WATCHDOG_POLL_REPEATS = int(os.getenv("WRAPYFI_ZENOH_MAX_REPEATS", -1))
@@ -71,13 +73,27 @@ class ZenohPublisher(Publisher):
         # Prepare Zenoh configuration
         self.zenoh_config = {
             "mode": mode,
-            "connect/endpoints": ZENOH_CONNECT if isinstance(ZENOH_CONNECT, list) else ZENOH_CONNECT.split(",") if isinstance(ZENOH_CONNECT, str) else [f"tcp/{ip}:{port}"],
-            **(zenoh_kwargs or {})
+            "connect/endpoints": (
+                ZENOH_CONNECT
+                if isinstance(ZENOH_CONNECT, list)
+                else (
+                    ZENOH_CONNECT.split(",")
+                    if isinstance(ZENOH_CONNECT, str)
+                    else [f"tcp/{ip}:{port}"]
+                )
+            ),
+            **(zenoh_kwargs or {}),
         }
         if ZENOH_LISTEN:
-            self.zenoh_config["listen/endpoints"] = ZENOH_LISTEN if isinstance(ZENOH_LISTEN, list) else ZENOH_LISTEN.split(",")
+            self.zenoh_config["listen/endpoints"] = (
+                ZENOH_LISTEN
+                if isinstance(ZENOH_LISTEN, list)
+                else ZENOH_LISTEN.split(",")
+            )
 
-        ZenohMiddlewarePubSub.activate(config=self._prepare_config(self.zenoh_config), **kwargs)
+        ZenohMiddlewarePubSub.activate(
+            config=self._prepare_config(self.zenoh_config), **kwargs
+        )
 
     def _prepare_config(self, zenoh_kwargs):
         """
@@ -86,12 +102,18 @@ class ZenohPublisher(Publisher):
         :param zenoh_kwargs: dict: Configuration parameters
         :return: zenoh.Config: Configured Zenoh session
         """
-        config = zenoh.Config().from_file(ZENOH_CONFIG_FILEPATH) if ZENOH_CONFIG_FILEPATH else zenoh.Config()
+        config = (
+            zenoh.Config().from_file(ZENOH_CONFIG_FILEPATH)
+            if ZENOH_CONFIG_FILEPATH
+            else zenoh.Config()
+        )
         for key, value in zenoh_kwargs.items():
             config.insert_json5(key, json.dumps(value))
         return config
 
-    def await_connection(self, out_topic: Optional[str] = None, repeats: Optional[int] = None):
+    def await_connection(
+        self, out_topic: Optional[str] = None, repeats: Optional[int] = None
+    ):
         """
         Wait for the connection to be established.
 
@@ -255,12 +277,12 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
                 time.sleep(0.2)
 
         if (
-                0 < self.width != img.shape[1]
-                or 0 < self.height != img.shape[0]
-                or not (
+            0 < self.width != img.shape[1]
+            or 0 < self.height != img.shape[0]
+            or not (
                 (img.ndim == 2 and not self.rgb)
                 or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-        )
+            )
         ):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags["C_CONTIGUOUS"]:
@@ -272,10 +294,14 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
             header = {"timestamp": time.time()}
         else:
             img_bytes = img.tobytes()
-            header = {"timestamp": time.time(), "shape": img.shape, "dtype": str(img.dtype)}
+            header = {
+                "timestamp": time.time(),
+                "shape": img.shape,
+                "dtype": str(img.dtype),
+            }
 
-        header_bytes = json.dumps(header).encode('utf-8')
-        payload = header_bytes + b'\n' + img_bytes
+        header_bytes = json.dumps(header).encode("utf-8")
+        payload = header_bytes + b"\n" + img_bytes
 
         ZenohMiddlewarePubSub._instance.session.put(self.out_topic, payload)
 
@@ -309,7 +335,13 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 (dynamic chunk size)
         """
-        super().__init__(name, out_topic, should_wait=should_wait, multi_threaded=multi_threaded, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            should_wait=should_wait,
+            multi_threaded=multi_threaded,
+            **kwargs,
+        )
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
@@ -335,7 +367,9 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
         if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for publisher")
 
-        chunk, channels = aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
+        chunk, channels = (
+            aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
+        )
         self.chunk = chunk if self.chunk == -1 else self.chunk
         self.channels = channels if self.channels == -1 else self.channels
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
@@ -348,11 +382,9 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
             "shape": aud_array.shape,
             "dtype": str(aud_array.dtype),
             "rate": rate,
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
-        header_bytes = json.dumps(header).encode('utf-8')
-        payload = header_bytes + b'\n' + aud_bytes
+        header_bytes = json.dumps(header).encode("utf-8")
+        payload = header_bytes + b"\n" + aud_bytes
 
         ZenohMiddlewarePubSub._instance.session.put(self.out_topic, payload)
-
-

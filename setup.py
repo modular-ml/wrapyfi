@@ -72,7 +72,18 @@ setuptools.setup(
         + check_cv2("opencv-python-headless"),
         "headless_mqtt": ["wrapyfi[mqtt]", "wrapyfi[numpy]"]
         + check_cv2("opencv-python-headless"),
-        "complete": ["wrapyfi[numpy]", "sounddevice", "soundfile", "Pillow", "pandas", "wrapyfi[pyzmq]", "wrapyfi[websocket]", "wrapyfi[zenoh]", "wrapyfi[mqtt]", "wrapyfi[docs]"]
+        "complete": [
+            "wrapyfi[numpy]",
+            "sounddevice",
+            "soundfile",
+            "Pillow",
+            "pandas",
+            "wrapyfi[pyzmq]",
+            "wrapyfi[websocket]",
+            "wrapyfi[zenoh]",
+            "wrapyfi[mqtt]",
+            "wrapyfi[docs]",
+        ]
         + check_cv2("opencv-contrib-python"),
         "all": ["wrapyfi[numpy]", "wrapyfi[pyzmq]"]
         + check_cv2("opencv-contrib-python"),

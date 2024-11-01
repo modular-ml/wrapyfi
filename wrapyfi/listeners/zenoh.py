@@ -21,7 +21,9 @@ ZENOH_MODE = os.getenv("WRAPYFI_ZENOH_MODE", "peer")
 ZENOH_CONNECT = json.loads(os.getenv("WRAPYFI_ZENOH_CONNECT", "[]"))
 ZENOH_LISTEN = json.loads(os.getenv("WRAPYFI_ZENOH_LISTEN", "[]"))
 ZENOH_CONFIG_FILEPATH = os.getenv("WRAPYFI_ZENOH_CONFIG_FILEPATH", None)
-ZENOH_MONITOR_LISTENER_SPAWN = os.getenv("WRAPYFI_ZENOH_MONITOR_LISTENER_SPAWN", "thread")
+ZENOH_MONITOR_LISTENER_SPAWN = os.getenv(
+    "WRAPYFI_ZENOH_MONITOR_LISTENER_SPAWN", "thread"
+)
 
 WATCHDOG_POLL_INTERVAL = float(os.getenv("WRAPYFI_ZENOH_RETRY_INTERVAL", 0.2))
 WATCHDOG_POLL_REPEATS = int(os.getenv("WRAPYFI_ZENOH_MAX_REPEATS", -1))
@@ -41,8 +43,17 @@ class ZenohListener(Listener):
     Merges listener-specific settings and environment configurations, and awaits connection.
     """
 
-    def __init__(self, name: str, in_topic: str, should_wait: bool = True,
-        ip: str = ZENOH_IP, port: int = ZENOH_PORT, mode: str = ZENOH_MODE, zenoh_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        should_wait: bool = True,
+        ip: str = ZENOH_IP,
+        port: int = ZENOH_PORT,
+        mode: str = ZENOH_MODE,
+        zenoh_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         """
         Initializes the Zenoh listener with environment or parameter-based configurations
         and waits for connection if specified.
@@ -64,13 +75,27 @@ class ZenohListener(Listener):
         # Prepare Zenoh configuration from environment variables and kwargs
         self.zenoh_config = {
             "mode": mode,
-            "connect/endpoints": ZENOH_CONNECT if isinstance(ZENOH_CONNECT, list) else ZENOH_CONNECT.split(",") if isinstance(ZENOH_CONNECT, str) else [f"tcp/{ip}:{port}"],
-            **(zenoh_kwargs or {})
+            "connect/endpoints": (
+                ZENOH_CONNECT
+                if isinstance(ZENOH_CONNECT, list)
+                else (
+                    ZENOH_CONNECT.split(",")
+                    if isinstance(ZENOH_CONNECT, str)
+                    else [f"tcp/{ip}:{port}"]
+                )
+            ),
+            **(zenoh_kwargs or {}),
         }
         if ZENOH_LISTEN:
-            self.zenoh_config["listen/endpoints"] = ZENOH_LISTEN if isinstance(ZENOH_LISTEN, list) else ZENOH_LISTEN.split(",")
+            self.zenoh_config["listen/endpoints"] = (
+                ZENOH_LISTEN
+                if isinstance(ZENOH_LISTEN, list)
+                else ZENOH_LISTEN.split(",")
+            )
 
-        ZenohMiddlewarePubSub.activate(config=self._prepare_config(self.zenoh_config), **kwargs)
+        ZenohMiddlewarePubSub.activate(
+            config=self._prepare_config(self.zenoh_config), **kwargs
+        )
 
         self.established = False
 
@@ -81,12 +106,18 @@ class ZenohListener(Listener):
         :param zenoh_kwargs: dict: Configuration parameters
         :return: zenoh.Config: Configured Zenoh session
         """
-        config = zenoh.Config().from_file(ZENOH_CONFIG_FILEPATH) if ZENOH_CONFIG_FILEPATH else zenoh.Config()
+        config = (
+            zenoh.Config().from_file(ZENOH_CONFIG_FILEPATH)
+            if ZENOH_CONFIG_FILEPATH
+            else zenoh.Config()
+        )
         for key, value in zenoh_kwargs.items():
             config.insert_json5(key, json.dumps(value))
         return config
 
-    def await_connection(self, in_topic: Optional[str] = None, repeats: int = WATCHDOG_POLL_REPEATS):
+    def await_connection(
+        self, in_topic: Optional[str] = None, repeats: int = WATCHDOG_POLL_REPEATS
+    ):
         """
         Waits for the Zenoh connection to be established.
 
@@ -114,7 +145,9 @@ class ZenohListener(Listener):
         established = self.await_connection(repeats=repeats)
         established = self.check_establishment(established)
         if established:
-            ZenohMiddlewarePubSub._instance.register_callback(self.in_topic, self.on_message)
+            ZenohMiddlewarePubSub._instance.register_callback(
+                self.in_topic, self.on_message
+            )
         return established
 
     def close(self):
@@ -137,7 +170,14 @@ class ZenohNativeObjectListener(ZenohListener):
     :param deserializer_kwargs: dict: Keyword arguments for the JSON deserializer
     """
 
-    def __init__(self, name: str, in_topic: str, should_wait: bool = True, deserializer_kwargs: Optional[dict] = None, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        should_wait: bool = True,
+        deserializer_kwargs: Optional[dict] = None,
+        **kwargs,
+    ):
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._message_queue = queue.Queue()
@@ -150,7 +190,11 @@ class ZenohNativeObjectListener(ZenohListener):
         :param sample: zenoh.Sample: The Zenoh sample received
         """
         try:
-            obj = json.loads(sample.payload.to_bytes(), object_hook=self._plugin_decoder_hook, **self._deserializer_kwargs)
+            obj = json.loads(
+                sample.payload.to_bytes(),
+                object_hook=self._plugin_decoder_hook,
+                **self._deserializer_kwargs,
+            )
             self._message_queue.put(obj)
             logging.debug(f"Queued message for topic {self.in_topic}: {obj}")
         except json.JSONDecodeError as e:
@@ -188,7 +232,17 @@ class ZenohImageListener(ZenohNativeObjectListener):
     :param jpg: bool: True if the image is JPEG-compressed
     """
 
-    def __init__(self, name: str, in_topic: str, should_wait: bool = True, width: int = -1, height: int = -1, rgb: bool = True, jpg: bool = False, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        should_wait: bool = True,
+        width: int = -1,
+        height: int = -1,
+        rgb: bool = True,
+        jpg: bool = False,
+        **kwargs,
+    ):
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self.width = width
         self.height = height
@@ -205,15 +259,21 @@ class ZenohImageListener(ZenohNativeObjectListener):
         try:
             # Split payload into header and image data
             payload = sample.payload.to_bytes()
-            header_bytes, img_bytes = payload.split(b'\n', 1)  # Split at the first newline
+            header_bytes, img_bytes = payload.split(
+                b"\n", 1
+            )  # Split at the first newline
 
-            header = json.loads(header_bytes.decode('utf-8'))
+            header = json.loads(header_bytes.decode("utf-8"))
             np_data = np.frombuffer(img_bytes, dtype=np.uint8)
 
             if self.jpg:
-                img = cv2.imdecode(np_data, cv2.IMREAD_COLOR if self.rgb else cv2.IMREAD_GRAYSCALE)
+                img = cv2.imdecode(
+                    np_data, cv2.IMREAD_COLOR if self.rgb else cv2.IMREAD_GRAYSCALE
+                )
             else:
-                shape = header.get("shape", (self.height, self.width, 3 if self.rgb else 1))
+                shape = header.get(
+                    "shape", (self.height, self.width, 3 if self.rgb else 1)
+                )
                 img = np_data.reshape(shape)
 
             # Place the decoded image into the message queue
@@ -252,7 +312,16 @@ class ZenohAudioChunkListener(ZenohNativeObjectListener):
     :param chunk: int: Number of samples in the audio chunk
     """
 
-    def __init__(self, name: str, in_topic: str, should_wait: bool = True, channels: int = 1, rate: int = 44100, chunk: int = -1, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        should_wait: bool = True,
+        channels: int = 1,
+        rate: int = 44100,
+        chunk: int = -1,
+        **kwargs,
+    ):
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self.channels = channels
         self.rate = rate
@@ -267,8 +336,8 @@ class ZenohAudioChunkListener(ZenohNativeObjectListener):
         """
         try:
             payload = sample.payload.to_bytes()
-            header_bytes, aud_bytes = payload.split(b'\n', 1)
-            header = json.loads(header_bytes.decode('utf-8'))
+            header_bytes, aud_bytes = payload.split(b"\n", 1)
+            header = json.loads(header_bytes.decode("utf-8"))
             shape = header.get("shape")
             rate = header.get("rate")
             aud_array = np.frombuffer(aud_bytes, dtype=np.float32).reshape(shape)
@@ -291,4 +360,3 @@ class ZenohAudioChunkListener(ZenohNativeObjectListener):
             return self._message_queue.get(block=self.should_wait)
         except queue.Empty:
             return None, self.rate
-
