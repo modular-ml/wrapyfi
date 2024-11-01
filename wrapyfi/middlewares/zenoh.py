@@ -32,7 +32,9 @@ class ZenohMiddlewarePubSub(metaclass=SingletonOptimized):
         """
         zenoh.init_log_from_env_or("error")
         if ZenohMiddlewarePubSub._instance is None:
-            ZenohMiddlewarePubSub._instance = ZenohMiddlewarePubSub(config=config, **kwargs)
+            ZenohMiddlewarePubSub._instance = ZenohMiddlewarePubSub(
+                config=config, **kwargs
+            )
         return ZenohMiddlewarePubSub._instance
 
     def __init__(self, config: zenoh.Config = None, **kwargs):
@@ -75,7 +77,6 @@ class ZenohMiddlewarePubSub(metaclass=SingletonOptimized):
             self.subscribers[topic] = self.session.declare_subscriber(topic, callback)
         logging.info(f"[ZenohMiddlewarePubSub] Registered callback for topic {topic}")
 
-
     def is_connected(self) -> bool:
         """
         Checks if the Zenoh session is active.
@@ -90,4 +91,3 @@ class ZenohMiddlewarePubSub(metaclass=SingletonOptimized):
         """
         logging.info("[ZenohMiddlewarePubSub] Closing Zenoh session")
         self.session.close()
-

@@ -44,6 +44,14 @@ wrapyfi.publishers.yarp module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.publishers.zenoh module
+-------------------------------
+
+.. automodule:: wrapyfi.publishers.zenoh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.publishers.zeromq module
 --------------------------------
 

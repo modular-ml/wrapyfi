@@ -44,6 +44,14 @@ wrapyfi.listeners.yarp module
    :undoc-members:
    :show-inheritance:
 
+wrapyfi.listeners.zenoh module
+------------------------------
+
+.. automodule:: wrapyfi.listeners.zenoh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wrapyfi.listeners.zeromq module
 -------------------------------
 
