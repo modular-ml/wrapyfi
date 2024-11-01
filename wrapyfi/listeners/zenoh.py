@@ -34,6 +34,7 @@ if ZENOH_MONITOR_LISTENER_SPAWN == "process":
         "Switching automatically to 'thread' mode."
     )
 
+
 class ZenohListener(Listener):
     """
     Base Zenoh listener class that configures and initializes Zenoh middleware.
@@ -61,17 +62,16 @@ class ZenohListener(Listener):
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
 
         # Prepare Zenoh configuration from environment variables and kwargs
-        zenoh_config = {
+        self.zenoh_config = {
             "mode": mode,
             "connect/endpoints": ZENOH_CONNECT if isinstance(ZENOH_CONNECT, list) else ZENOH_CONNECT.split(",") if isinstance(ZENOH_CONNECT, str) else [f"tcp/{ip}:{port}"],
-            "listen/endpoints": ZENOH_LISTEN if isinstance(ZENOH_LISTEN, list) else ZENOH_LISTEN.split(",") if isinstance(ZENOH_LISTEN, str) else [f"tcp/{ip}:{port}"],
             **(zenoh_kwargs or {})
         }
+        if ZENOH_LISTEN:
+            self.zenoh_config["listen/endpoints"] = ZENOH_LISTEN if isinstance(ZENOH_LISTEN, list) else ZENOH_LISTEN.split(",")
 
-        # Activate Zenoh middleware with the prepared configuration
-        ZenohMiddlewarePubSub.activate(config=self._prepare_config(zenoh_config), **kwargs)
+        ZenohMiddlewarePubSub.activate(config=self._prepare_config(self.zenoh_config), **kwargs)
 
-        # Set up connection establishment
         self.established = False
 
     def _prepare_config(self, zenoh_kwargs):
@@ -203,11 +203,20 @@ class ZenohImageListener(ZenohNativeObjectListener):
         :param sample: zenoh.Sample: Zenoh sample payload
         """
         try:
-            np_data = np.frombuffer(sample.payload.to_bytes(), dtype=np.uint8)
+            # Split payload into header and image data
+            payload = sample.payload.to_bytes()
+            header_bytes, img_bytes = payload.split(b'\n', 1)  # Split at the first newline
+
+            header = json.loads(header_bytes.decode('utf-8'))
+            np_data = np.frombuffer(img_bytes, dtype=np.uint8)
+
             if self.jpg:
                 img = cv2.imdecode(np_data, cv2.IMREAD_COLOR if self.rgb else cv2.IMREAD_GRAYSCALE)
             else:
-                img = np_data.reshape(self.height, self.width, 3 if self.rgb else 1)
+                shape = header.get("shape", (self.height, self.width, 3 if self.rgb else 1))
+                img = np_data.reshape(shape)
+
+            # Place the decoded image into the message queue
             self._message_queue.put(img)
         except Exception as e:
             logging.error(f"Failed to process image message: {e}")
@@ -257,8 +266,13 @@ class ZenohAudioChunkListener(ZenohNativeObjectListener):
         :param sample: zenoh.Sample: Zenoh sample payload
         """
         try:
-            aud_array = np.frombuffer(sample.payload.to_bytes(), dtype=np.float32).reshape(-1, self.channels)
-            self._message_queue.put((aud_array, self.rate))
+            payload = sample.payload.to_bytes()
+            header_bytes, aud_bytes = payload.split(b'\n', 1)
+            header = json.loads(header_bytes.decode('utf-8'))
+            shape = header.get("shape")
+            rate = header.get("rate")
+            aud_array = np.frombuffer(aud_bytes, dtype=np.float32).reshape(shape)
+            self._message_queue.put((aud_array, rate))
         except Exception as e:
             logging.error(f"Failed to process audio message: {e}")
 

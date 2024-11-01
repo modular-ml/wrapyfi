@@ -72,9 +72,10 @@ class ZenohPublisher(Publisher):
         self.zenoh_config = {
             "mode": mode,
             "connect/endpoints": ZENOH_CONNECT if isinstance(ZENOH_CONNECT, list) else ZENOH_CONNECT.split(",") if isinstance(ZENOH_CONNECT, str) else [f"tcp/{ip}:{port}"],
-            "listen/endpoints": ZENOH_LISTEN if isinstance(ZENOH_LISTEN, list) else ZENOH_LISTEN.split(",") if isinstance(ZENOH_LISTEN, str) else [f"tcp/{ip}:{port}"],
             **(zenoh_kwargs or {})
         }
+        if ZENOH_LISTEN:
+            self.zenoh_config["listen/endpoints"] = ZENOH_LISTEN if isinstance(ZENOH_LISTEN, list) else ZENOH_LISTEN.split(",")
 
         ZenohMiddlewarePubSub.activate(config=self._prepare_config(self.zenoh_config), **kwargs)
 
@@ -254,12 +255,12 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
                 time.sleep(0.2)
 
         if (
-            0 < self.width != img.shape[1]
-            or 0 < self.height != img.shape[0]
-            or not (
+                0 < self.width != img.shape[1]
+                or 0 < self.height != img.shape[0]
+                or not (
                 (img.ndim == 2 and not self.rgb)
                 or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-            )
+        )
         ):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags["C_CONTIGUOUS"]:
@@ -273,7 +274,10 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
             img_bytes = img.tobytes()
             header = {"timestamp": time.time(), "shape": img.shape, "dtype": str(img.dtype)}
 
-        ZenohMiddlewarePubSub._instance.session.put(self.out_topic, [header, img_bytes])
+        header_bytes = json.dumps(header).encode('utf-8')
+        payload = header_bytes + b'\n' + img_bytes
+
+        ZenohMiddlewarePubSub._instance.session.put(self.out_topic, payload)
 
 
 @Publishers.register("AudioChunk", "zenoh")
@@ -310,6 +314,8 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
         self.rate = rate
         self.chunk = chunk
 
+    import json
+
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
         Publish the audio chunk to the middleware.
@@ -328,14 +334,25 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
             return
         if 0 < self.rate != rate:
             raise ValueError("Incorrect audio rate for publisher")
+
         chunk, channels = aud_array.shape if len(aud_array.shape) > 1 else (aud_array.shape[0], 1)
         self.chunk = chunk if self.chunk == -1 else self.chunk
         self.channels = channels if self.channels == -1 else self.channels
         if 0 < self.chunk != chunk or 0 < self.channels != channels:
             raise ValueError("Incorrect audio shape for publisher")
-        aud_array = np.require(aud_array, dtype=np.float32, requirements="C")
 
+        aud_array = np.require(aud_array, dtype=np.float32, requirements="C")
         aud_bytes = aud_array.tobytes()
-        header = {"shape": aud_array.shape, "dtype": str(aud_array.dtype), "rate": rate, "timestamp": time.time()}
-        ZenohMiddlewarePubSub._instance.session.put(self.out_topic, [header, aud_bytes])
+
+        header = {
+            "shape": aud_array.shape,
+            "dtype": str(aud_array.dtype),
+            "rate": rate,
+            "timestamp": time.time()
+        }
+        header_bytes = json.dumps(header).encode('utf-8')
+        payload = header_bytes + b'\n' + aud_bytes
+
+        ZenohMiddlewarePubSub._instance.session.put(self.out_topic, payload)
+
 

@@ -240,8 +240,8 @@ def parse_args():
         default=0,
         help="The video capture device id (int camera id)",
     )
-    parser.add_argument("--img_width", type=int, default=320, help="The image width")
-    parser.add_argument("--img_height", type=int, default=240, help="The image height")
+    parser.add_argument("--img_width", type=int, default=-1, help="The image width")
+    parser.add_argument("--img_height", type=int, default=-1, help="The image height")
     parser.add_argument(
         "--mic_source",
         type=int,

@@ -75,6 +75,7 @@ class ZenohMiddlewarePubSub(metaclass=SingletonOptimized):
             self.subscribers[topic] = self.session.declare_subscriber(topic, callback)
         logging.info(f"[ZenohMiddlewarePubSub] Registered callback for topic {topic}")
 
+
     def is_connected(self) -> bool:
         """
         Checks if the Zenoh session is active.

@@ -56,6 +56,9 @@ numpy = [
 websocket = [
     "python-socketio>=5.0.4",
 ]
+zenoh = [
+    "eclipse-zenoh>=1.0.0",
+]
 mqtt = [
     "paho-mqtt>=2.0",
 ]
@@ -69,10 +72,28 @@ headless_websocket = [
     "wrapyfi[websocket]",
     "opencv-python-headless>=4.2.0",
 ]
+headless_zenoh = [
+    "wrapyfi[numpy]",
+    "wrapyfi[zenoh]",
+    "opencv-python-headless>=4.2.0",
+]
 headless_mqtt = [
     "wrapyfi[numpy]",
     "wrapyfi[mqtt]",
     "opencv-python-headless>=4.2.0",
+]
+complete = [
+    "wrapyfi[numpy]",
+    "sounddevice",
+    "soundfile",
+    "Pillow",
+    "pandas",
+    "wrapyfi[pyzmq]",
+    "wrapyfi[websocket]",
+    "wrapyfi[zenoh]",
+    "wrapyfi[mqtt]",
+    "wrapyfi[docs]",
+    "opencv-contrib-python>=4.2.0",
 ]
 all = [
     "wrapyfi[numpy]",
