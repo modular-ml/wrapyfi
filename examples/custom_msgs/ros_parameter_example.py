@@ -120,7 +120,7 @@ def main(args):
                 "Method result:",
                 my_string_message,
                 my_dict_message,
-                my_nonpersistent_message
+                my_nonpersistent_message,
             )
 
 
