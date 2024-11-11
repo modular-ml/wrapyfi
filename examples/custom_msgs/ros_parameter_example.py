@@ -30,6 +30,8 @@ import functools
 import argparse
 import json
 
+from caffe2.perfkernels.hp_emblookup_codegen import ret_string
+
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 
@@ -112,6 +114,8 @@ def main(args):
         )
 
         cache_message(my_dict_message=json.dumps(my_dict_message),
+                      my_string_message=my_string_message,
+                      my_nested_property_message=my_nested_property_message,
                       my_nonpersistent_message=my_nonpersistent_message
                       if not my_nonpersistent_message else my_nonpersistent_message[0])
         if (curr_misses:= cache_message.cache_info().misses) != prev_misses:
