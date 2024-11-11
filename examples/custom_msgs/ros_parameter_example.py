@@ -10,6 +10,7 @@ Demonstrations:
     - Using the Properties message
     - Transmitting various data types as properties, such as strings, dictionaries, and non-persistent properties
     - Applying the PUB/SUB pattern with channeling and mirroring
+    - Nested properties and multiple properties in a single message (notice property 'e' triggers double updates as it is set through nesting and direct update)
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
@@ -25,7 +26,9 @@ Run:
         ``python3 ros_parameter_example.py --mode listen``
 """
 
+import functools
 import argparse
+import json
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
@@ -50,7 +53,15 @@ class Notifier(MiddlewareCommunicator):
         "ros",
         "Notifier",
         "/notify/test_property_exchange/e",
-        persistent=False,
+        persistent=True,  # default is True
+        should_wait=True,
+    )
+    @MiddlewareCommunicator.register(
+        "Properties",
+        "ros",
+        "Notifier",
+        "/notify/test_property_persistence/f",
+        persistent=False,  # disable persistence. If publisher is closed, this property will be deleted
         should_wait=True,
     )
     def set_property(self):
@@ -59,11 +70,16 @@ class Notifier(MiddlewareCommunicator):
         """
         ret_str = input("Type your message: ")
         ret_multiprops = {"b": [1, 2, 3, 4], "c": False, "d": 12.3}
+        ret_nested = "This is a nested property"
         ret_non_persistent = (
-            "Non-persistent property which should be deleted on closure"
+            "Non-persistent property which should be deleted on publisher closure"
         )
-        return ret_multiprops, ret_str, ret_non_persistent
+        return ret_multiprops, ret_str, ret_nested, ret_non_persistent
 
+
+@functools.lru_cache(maxsize=1)
+def cache_message(**kwargs):
+    return kwargs
 
 def parse_args():
     """
@@ -88,17 +104,24 @@ def main(args):
     """
     ros_message = Notifier()
     ros_message.activate_communication(Notifier.set_property, mode=args.mode)
+    prev_misses = None
 
     while True:
-        my_dict_message, my_string_message, my_nonpersistent_message = (
+        my_dict_message, my_string_message, my_nested_property_message, my_nonpersistent_message = (
             ros_message.set_property()
         )
-        print(
-            "Method result:",
-            my_string_message,
-            my_dict_message,
-            my_nonpersistent_message,
-        )
+
+        cache_message(my_dict_message=json.dumps(my_dict_message),
+                      my_nonpersistent_message=my_nonpersistent_message
+                      if not my_nonpersistent_message else my_nonpersistent_message[0])
+        if (curr_misses:= cache_message.cache_info().misses) != prev_misses:
+            prev_misses = curr_misses
+            print(
+                "Method result:",
+                my_string_message,
+                my_dict_message,
+                my_nonpersistent_message
+            )
 
 
 if __name__ == "__main__":
