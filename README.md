@@ -285,7 +285,7 @@ while True:
 </tr>
 </table>
 
-Run `yarpserver` from the command line. Now execute the Python script above (with Wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type with the publisher's command line and preview the message within the listener's
+Run `yarpserver` from the command line. Now execute the Python script above (with Wrapyfi) twice, setting one instance to `LISTEN = False` and another to `LISTEN = True`. You can now type and return a message on the publisher's terminal and preview it within the listener's
 
 
 * **Request-Reply** (REQ/REP): A requester sends a request to a responder, which responds to the request in a synchronous manner.
@@ -369,7 +369,7 @@ while True:
 
 
 
-Run `roscore` from the command line. Now execute the Python script above (with Wrapyfi) twice setting `LISTEN = False` and `LISTEN = True`. You can now type within the server's command line and preview the message within the client's. 
+Run `roscore` from the command line. Now execute the Python script above (with Wrapyfi) twice, setting one instance to `LISTEN = False` and another to `LISTEN = True`. You can now type and return a message on server's terminal and preview it within the client's. 
 Note that the server's command line will not show the message until the client's command line has been used to send a request. The arguments are passed from the client to the server and the server's response is passed back to the client.
 
 For more examples of usage, refer to the [user guide](docs/usage.md). Run scripts in the [examples directory](https://github.com/fabawi/wrapyfi/tree/main/examples) for trying out Wrapyfi. 
