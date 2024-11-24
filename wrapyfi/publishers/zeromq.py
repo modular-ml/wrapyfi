@@ -128,15 +128,11 @@ class ZeroMQPublisher(Publisher):
             out_topic = self.out_topic
         logging.info(f"[ZeroMQ] Waiting for output connection: {out_topic}")
         if repeats is None:
-            if self.should_wait:
-                repeats = -1
-            else:
-                return True
+            repeats = -1 if self.should_wait else 1
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(
-                out_topic
-            )
+            # allowing should_wait into the loop for consistency with other publishers only
+            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(out_topic) or not self.should_wait
             if connected:
                 break
             time.sleep(0.02)

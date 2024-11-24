@@ -41,7 +41,10 @@ class PublisherWatchDog(metaclass=SingletonOptimized):
 
         :param publisher: Publisher: The publisher to remove
         """
-        self.publisher_ring.remove(publisher)
+        try:
+            self.publisher_ring.remove(publisher)
+        except ValueError:
+            pass
 
     def scan(self):
         """

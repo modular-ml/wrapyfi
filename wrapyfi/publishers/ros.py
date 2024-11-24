@@ -74,10 +74,7 @@ class ROSPublisher(Publisher):
             out_topic = self.out_topic
         logging.info(f"[ROS] Waiting for topic subscriber: {out_topic}")
         if repeats is None:
-            if self.should_wait:
-                repeats = -1
-            else:
-                repeats = 1
+            repeats = -1 if self.should_wait else 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
                 connected = publisher.get_num_connections() < 1

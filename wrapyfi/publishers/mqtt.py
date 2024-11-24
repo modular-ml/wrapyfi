@@ -68,21 +68,20 @@ class MqttPublisher(Publisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
+        connected = False
         if out_topic is None:
             out_topic = self.out_topic
         logging.info(f"[MQTT] Waiting for output connection: {out_topic}")
         if repeats is None:
-            repeats = -1 if self.should_wait else 0
-
+            repeats = -1 if self.should_wait else 1
         while repeats > 0 or repeats == -1:
-            if repeats != -1:
-                repeats -= 1
+            repeats -= 1
             connected = MqttMiddlewarePubSub._instance.is_connected()
             if connected:
-                logging.info(f"[MQTT] Output connection established: {out_topic}")
-                return True
+                break
             time.sleep(0.02)
-        return False
+        logging.info(f"[MQTT] Output connection established: {out_topic}")
+        return connected
 
     def close(self):
         """
