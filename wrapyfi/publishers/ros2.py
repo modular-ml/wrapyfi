@@ -79,9 +79,9 @@ class ROS2Publisher(Publisher, Node):
                 repeats -= 1
                 connected = publisher.get_subscription_count() > 0
                 if connected:
+                    logging.info(f"[ROS 2] Topic subscriber connected: {out_topic}")
                     break
                 time.sleep(0.02)
-        logging.info(f"[ROS 2] Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):

@@ -78,9 +78,9 @@ class MqttPublisher(Publisher):
             repeats -= 1
             connected = MqttMiddlewarePubSub._instance.is_connected()
             if connected:
+                logging.info(f"[MQTT] Output connection established: {out_topic}")
                 break
             time.sleep(0.02)
-        logging.info(f"[MQTT] Output connection established: {out_topic}")
         return connected
 
     def close(self):

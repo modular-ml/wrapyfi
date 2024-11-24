@@ -134,9 +134,9 @@ class ZeroMQPublisher(Publisher):
             # allowing should_wait into the loop for consistency with other publishers only
             connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(out_topic) or not self.should_wait
             if connected:
+                logging.info(f"[ZeroMQ] Output connection established: {out_topic}")
                 break
             time.sleep(0.02)
-        logging.info(f"[ZeroMQ] Output connection established: {out_topic}")
         return connected
 
     def close(self):

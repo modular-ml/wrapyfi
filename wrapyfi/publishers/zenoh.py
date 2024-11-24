@@ -25,6 +25,7 @@ ZENOH_MONITOR_LISTENER_SPAWN = os.getenv(
     "WRAPYFI_ZENOH_MONITOR_LISTENER_SPAWN", "thread"
 )
 
+# WARNING: unlike other publishers, Zenoh is sensitive to the polling interval and might need to be changed to avoid crashing
 WATCHDOG_POLL_INTERVAL = float(os.getenv("WRAPYFI_ZENOH_RETRY_INTERVAL", 0.2))
 WATCHDOG_POLL_REPEATS = int(os.getenv("WRAPYFI_ZENOH_MAX_REPEATS", -1))
 
@@ -132,9 +133,9 @@ class ZenohPublisher(Publisher):
             connected = ZenohMiddlewarePubSub._instance.is_connected()
             if connected:
                 ZenohMiddlewarePubSub._instance.session.declare_publisher(out_topic)
+                logging.info(f"[Zenoh] Output connection established: {out_topic}")
                 break
             time.sleep(WATCHDOG_POLL_INTERVAL)
-        logging.info(f"[Zenoh] Output connection established: {out_topic}")
         return connected
 
     def close(self):

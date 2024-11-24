@@ -77,9 +77,9 @@ class YarpPublisher(Publisher):
                 repeats -= 1
                 connected = port.getOutputCount() > 0
                 if connected:
+                    logging.info(f"[YARP] Output connection established: {out_topic}")
                     break
                 time.sleep(0.02)
-        logging.info(f"[YARP] Output connection established: {out_topic}")
         return connected
 
     def close(self):

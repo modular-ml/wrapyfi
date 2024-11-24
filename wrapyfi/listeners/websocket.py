@@ -83,25 +83,23 @@ class WebSocketListener(Listener):
         :param in_topic: str: The topic to monitor for connection
         :param repeats: int: The number of times to check for the connection, None for infinite.
         """
+        connected = False
         if in_topic is None:
             in_topic = self.in_topic
         logging.info(f"[WebSocket] Waiting for input port: {in_topic}")
         if repeats is None:
-            repeats = -1 if self.should_wait else 0
+            repeats = -1 if self.should_wait else 1
 
         # Ensure to call is_connected() on the singleton instance
-        while repeats > 0 or repeats == -1:
-            if repeats != -1:
-                repeats -= 1
-            connected = (
-                WebSocketMiddlewarePubSub._instance.is_connected()
-            )  # Use the instance
-            logging.debug(f"Connection status: {connected}")
+        while repeats > 0 or repeats <= -1:
+            repeats -= 1
+            connected = (WebSocketMiddlewarePubSub._instance.is_connected())
+            # logging.debug(f"Connection status: {connected}")
             if connected:
                 logging.info(f"[WebSocket] Connected to input port: {in_topic}")
-                return True
+                break
             time.sleep(0.2)
-        return False
+        return connected
 
     def close(self):
         """
