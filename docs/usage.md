@@ -251,6 +251,10 @@ All messages are transmitted using the `zmq` Python bindings. Transmission follo
 Websocket assumes a server is running on the specified address and port. The forwarding of messages can only be done manually by the user. An example server can be found [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py) 
 ```
 
+```{note}
+Unlike the majority of middleware supported by Wrapyfi, websockets are bidirectional, meaning that the publisher can also be a listener. This allows Wrapyfi to support multiple publishers on the same topic ([namespaces](https://socket.io/docs/v4/namespaces/) and [rooms](https://socket.io/docs/v4/rooms/)) 
+```
+
 All messages are transmitted using the `python-socketio` Python bindings. Transmission follows the [socket.io protocol](https://socket.io/docs/v4/)
 
 * **Image**: Transmits and receives a `cv2` or `numpy` image wrapped in the `NativeObject` construct
