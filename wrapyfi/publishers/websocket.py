@@ -3,9 +3,11 @@ import json
 import time
 import os
 import threading
+
 import numpy as np
 import cv2
 from typing import Optional, Tuple
+from socketio import exceptions
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapyfi.middlewares.websocket import WebSocketMiddlewarePubSub
@@ -75,21 +77,21 @@ class WebSocketPublisher(Publisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
+        connected = False
         if out_topic is None:
             out_topic = self.out_topic
         logging.info(f"[WebSocket] Waiting for output connection: {out_topic}")
         if repeats is None:
-            repeats = -1 if self.should_wait else 0
+            repeats = -1 if self.should_wait else 1
 
-        while repeats > 0 or repeats == -1:
-            if repeats != -1:
-                repeats -= 1
+        while repeats > 0 or repeats <= -1:
+            repeats -= 1
             connected = WebSocketMiddlewarePubSub._instance.is_connected()
             if connected:
                 logging.info(f"[WebSocket] Output connection established: {out_topic}")
-                return True
+                break
             time.sleep(0.02)
-        return False
+        return connected
 
     def close(self):
         """
@@ -167,7 +169,10 @@ class WebSocketNativeObjectPublisher(WebSocketPublisher):
             **self._serializer_kwargs,
         )
         socketio_client = WebSocketMiddlewarePubSub._instance.socketio_client
-        socketio_client.emit(self.out_topic, obj_str)
+        try:
+            socketio_client.emit(self.out_topic, obj_str)
+        except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
+            self.established = False
 
 
 @Publishers.register("Image", "websocket")
@@ -253,7 +258,10 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
             }
 
         # Emit the header and image bytes as separate items in a list
-        socketio_client.emit(self.out_topic, [header, img_bytes])
+        try:
+            socketio_client.emit(self.out_topic, [header, img_bytes])
+        except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
+            self.established = False
 
 
 @Publishers.register("AudioChunk", "websocket")
@@ -328,7 +336,10 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
             "timestamp": time.time(),
         }
         # Emit the header and audio bytes as a list
-        socketio_client.emit(self.out_topic, [header, aud_bytes])
+        try:
+            socketio_client.emit(self.out_topic, [header, aud_bytes])
+        except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
+            self.established = False
 
 
 @Publishers.register("Properties", "websocket")

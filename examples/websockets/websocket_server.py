@@ -48,7 +48,7 @@ class MyCustomNamespace(Namespace):
 socketio.on_namespace(MyCustomNamespace(WEBSOCKET_NAMESPACE))
 
 
-@socketio.event(namespace="/")
+@socketio.event(namespace=WEBSOCKET_NAMESPACE)
 def connect():
     """
     This is the default event handler for when a client connects to the server.
@@ -56,7 +56,7 @@ def connect():
     print("Connected to the server")
 
 
-@socketio.on("/hello/my_message", namespace="/")
+@socketio.on("/hello/my_message", namespace=WEBSOCKET_NAMESPACE)
 def my_text_message(data):
     """
     This is for the `websockets/publisher_client.py` example for when the publisher sends a message over Websockets.
@@ -65,10 +65,10 @@ def my_text_message(data):
     :param data: dict: The message data
     """
     print("Received 'my_message' in client script")
-    socketio.emit("/hello/my_message", data, namespace="/")
+    socketio.emit("/hello/my_message", data, namespace=WEBSOCKET_NAMESPACE)
 
 
-@socketio.on("/cam_mic/cam_feed", namespace="/")
+@socketio.on("/cam_mic/cam_feed", namespace=WEBSOCKET_NAMESPACE)
 def my_img_message(data):
     """
     This is for the `sensors/cam_mic.py` example for when the publisher sends an image message over websocket (setting `--mware` argument to 'websocket').
@@ -76,10 +76,10 @@ def my_img_message(data):
     :param data: dict: The image data
     """
     print("Received 'my_message' in client script")
-    socketio.emit("/cam_mic/cam_feed", data, namespace="/")
+    socketio.emit("/cam_mic/cam_feed", data, namespace=WEBSOCKET_NAMESPACE)
 
 
-@socketio.on("/cam_mic/audio_feed", namespace="/")
+@socketio.on("/cam_mic/audio_feed", namespace=WEBSOCKET_NAMESPACE)
 def my_aud_message(data):
     """
     This is for the `sensors/cam_mic.py` example when the publisher sends an audio message over websocket (setting `--mware` argument to 'websocket').
@@ -87,7 +87,7 @@ def my_aud_message(data):
     :param data: dict: The audio data
     """
     print("Received 'my_message' in client script")
-    socketio.emit("/cam_mic/audio_feed", data, namespace="/")
+    socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
 
 
 # Start the development server. Note that for a production deployment, a production-ready server like waitress should be used.

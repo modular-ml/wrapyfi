@@ -74,17 +74,14 @@ class ROS2Publisher(Publisher, Node):
             out_topic = self.out_topic
         logging.info(f"[ROS 2] Waiting for topic subscriber: {out_topic}")
         if repeats is None:
-            if self.should_wait:
-                repeats = -1
-            else:
-                repeats = 1
+            repeats = -1 if self.should_wait else 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
                 connected = publisher.get_subscription_count() > 0
                 if connected:
+                    logging.info(f"[ROS 2] Topic subscriber connected: {out_topic}")
                     break
                 time.sleep(0.02)
-        logging.info(f"[ROS 2] Topic subscriber connected: {out_topic}")
         return connected
 
     def close(self):

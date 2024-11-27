@@ -87,7 +87,7 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         """Connect the WebSocket client."""
         try:
             self.socketio_client.connect(
-                self.socket_address, namespaces=["/"], **self.websocket_kwargs
+                self.socket_address, namespaces=["/"], **self.websocket_kwargs, retry=True,
             )
             self.socketio_client.wait()  # Wait for messages
         except Exception as e:

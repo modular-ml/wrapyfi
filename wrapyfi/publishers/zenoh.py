@@ -25,6 +25,7 @@ ZENOH_MONITOR_LISTENER_SPAWN = os.getenv(
     "WRAPYFI_ZENOH_MONITOR_LISTENER_SPAWN", "thread"
 )
 
+# WARNING: unlike other publishers, Zenoh is sensitive to the polling interval and might need to be changed to avoid crashing
 WATCHDOG_POLL_INTERVAL = float(os.getenv("WRAPYFI_ZENOH_RETRY_INTERVAL", 0.2))
 WATCHDOG_POLL_REPEATS = int(os.getenv("WRAPYFI_ZENOH_MAX_REPEATS", -1))
 
@@ -121,22 +122,21 @@ class ZenohPublisher(Publisher):
         :param repeats: int: Number of repeats to await connection. None for infinite. Default is None
         :return: bool: True if connection established, False otherwise
         """
+        connected = False
         if out_topic is None:
             out_topic = self.out_topic
         logging.info(f"[Zenoh] Waiting for output connection: {out_topic}")
         if repeats is None:
-            repeats = -1 if self.should_wait else 0
-
-        while repeats > 0 or repeats == -1:
-            if repeats != -1:
-                repeats -= 1
+            repeats = -1 if self.should_wait else 1
+        while repeats > 0 or repeats <= -1:
+            repeats -= 1
             connected = ZenohMiddlewarePubSub._instance.is_connected()
             if connected:
                 ZenohMiddlewarePubSub._instance.session.declare_publisher(out_topic)
                 logging.info(f"[Zenoh] Output connection established: {out_topic}")
-                return True
+                break
             time.sleep(WATCHDOG_POLL_INTERVAL)
-        return False
+        return connected
 
     def close(self):
         """
@@ -388,3 +388,11 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
         payload = header_bytes + b"\n" + aud_bytes
 
         ZenohMiddlewarePubSub._instance.session.put(self.out_topic, payload)
+
+
+@Publishers.register("Properties", "zenoh")
+class ZenohPropertiesPublisher(ZenohPublisher):
+
+    def __init__(self, name, out_topic, **kwargs):
+        super().__init__(name, out_topic, **kwargs)
+        raise NotImplementedError
