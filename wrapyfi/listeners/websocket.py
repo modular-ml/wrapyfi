@@ -93,7 +93,7 @@ class WebSocketListener(Listener):
         # Ensure to call is_connected() on the singleton instance
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            connected = (WebSocketMiddlewarePubSub._instance.is_connected())
+            connected = WebSocketMiddlewarePubSub._instance.is_connected()
             # logging.debug(f"Connection status: {connected}")
             if connected:
                 logging.info(f"[WebSocket] Connected to input port: {in_topic}")

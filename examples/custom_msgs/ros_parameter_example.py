@@ -83,6 +83,7 @@ class Notifier(MiddlewareCommunicator):
 def cache_message(**kwargs):
     return kwargs
 
+
 def parse_args():
     """
     Parse command line arguments.
@@ -109,16 +110,24 @@ def main(args):
     prev_misses = None
 
     while True:
-        my_dict_message, my_string_message, my_nested_property_message, my_nonpersistent_message = (
-            ros_message.set_property()
-        )
+        (
+            my_dict_message,
+            my_string_message,
+            my_nested_property_message,
+            my_nonpersistent_message,
+        ) = ros_message.set_property()
 
-        cache_message(my_dict_message=json.dumps(my_dict_message),
-                      my_string_message=my_string_message,
-                      my_nested_property_message=my_nested_property_message,
-                      my_nonpersistent_message=my_nonpersistent_message
-                      if not my_nonpersistent_message else my_nonpersistent_message[0])
-        if (curr_misses:= cache_message.cache_info().misses) != prev_misses:
+        cache_message(
+            my_dict_message=json.dumps(my_dict_message),
+            my_string_message=my_string_message,
+            my_nested_property_message=my_nested_property_message,
+            my_nonpersistent_message=(
+                my_nonpersistent_message
+                if not my_nonpersistent_message
+                else my_nonpersistent_message[0]
+            ),
+        )
+        if (curr_misses := cache_message.cache_info().misses) != prev_misses:
             prev_misses = curr_misses
             print(
                 "Method result:",
