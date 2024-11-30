@@ -1,5 +1,7 @@
 import os
-from functools import wraps
+import asyncio
+import time
+from functools import wraps, partial
 import re
 from typing import Union, List, Any, Callable, Optional
 
@@ -264,6 +266,54 @@ class MiddlewareCommunicator(object):
                     subreturns.append(wrp.listen())
                 returns.append(subreturns)
         return returns
+
+    @classmethod
+    async def __async_trigger_publish(
+        cls, func: Callable[..., Any], instance_id: str, publish_kwargs: dict, *wds, **kwds
+    ):
+        """
+        Asynchronous wrapper for the synchronous publish method.
+        """
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None, partial(cls.__trigger_publish, func, instance_id, publish_kwargs, *wds, **kwds)
+        )
+
+    @classmethod
+    async def __async_trigger_listen(
+        cls, func: Callable[..., Any], instance_id: str, listen_kwargs: dict, *wds, **kwds
+    ):
+        """
+        Asynchronous wrapper for the synchronous listen method.
+        """
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, partial(cls.__trigger_listen, func, instance_id, listen_kwargs, *wds, **kwds)
+        )
+
+
+    @classmethod
+    async def __async_trigger_transceive(
+        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+    ):
+        """
+        Triggers the transceive mode of the middleware communicator. Asynchronous transceive method that runs publish and listen concurrently. The returns are acquired from the listener.
+        """
+        publish_kwargs = deepcopy(kwd.get("publish_kwargs", {}))
+        listen_kwargs = deepcopy(kwd.get("listen_kwargs", {}))
+
+        if not publish_kwargs:
+            publish_kwargs.update(kwd)
+        if not listen_kwargs:
+            listen_kwargs.update(kwd)
+
+        # run publish and listen concurrently
+        publish_task = cls.__async_trigger_publish(func, instance_id, publish_kwargs, *wds, **kwds)
+        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", listen_kwargs, *wds, **kwds)
+
+        # await tasks and return listened output
+        _, listened_output = await asyncio.gather(publish_task, listen_task)
+        return listened_output
 
     @classmethod
     def __trigger_reply(
@@ -640,6 +690,24 @@ class MiddlewareCommunicator(object):
                 ):
                     return cls.__trigger_listen(func, instance_id, kwd, *wds, **kwds)
 
+                # publishes the method returns and listens for another message, which is eventually returned
+                elif (
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["mode"]
+                        == "transceive"
+                ):
+                    return asyncio.run(cls.__async_trigger_transceive(func, instance_id, kwd, *wds, **kwds))
+
+                # listens for a message, invokes the method and publishes the returns
+                elif (
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                            ]["mode"]
+                        == "reemit"
+                ):
+                    return cls.__trigger_reemit(func, instance_id, kwd, *wds, **kwds)
+
                 # server awaits request from client and replies with method returns
                 elif (
                     cls._MiddlewareCommunicator__registry[
@@ -687,7 +755,7 @@ class MiddlewareCommunicator(object):
         return encapsulate
 
     def activate_communication(
-        self, func: Union[str, Callable[..., Any]], mode: Union[str, List[str]]
+        self, func: Union[str, Callable[..., Any]], mode: Union[str, List[str]], id_postfix: Optional[str] = False
     ):
         """
         Activates the communication mode for a registered function in the middleware communicator.
@@ -697,6 +765,7 @@ class MiddlewareCommunicator(object):
 
         :param func: Union[str, Callable[..., Any]]: The function or the name of the function for which the communication mode should be activated
         :param mode: Union[str, List[str]]: Specifies the communication mode to be activated, either as a single mode (string) applicable to all instances, or as a list of modes (strings) per instance
+        :param id_postfix: Optional[str]: Specifies postfix to method registry name. This is needed for tranceive and reemit modes
 
         :raises: IndexError: If mode is a list and the number of elements does not match the number of instances
         :raises: ValueError: If the instance address cannot be found in the registry
@@ -705,6 +774,14 @@ class MiddlewareCommunicator(object):
             func = getattr(self, func)
         entry = self.__registry.get(func.__qualname__, None)
         if entry is not None:
+            if isinstance(mode, str):
+                # TODO (fabawi): 'transceive' mode will behave unexpectedly for multiple instances. Fix it
+                if mode == "transceive":
+                    self.__registry[f"{func.__qualname__}:rec"] = (
+                        deepcopy(entry)
+                    )
+                    self.activate_communication(func, mode="transceiver", id_postfix=":rec")
+
             instance_addr = hex(id(self))
             wrapyfi_instances = entry.get("__WRAPYFI_INSTANCES", None)
             if wrapyfi_instances is None:
@@ -726,6 +803,7 @@ class MiddlewareCommunicator(object):
                 if instance_id > 1
                 else func.__qualname__
             )
+            instance_qualname += id_postfix if id_postfix else ""
 
             if isinstance(mode, list):
                 try:
