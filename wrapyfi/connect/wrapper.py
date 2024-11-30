@@ -316,6 +316,31 @@ class MiddlewareCommunicator(object):
         return listened_output
 
     @classmethod
+    async def __async_trigger_reemit(
+        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+    ):
+        """
+        Triggers the reemit mode of the middleware communicator. Asynchronous reemit method that runs listen, takes the returns and publishes them. The returns arrive from the publisher.
+        """
+        publish_kwargs = deepcopy(kwd.get("publish_kwargs", {}))
+        listen_kwargs = deepcopy(kwd.get("listen_kwargs", {}))
+
+        if not publish_kwargs:
+            publish_kwargs.update(kwd)
+        if not listen_kwargs:
+            listen_kwargs.update(kwd)
+
+        # await tasks and get listened output
+        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", listen_kwargs, *wds, **kwds)
+        listened_output = await asyncio.gather(listen_task)
+
+        # receive listened outputs, run method, and publish the output
+        publish_task = cls.__async_trigger_publish(func, instance_id, publish_kwargs, *listened_output, **kwds)
+        published_output = await asyncio.gather(publish_task)
+
+        return published_output
+
+    @classmethod
     def __trigger_reply(
         cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
     ):
@@ -706,7 +731,7 @@ class MiddlewareCommunicator(object):
                             ]["mode"]
                         == "reemit"
                 ):
-                    return cls.__trigger_reemit(func, instance_id, kwd, *wds, **kwds)
+                    return asyncio.run(cls.__async_trigger_reemit(func, instance_id, kwd, *wds, **kwds))
 
                 # server awaits request from client and replies with method returns
                 elif (
@@ -774,14 +799,6 @@ class MiddlewareCommunicator(object):
             func = getattr(self, func)
         entry = self.__registry.get(func.__qualname__, None)
         if entry is not None:
-            if isinstance(mode, str):
-                # TODO (fabawi): 'transceive' mode will behave unexpectedly for multiple instances. Fix it
-                if mode == "transceive":
-                    self.__registry[f"{func.__qualname__}:rec"] = (
-                        deepcopy(entry)
-                    )
-                    self.activate_communication(func, mode="transceiver", id_postfix=":rec")
-
             instance_addr = hex(id(self))
             wrapyfi_instances = entry.get("__WRAPYFI_INSTANCES", None)
             if wrapyfi_instances is None:
@@ -807,15 +824,28 @@ class MiddlewareCommunicator(object):
 
             if isinstance(mode, list):
                 try:
-                    self.__registry[instance_qualname]["mode"] = mode[instance_id - 1]
+                    current_mode = mode[instance_id - 1]
+                    self.__registry[instance_qualname]["mode"] = current_mode
                 except IndexError:
                     raise IndexError(
-                        "When mode (publish|listen|disable|null) specified in configuration file is a "
+                        "When mode (publish|listen|transceive|reemit|disable|null) specified in configuration file is a "
                         "list, No. of elements in the list should match the number of instances"
                     )
             else:
-                self.__registry[instance_qualname]["mode"] = mode
+                current_mode = mode
+                self.__registry[instance_qualname]["mode"] = current_mode
             self.__registry[instance_qualname]["instance_addr"] = instance_addr
+
+            if current_mode == "transceive":
+                self.__registry[instance_qualname + ":rec"] = (
+                    deepcopy(entry)
+                )
+                self.activate_communication(func, mode="transceive:rec", id_postfix=":rec")
+            elif current_mode == "reemit":
+                self.__registry[instance_qualname + ":rec"] = (
+                    deepcopy(entry)
+                )
+                self.activate_communication(func, mode="reemit:rec", id_postfix=":rec")
 
     def close(self):
         """
@@ -830,7 +860,7 @@ class MiddlewareCommunicator(object):
 
         :return: Set[str]: The available middleware communicators (excluding the fallback communicator)
         """
-        return (pub.Publishers.mwares | lsn.Listeners.mwares) - {"fallback"}
+        return (pub.Publishers.mwares | lsn.Listeners.mwares | srv.Servers.mwares | clt.Clients.mwares) - {"fallback"}
 
     @classmethod
     def close_all_instances(cls):

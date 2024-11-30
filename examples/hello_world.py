@@ -78,7 +78,7 @@ def parse_args():
         action="store_const",
         const="transceive",
         default="listen",
-        help="Transceive mode",
+        help="Transceive mode - publish the method and listen for output instead of just returning published output",
     )
     parser.add_argument(
         "--request",
