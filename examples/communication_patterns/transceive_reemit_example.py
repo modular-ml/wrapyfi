@@ -1,6 +1,6 @@
 """
-This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the
-functionality of the middleware using the PUB/SUB pattern and the REQ/REP pattern. The example can be run on a single
+This example shows how to use the MiddlewareCommunicator to send and receive images. It can be used to test the
+functionality of the middleware using the PUB/SUB pattern with transceive and reemit modes. The example can be run on a single
 machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected
 using the ``--mware`` argument. The default is ZeroMQ, but YARP, ROS, and ROS 2 are also supported.
 
@@ -9,43 +9,37 @@ Requirements:
     - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
 
 Run:
-    # Alternative 1: PUB/SUB mode
+    # Alternative 1: PUB/SUB mode (transceive and reemit)
         # On machine 1 (or process 1): PUB/SUB mode - Publisher waits for keyboard input and transmits message
 
-        ``python3 hello_world.py --publish --mware zeromq``
+        ``python3 transceive_reemit_example.py --transceive --mware zeromq``
 
         # On machine 2 (or process 2): PUB/SUB mode - Listener waits for message and prints the received object
 
-        ``python3 hello_world.py --listen --mware zeromq``
-
-    # Alternative 2: REQ/REP mode
-        # On machine 1 (or process 1): REQ/REP mode - Replier waits for a message, sends a reply, and prints the received object
-
-        ``python3 hello_world.py --reply --mware zeromq``
-
-        # On machine 2 (or process 2): REQ/REP mode - Requester sends a predefined message and waits for a reply
-
-        ``python3 hello_world.py --request --mware zeromq``
+        ``python3 transceive_reemit_example.py --reemit --mware zeromq``
 
 
 """
 
+### TODO (fabawi): Currently testing with plain messages. Next will apply image transceiving and reemiting
 import argparse
 
 from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 
-class HelloWorld(MiddlewareCommunicator):
+class CameraEffects(MiddlewareCommunicator):
 
     @MiddlewareCommunicator.register(
         "NativeObject",
         "$mware",
-        "HelloWorld",
-        "/hello/my_message",
+        "CameraRaw",
+        "/SHOULD_NOT_BE_USED",
         carrier="tcp",
         should_wait=True,
+        publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/camera/raw_image"},
+        listener_kwargs = {"class_name": "CameraEffects", "in_topic": "/camera/color_invert"}
     )
-    def send_message(self, arg_from_requester="", mware=None):
+    def send_image(self, arg_from_requester="", mware=None):
         """
         Exchange messages and mirror user input.
         """
@@ -53,56 +47,43 @@ class HelloWorld(MiddlewareCommunicator):
         obj = {"message": msg, "message_from_requester": arg_from_requester}
         return obj,
 
+    @MiddlewareCommunicator.register(
+        "NativeObject",
+        "$mware",
+        "CameraEffects",
+        "/SHOULD_NOT_BE_USED",
+        carrier="tcp",
+        should_wait=True,
+        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/camera/raw_image"},
+        publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/camera/color_invert"}
+    )
+    def apply_effect(self, *img_from_pub, arg_from_requester="", mware=None):
+        """
+        Exchange messages and mirror user input.
+        """
+        msg = input("Type your message: ")
+        msg = f"****MSG FROM TRANSCEIVER: {img_from_pub[0]}   #### MSG FROM REEMITER: {msg}"
+        obj = {"message": msg, "message_from_requester": arg_from_requester}
+        return obj,
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--publish",
-        dest="mode",
-        action="store_const",
-        const="publish",
-        default="listen",
-        help="Publish mode",
-    )
-    parser.add_argument(
-        "--listen",
-        dest="mode",
-        action="store_const",
-        const="listen",
-        default="listen",
-        help="Listen mode (default)",
-    )
     parser.add_argument(
         "--transceive",
         dest="mode",
         action="store_const",
         const="transceive",
-        default="listen",
-        help="Transceive mode",
+        default="transceive",
+        help="Transceive mode - publish the method and listen for output instead of just returning published output",
     )
     parser.add_argument(
         "--reemit",
         dest="mode",
         action="store_const",
         const="reemit",
-        default="listen",
-        help="Reemit mode",
-    )
-    parser.add_argument(
-        "--request",
-        dest="mode",
-        action="store_const",
-        const="request",
-        default="listen",
-        help="Request mode",
-    )
-    parser.add_argument(
-        "--reply",
-        dest="mode",
-        action="store_const",
-        const="reply",
-        default="listen",
-        help="Reply mode",
+        default="transceive",
+        help="Reemit mode - listen for output, apply transformation, and publish transformation",
     )
     parser.add_argument(
         "--mware",
@@ -116,12 +97,23 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    hello_world = HelloWorld()
-    hello_world.activate_communication(HelloWorld.send_message, mode=args.mode)
+    cam_effects = CameraEffects()
+    if args.mode == "transceive":
+        cam_effects.activate_communication(CameraEffects.send_image, mode="transceive")
+        cam_effects.activate_communication(CameraEffects.apply_effect, mode="disable")
+    elif args.mode == "reemit":
+        cam_effects.activate_communication(CameraEffects.apply_effect, mode="reemit")
+        cam_effects.activate_communication(CameraEffects.send_image, mode="disable")
     while True:
-        my_message = hello_world.send_message(
+        my_image, = cam_effects.send_image(
             arg_from_requester=f"I got this message from the script running in {args.mode} mode",
             mware=args.mware,
         )
-        if my_message is not None:
-            print("Method result:", my_message)
+        my_effect, = cam_effects.send_image(
+            arg_from_requester=f"I got this message from the script running in {args.mode} mode",
+            mware=args.mware,
+        )
+        if my_image is not None:
+            print("Method result:", my_image)
+        elif my_effect is not None:
+            print("Method result:", my_effect)

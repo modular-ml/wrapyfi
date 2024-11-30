@@ -67,6 +67,14 @@ class MiddlewareCommunicator(object):
                     )
                     return_func_pub_kwargs.pop("listener_kwargs", None)
                     return_func_pub_kwargs.pop("publisher_kwargs", None)
+                    communicator["return_func_kwargs"].pop("listener_kwargs", None)
+                    communicator["return_func_kwargs"].pop("publisher_kwargs", None)
+
+                    communicator["return_func_args"] = tuple(
+                        return_func_pub_kwargs.pop(key, default)
+                        for key, default in zip(['class_name', 'out_topic'], communicator["return_func_args"])
+                    )
+
                     new_args, new_kwargs = match_args(
                         communicator["return_func_args"],
                         return_func_pub_kwargs,
@@ -103,6 +111,14 @@ class MiddlewareCommunicator(object):
                         )
                         return_func_pub_kwargs.pop("listener_kwargs", None)
                         return_func_pub_kwargs.pop("publisher_kwargs", None)
+                        communicator["return_func_kwargs"][comm_idx].pop("listener_kwargs", None)
+                        communicator["return_func_kwargs"][comm_idx].pop("publisher_kwargs", None)
+
+                        communicator["return_func_args"][comm_idx] = tuple(
+                            return_func_pub_kwargs.pop(key, default)
+                            for key, default in zip(['class_name', 'out_topic'], communicator["return_func_args"][comm_idx])
+                        )
+
                         new_args, new_kwargs = match_args(
                             communicator["return_func_args"][comm_idx],
                             return_func_pub_kwargs,
@@ -181,6 +197,14 @@ class MiddlewareCommunicator(object):
                     )
                     return_func_lsn_kwargs.pop("listener_kwargs", None)
                     return_func_lsn_kwargs.pop("publisher_kwargs", None)
+                    communicator["return_func_kwargs"].pop("listener_kwargs", None)
+                    communicator["return_func_kwargs"].pop("publisher_kwargs", None)
+
+                    communicator["return_func_args"] = tuple(
+                        return_func_lsn_kwargs.pop(key, default)
+                        for key, default in zip(['class_name', 'in_topic'], communicator["return_func_args"])
+                    )
+
                     new_args, new_kwargs = match_args(
                         communicator["return_func_args"],
                         return_func_lsn_kwargs,
@@ -218,6 +242,14 @@ class MiddlewareCommunicator(object):
                         )
                         return_func_lsn_kwargs.pop("listener_kwargs", None)
                         return_func_lsn_kwargs.pop("publisher_kwargs", None)
+                        communicator["return_func_kwargs"][comm_idx].pop("listener_kwargs", None)
+                        communicator["return_func_kwargs"][comm_idx].pop("publisher_kwargs", None)
+
+                        communicator["return_func_args"][comm_idx] = tuple(
+                            return_func_lsn_kwargs.pop(key, default)
+                            for key, default in zip(['class_name', 'in_topic'], communicator["return_func_args"][comm_idx])
+                        )
+
                         new_args, new_kwargs = match_args(
                             communicator["return_func_args"][comm_idx],
                             return_func_lsn_kwargs,
@@ -299,17 +331,10 @@ class MiddlewareCommunicator(object):
         """
         Triggers the transceive mode of the middleware communicator. Asynchronous transceive method that runs publish and listen concurrently. The returns are acquired from the listener.
         """
-        publish_kwargs = deepcopy(kwd.get("publish_kwargs", {}))
-        listen_kwargs = deepcopy(kwd.get("listen_kwargs", {}))
-
-        if not publish_kwargs:
-            publish_kwargs.update(kwd)
-        if not listen_kwargs:
-            listen_kwargs.update(kwd)
 
         # run publish and listen concurrently
-        publish_task = cls.__async_trigger_publish(func, instance_id, publish_kwargs, *wds, **kwds)
-        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", listen_kwargs, *wds, **kwds)
+        publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *wds, **kwds)
+        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
 
         # await tasks and return listened output
         _, listened_output = await asyncio.gather(publish_task, listen_task)
@@ -322,20 +347,13 @@ class MiddlewareCommunicator(object):
         """
         Triggers the reemit mode of the middleware communicator. Asynchronous reemit method that runs listen, takes the returns and publishes them. The returns arrive from the publisher.
         """
-        publish_kwargs = deepcopy(kwd.get("publish_kwargs", {}))
-        listen_kwargs = deepcopy(kwd.get("listen_kwargs", {}))
-
-        if not publish_kwargs:
-            publish_kwargs.update(kwd)
-        if not listen_kwargs:
-            listen_kwargs.update(kwd)
 
         # await tasks and get listened output
-        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", listen_kwargs, *wds, **kwds)
+        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
         listened_output = await asyncio.gather(listen_task)
 
         # receive listened outputs, run method, and publish the output
-        publish_task = cls.__async_trigger_publish(func, instance_id, publish_kwargs, *listened_output, **kwds)
+        publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *listened_output, **kwds)
         published_output = await asyncio.gather(publish_task)
 
         return published_output
