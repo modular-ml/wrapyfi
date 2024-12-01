@@ -20,6 +20,7 @@ DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_MWARE", DEFAULT_COMMUNICA
 
 class MiddlewareCommunicator(object):
     __registry = {}
+    __queue = asyncio.Queue()  # currently queues reemit messages only
 
     def __init__(self):
         """
@@ -342,21 +343,28 @@ class MiddlewareCommunicator(object):
 
     @classmethod
     async def __async_trigger_reemit(
-        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+            cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
     ):
         """
-        Triggers the reemit mode of the middleware communicator. Asynchronous reemit method that runs listen, takes the returns and publishes them. The returns arrive from the publisher.
+        Triggers the reemit mode of the middleware communicator. Asynchronous reemit method that uses an async queue to decouple listening and publishing.
         """
 
-        # await tasks and get listened output
+        # run publish and listen concurrently
         listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
         listened_output = await asyncio.gather(listen_task)
+        await cls._MiddlewareCommunicator__queue.put(listened_output)
 
-        # receive listened outputs, run method, and publish the output
-        publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *listened_output, **kwds)
+        try:
+            queued_listened_output = await cls._MiddlewareCommunicator__queue.get()
+            qds = wds + ([[None]],) if queued_listened_output is None else wds + tuple(queued_listened_output)
+        except asyncio.QueueEmpty:
+            qds = wds + ([[None]],)
+
+        publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *qds, **kwds)
         published_output = await asyncio.gather(publish_task)
 
         return published_output
+        # return listened_output
 
     @classmethod
     def __trigger_reply(
@@ -717,19 +725,19 @@ class MiddlewareCommunicator(object):
 
                 # publishes the method returns
                 if (
-                    cls._MiddlewareCommunicator__registry[
-                        func.__qualname__ + instance_id
-                    ]["mode"]
-                    == "publish"
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["mode"]
+                        == "publish"
                 ):
                     return cls.__trigger_publish(func, instance_id, kwd, *wds, **kwds)
 
                 # listens to the publisher and returns the messages
                 elif (
-                    cls._MiddlewareCommunicator__registry[
-                        func.__qualname__ + instance_id
-                    ]["mode"]
-                    == "listen"
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["mode"]
+                        == "listen"
                 ):
                     return cls.__trigger_listen(func, instance_id, kwd, *wds, **kwds)
 
@@ -746,35 +754,35 @@ class MiddlewareCommunicator(object):
                 elif (
                         cls._MiddlewareCommunicator__registry[
                             func.__qualname__ + instance_id
-                            ]["mode"]
+                        ]["mode"]
                         == "reemit"
                 ):
                     return asyncio.run(cls.__async_trigger_reemit(func, instance_id, kwd, *wds, **kwds))
 
                 # server awaits request from client and replies with method returns
                 elif (
-                    cls._MiddlewareCommunicator__registry[
-                        func.__qualname__ + instance_id
-                    ]["mode"]
-                    == "reply"
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["mode"]
+                        == "reply"
                 ):
                     return cls.__trigger_reply(func, instance_id, kwd, *wds, **kwds)
 
                 # client requests with args from server and awaits reply
                 elif (
-                    cls._MiddlewareCommunicator__registry[
-                        func.__qualname__ + instance_id
-                    ]["mode"]
-                    == "request"
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["mode"]
+                        == "request"
                 ):
                     return cls.__trigger_request(func, instance_id, kwd, *wds, **kwds)
 
                 # WARNING: use with caution. This produces "None" for all the method's returns
                 elif (
-                    cls._MiddlewareCommunicator__registry[
-                        func.__qualname__ + instance_id
-                    ]["mode"]
-                    == "disable"
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                        ]["mode"]
+                        == "disable"
                 ):
                     cls._MiddlewareCommunicator__registry[
                         func.__qualname__ + instance_id

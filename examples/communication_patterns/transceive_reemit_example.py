@@ -28,7 +28,6 @@ from wrapyfi.connect.wrapper import MiddlewareCommunicator, DEFAULT_COMMUNICATOR
 
 
 class CameraEffects(MiddlewareCommunicator):
-
     @MiddlewareCommunicator.register(
         "NativeObject",
         "$mware",
@@ -36,8 +35,8 @@ class CameraEffects(MiddlewareCommunicator):
         "/SHOULD_NOT_BE_USED",
         carrier="tcp",
         should_wait=True,
-        publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/camera/raw_image"},
-        listener_kwargs = {"class_name": "CameraEffects", "in_topic": "/camera/color_invert"}
+        listener_kwargs={"class_name": "CameraEffects", "in_topic": "/camera/color_invert"},
+        publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/camera/raw_image"}
     )
     def send_image(self, arg_from_requester="", mware=None):
         """
@@ -57,9 +56,9 @@ class CameraEffects(MiddlewareCommunicator):
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/camera/raw_image"},
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/camera/color_invert"}
     )
-    def apply_effect(self, *img_from_pub, arg_from_requester="", mware=None):
+    def apply_effect(self,  *img_from_pub, arg_from_requester="", mware=None):
         """
-        Exchange messages and mirror user input.
+        Apply transform to message.
         """
         msg = input("Type your message: ")
         msg = f"****MSG FROM TRANSCEIVER: {img_from_pub[0]}   #### MSG FROM REEMITER: {msg}"
@@ -109,11 +108,11 @@ if __name__ == "__main__":
             arg_from_requester=f"I got this message from the script running in {args.mode} mode",
             mware=args.mware,
         )
-        my_effect, = cam_effects.send_image(
+        my_effect, = cam_effects.apply_effect(
             arg_from_requester=f"I got this message from the script running in {args.mode} mode",
             mware=args.mware,
         )
         if my_image is not None:
             print("Method result:", my_image)
-        elif my_effect is not None:
+        if my_effect is not None:
             print("Method result:", my_effect)
