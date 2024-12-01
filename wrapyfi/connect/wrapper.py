@@ -308,7 +308,7 @@ class MiddlewareCommunicator(object):
         Asynchronous wrapper for the synchronous publish method.
         """
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
+        return await loop.run_in_executor(
             None, partial(cls.__trigger_publish, func, instance_id, publish_kwargs, *wds, **kwds)
         )
 
