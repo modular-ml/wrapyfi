@@ -20,7 +20,7 @@ DEFAULT_COMMUNICATOR = os.environ.get("WRAPYFI_DEFAULT_MWARE", DEFAULT_COMMUNICA
 
 class MiddlewareCommunicator(object):
     __registry = {}
-    __queue = asyncio.Queue()  # currently queues reemit messages only
+    __queue = {}  # currently queues reemit messages only
 
     def __init__(self):
         """
@@ -351,17 +351,17 @@ class MiddlewareCommunicator(object):
 
         # run publish and listen concurrently
         listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
-        listened_output = await asyncio.gather(listen_task)
-        await cls._MiddlewareCommunicator__queue.put(listened_output)
+        listened_output, = await asyncio.gather(listen_task)
+        await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].put(listened_output)
 
         try:
-            queued_listened_output = await cls._MiddlewareCommunicator__queue.get()
+            queued_listened_output = await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].get()
             qds = wds + ([[None]],) if queued_listened_output is None else wds + tuple(queued_listened_output)
         except asyncio.QueueEmpty:
             qds = wds + ([[None]],)
 
         publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *qds, **kwds)
-        published_output = await asyncio.gather(publish_task)
+        published_output, = await asyncio.gather(publish_task)
 
         return published_output
         # return listened_output
@@ -872,7 +872,8 @@ class MiddlewareCommunicator(object):
                     deepcopy(entry)
                 )
                 self.activate_communication(func, mode="reemit:rec", id_postfix=":rec")
-
+                instance_id = "" if instance_id <= 1 else str(instance_id)
+                self.__queue[f"{func.__qualname__}.{instance_id}"] = asyncio.Queue()
     def close(self):
         """
         Closes this middleware communicator instance.
