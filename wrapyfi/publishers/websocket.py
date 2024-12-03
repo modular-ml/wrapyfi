@@ -2,7 +2,6 @@ import logging
 import json
 import time
 import os
-import threading
 
 import numpy as np
 import cv2
@@ -16,18 +15,8 @@ from wrapyfi.encoders import JsonEncoder
 SOCKET_IP = os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_IP", "127.0.0.1")
 SOCKET_PORT = int(os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_PORT", 5000))
 WEBSOCKET_NAMESPACE = os.environ.get("WRAPYFI_WEBSOCKET_NAMESPACE", "/")
-WEBSOCKET_MONITOR_LISTENER_SPAWN = os.environ.get(
-    "WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN", "thread"
-)
-WATCHDOG_POLL_REPEAT = None
 
-if WEBSOCKET_MONITOR_LISTENER_SPAWN == "process":
-    WEBSOCKET_MONITOR_LISTENER_SPAWN = "thread"
-    logging.warning(
-        "[WebSocket] Wrapyfi does not support multiprocessing for Websockets. Please set "
-        "the environment variable WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN='thread'. "
-        "Switching automatically to 'thread' mode."
-    )
+WATCHDOG_POLL_REPEAT = None
 
 
 class WebSocketPublisher(Publisher):
@@ -40,7 +29,6 @@ class WebSocketPublisher(Publisher):
         socket_ip: str = SOCKET_IP,
         socket_port: int = SOCKET_PORT,
         namespace: str = WEBSOCKET_NAMESPACE,
-        monitor_listener_spawn: Optional[str] = WEBSOCKET_MONITOR_LISTENER_SPAWN,
         websocket_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -53,7 +41,6 @@ class WebSocketPublisher(Publisher):
         :param socket_ip: str: IP address of the socket. Default is '127.0.0.1'
         :param socket_port: int: Port of the socket for publishing. Default is 5000
         :param namespace: str: Namespace of the WebSocket. Default is '/'
-        :param monitor_listener_spawn: str: Whether to spawn the monitor listener as a process or thread. Default is 'thread'
         :param websocket_kwargs: dict: Additional kwargs for the WebSocket middleware
         :param kwargs: Additional kwargs for the publisher
         """
@@ -63,7 +50,6 @@ class WebSocketPublisher(Publisher):
 
         WebSocketMiddlewarePubSub.activate(
             socket_address=self.socket_address,
-            monitor_listener_spawn=monitor_listener_spawn,
             **(websocket_kwargs or {}),
         )
 
@@ -113,7 +99,6 @@ class WebSocketNativeObjectPublisher(WebSocketPublisher):
         name: str,
         out_topic: str,
         should_wait: bool = True,
-        multi_threaded: bool = False,
         serializer_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -124,13 +109,10 @@ class WebSocketNativeObjectPublisher(WebSocketPublisher):
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic (e.g. 'topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
-        :param multi_threaded: bool: Whether to use a separate socket for each thread. Default is False
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         :param kwargs: dict: Additional kwargs for the publisher
         """
         super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
-        if multi_threaded:
-            self._thread_local_storage = threading.local()
 
         self._plugin_encoder = JsonEncoder
         self._plugin_kwargs = kwargs
@@ -183,7 +165,6 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         name: str,
         out_topic: str,
         should_wait: bool = True,
-        multi_threaded: bool = False,
         width: int = -1,
         height: int = -1,
         rgb: bool = True,
@@ -197,7 +178,6 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic (e.g. 'topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
-        :param multi_threaded: bool: Whether to use a separate socket for each thread. Default is False
         :param width: int: Width of the image. Default is -1 meaning that the width is not fixed
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
@@ -271,7 +251,6 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
         name: str,
         out_topic: str,
         should_wait: bool = True,
-        multi_threaded: bool = False,
         channels: int = 1,
         rate: int = 44100,
         chunk: int = -1,
@@ -283,7 +262,6 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
         :param name: str: Name of the publisher
         :param out_topic: str: Name of the output topic (e.g. 'topic')
         :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True
-        :param multi_threaded: bool: Whether to use a separate socket for each thread. Default is False
         :param channels: int: Number of channels. Default is 1
         :param rate: int: Sampling rate. Default is 44100
         :param chunk: int: Chunk size. Default is -1 meaning that the chunk size is not fixed
@@ -292,7 +270,6 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
             name,
             out_topic,
             should_wait=should_wait,
-            multi_threaded=multi_threaded,
             **kwargs,
         )
         self.channels = channels

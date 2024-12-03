@@ -33,7 +33,6 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
     def __init__(
         self,
         socket_address: str = "http://127.0.0.1:5000",
-        monitor_listener_spawn: str = None,
         websocket_kwargs: dict = None,
         **kwargs,
     ):
@@ -41,14 +40,12 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         Initialize the WebSocket middleware. This method is automatically called when the class is instantiated.
 
         :param socket_address: str: The WebSocket server address
-        :param monitor_listener_spawn: str: Determines the type of listener spawn
         :param websocket_kwargs: dict: Additional keyword arguments for the WebSocket connection
         :param kwargs: dict: Additional keyword arguments for compatibility with the interface
         """
         logging.info(f"Initializing WebSocket middleware on {socket_address}")
 
         self.socket_address = socket_address
-        self.monitor_listener_spawn = monitor_listener_spawn
         self.websocket_kwargs = websocket_kwargs or {}
 
         self.socketio_client = socketio.Client()
