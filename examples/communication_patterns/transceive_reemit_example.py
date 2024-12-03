@@ -102,7 +102,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/message/my_message_snd",
         carrier="tcp",
         multi_threaded=True,
-        should_wait=False,
+        should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/message/my_message_snd"},
         listener_kwargs={"class_name": "CameraEffects", "in_topic": "/message/my_message_rec"}
     )
@@ -150,7 +150,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/message/my_message_rec",
         carrier="tcp",
         multi_threaded=True,
-        should_wait=False,
+        should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/message/my_message_rec"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/message/my_message_snd"}
     )
