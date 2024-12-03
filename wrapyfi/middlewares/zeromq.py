@@ -28,7 +28,7 @@ ZEROMQ_POST_OPTS = [
 ]
 
 
-class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
+class ZeroMQMiddlewarePubSub(object):
     """
     ZeroMQ PUB/SUB middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate``
     method should be called to initialize the middleware. The ``deinit`` method should be called to deinitialize the
@@ -439,6 +439,64 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         logging.info("Deinitializing ZeroMQ middleware")
         zmq.Context.instance().destroy()
 
+class ZeroMQMiddlewarePubSubListen(ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized):
+
+    @staticmethod
+    def activate(**kwargs):
+        """
+        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialize the middleware.
+
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
+        """
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
+        for key, value in kwargs.items():
+            try:
+                getattr(zmq, key)
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
+            except AttributeError:
+                pass
+
+        ZeroMQMiddlewarePubSubListen(
+            zeromq_proxy_kwargs=kwargs,
+            zeromq_post_kwargs=zeromq_post_kwargs,
+            **zeromq_pre_kwargs,
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+class ZeroMQMiddlewarePubSubPublish(ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized):
+    @staticmethod
+    def activate(**kwargs):
+        """
+        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialize the middleware.
+
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
+        """
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
+        for key, value in kwargs.items():
+            try:
+                getattr(zmq, key)
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
+            except AttributeError:
+                pass
+
+        ZeroMQMiddlewarePubSubPublish(
+            zeromq_proxy_kwargs=kwargs,
+            zeromq_post_kwargs=zeromq_post_kwargs,
+            **zeromq_pre_kwargs,
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     """

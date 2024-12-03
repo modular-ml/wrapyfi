@@ -12,7 +12,7 @@ import cv2
 import zmq
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
-from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSub
+from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSubPublish
 from wrapyfi.encoders import JsonEncoder
 
 
@@ -101,7 +101,7 @@ class ZeroMQPublisher(Publisher):
         self.socket_pub_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
         self.socket_sub_address = f"{carrier}://{socket_ip}:{socket_sub_port}"
 
-        ZeroMQMiddlewarePubSub.activate(
+        ZeroMQMiddlewarePubSubPublish.activate(
             socket_pub_address=self.socket_pub_address,
             socket_sub_address=self.socket_sub_address,
             start_proxy_broker=start_proxy_broker,
@@ -111,7 +111,7 @@ class ZeroMQPublisher(Publisher):
             **zeromq_kwargs or {},
         )
 
-        ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.out_topic)
+        ZeroMQMiddlewarePubSubPublish().shared_monitor_data.add_topic(self.out_topic)
 
     def await_connection(
         self, out_topic: Optional[str] = None, repeats: Optional[int] = None
@@ -133,7 +133,7 @@ class ZeroMQPublisher(Publisher):
             repeats -= 1
             # allowing should_wait into the loop for consistency with other publishers only
             connected = (
-                ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(out_topic)
+                ZeroMQMiddlewarePubSubPublish().shared_monitor_data.is_connected(out_topic)
                 or not self.should_wait
             )
             if connected:
@@ -146,7 +146,7 @@ class ZeroMQPublisher(Publisher):
         """
         Close the publisher.
         """
-        ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.out_topic)
+        ZeroMQMiddlewarePubSubPublish().shared_monitor_data.remove_topic(self.out_topic)
         time.sleep(0.2)
 
         if hasattr(self, "_socket") and self._socket:
@@ -204,7 +204,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         :return: bool: True if connection established, False otherwise
         """
         self._socket = zmq.Context.instance().socket(zmq.PUB)
-        for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+        for socket_property in ZeroMQMiddlewarePubSubPublish().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
                 self._socket.setsockopt_string(
                     getattr(zmq, socket_property[0]), socket_property[1]
@@ -225,7 +225,7 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         if not hasattr(self._thread_local_storage, "socket"):
             # Initialize a new socket for the thread
             self._thread_local_storage.socket = zmq.Context.instance().socket(zmq.PUB)
-            for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+            for socket_property in ZeroMQMiddlewarePubSubPublish().zeromq_kwargs.items():
                 if isinstance(socket_property[1], str):
                     self._thread_local_storage.socket.setsockopt_string(
                         getattr(zmq, socket_property[0]), socket_property[1]

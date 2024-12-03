@@ -9,7 +9,7 @@ import cv2
 import zmq
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
-from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSub
+from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSubListen
 from wrapyfi.encoders import JsonDecodeHook
 
 
@@ -77,14 +77,14 @@ class ZeroMQListener(Listener):
 
         self.socket_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
 
-        ZeroMQMiddlewarePubSub.activate(
+        ZeroMQMiddlewarePubSubListen.activate(
             socket_pub_address=self.socket_address,
             pubsub_monitor_topic=pubsub_monitor_topic,
             pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
             **zeromq_kwargs or {},
         )
 
-        ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.in_topic)
+        ZeroMQMiddlewarePubSubListen().shared_monitor_data.add_topic(self.in_topic)
 
     def await_connection(
         self, socket=None, in_topic: Optional[str] = None, repeats: Optional[int] = None
@@ -109,7 +109,7 @@ class ZeroMQListener(Listener):
 
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(
+            connected = ZeroMQMiddlewarePubSubListen().shared_monitor_data.is_connected(
                 in_topic
             )
             if connected:
@@ -137,7 +137,7 @@ class ZeroMQListener(Listener):
         """
         Close the subscriber.
         """
-        ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.in_topic)
+        ZeroMQMiddlewarePubSubListen().shared_monitor_data.remove_topic(self.in_topic)
         time.sleep(0.2)
 
         if hasattr(self, "_socket") and self._socket:
@@ -189,7 +189,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         :return: bool: True if connection established, False otherwise
         """
         self._socket = zmq.Context.instance().socket(zmq.SUB)
-        for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+        for socket_property in ZeroMQMiddlewarePubSubListen().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
                 self._socket.setsockopt_string(
                     getattr(zmq, socket_property[0]), socket_property[1]

@@ -23,7 +23,9 @@ Combinations:
 
 
 Limitations:
-    - Currently does not work with ZeroMQ (TODO: Fix)
+    - Currently does not work with ZeroMQ if should_wait is True (TODO: Fix)
+    - Currently does not work with ZeroMQ if no debug publisher exists since it spawns a ZeroMQ publish middleware. Need to fix singleton classes for both (TODO: Fix)
+    - Currently does not work with YARP if should_wait is False (TODO: Fix)
     - Currently does not work with Websockets due to race condition with multiple message instances (especially on receiving images) - https://github.com/miguelgrinberg/python-socketio/issues/403
 
 Requirements:
@@ -100,7 +102,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/message/my_message_snd",
         carrier="tcp",
         multi_threaded=True,
-        should_wait="$should_wait",
+        should_wait=False,
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/message/my_message_snd"},
         listener_kwargs={"class_name": "CameraEffects", "in_topic": "/message/my_message_rec"}
     )
@@ -148,7 +150,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/message/my_message_rec",
         carrier="tcp",
         multi_threaded=True,
-        should_wait="$should_wait",
+        should_wait=False,
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/message/my_message_rec"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/message/my_message_snd"}
     )
@@ -194,6 +196,20 @@ class CameraEffects(MiddlewareCommunicator):
         except Exception as e:
             # print(f"Error processing image: {e}")
             return None, None
+
+    @MiddlewareCommunicator.register(
+        "NativeObject",
+        "$mware",
+        "Debug",
+        "/COLDSTART",
+        carrier="tcp",
+        multi_threaded=True,
+        should_wait="$should_wait",
+        publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/COLDSTART"},
+        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/COLDSTART"}
+    )
+    def debug(self, should_wait=False, mware=None):
+        return "hello",
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -251,6 +267,7 @@ if __name__ == "__main__":
 
     if args.mode == "transceive":
         cam_effects = CameraEffects(cam_id=args.img_source, img_width=args.img_width, img_height=args.img_height)
+        cam_effects.activate_communication(CameraEffects.debug, mode="listen")
         cam_effects.activate_communication(CameraEffects.send_image, mode="transceive")
         cam_effects.activate_communication(CameraEffects.apply_effect, mode="disable")
 
@@ -260,10 +277,18 @@ if __name__ == "__main__":
 
     elif args.mode == "reemit":
         cam_effects = CameraEffects(cam_id=None, img_width=args.img_width, img_height=args.img_height)
+        cam_effects.activate_communication(CameraEffects.debug, mode="publish")
         cam_effects.activate_communication(CameraEffects.apply_effect, mode="reemit")
         cam_effects.activate_communication(CameraEffects.send_image, mode="disable")
 
+    metrics = {}
+
     while True:
+        testing, = cam_effects.debug(should_wait=args.should_wait, mware=args.mware)
+        if testing is not None:
+            # print(f"{testing}")
+            pass
+
         if args.mode == "transceive":
             current_display_time = time.time()
             display_times.append(current_display_time)
@@ -272,23 +297,30 @@ if __name__ == "__main__":
             else:
                 display_fps = 0
 
-            img_out, metrics = cam_effects.send_image(
+            img_out, recent_metrics = cam_effects.send_image(
                 img_width=args.img_width,
                 img_height=args.img_height,
                 should_wait=args.should_wait,
                 mware=args.mware
             )
 
+            if recent_metrics is not None:
+                metrics = recent_metrics
+            frame_id = metrics.get("frame_id")
+            timestamp_sent = metrics.get("timestamp")
+            if timestamp_sent and timestamp_sent > current_display_time:
+                latency = current_display_time - timestamp_sent
+            elif timestamp_sent and timestamp_sent < current_display_time:
+                latency = timestamp_sent - current_display_time
+            else:
+                latency = 0
+            overlay_text = (
+                f"Capture FPS: {metrics.get('capture_fps', 0):.2f}\n"
+                f"Received FPS: {metrics.get('received_fps', 0):.2f}\n"
+                f"Display FPS: {display_fps:.2f}\n"
+                f"Latency: {latency * 1000:.2f} ms"
+            )
             if img_out is not None and metrics is not None:
-                frame_id = metrics.get("frame_id")
-                timestamp_sent = metrics.get("timestamp")
-                latency = current_display_time - timestamp_sent if timestamp_sent else 0
-                overlay_text = (
-                    f"Capture FPS: {metrics.get('capture_fps', 0):.2f}\n"
-                    f"Received FPS: {metrics.get('received_fps', 0):.2f}\n"
-                    f"Display FPS: {display_fps:.2f}\n"
-                    f"Latency: {latency * 1000:.2f} ms"
-                )
                 y_offset = img_out.shape[0] - 10  # Start from the bottom of the image
                 for i, line in enumerate(overlay_text.split('\n')):
                     cv2.putText(
@@ -300,13 +332,14 @@ if __name__ == "__main__":
                         1,
                         cv2.LINE_AA
                     )
-
+                cv2.imshow("Captured Image", img_out)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            elif img_out is not None:
                 cv2.imshow("Captured Image", img_out)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
         elif args.mode == "reemit":
+            testing = cam_effects.debug(should_wait=args.should_wait, mware=args.mware)
             img_effect, _ = cam_effects.apply_effect(img_width=args.img_width, img_height=args.img_height, mware=args.mware, should_wait=args.should_wait, effect_type=args.effect)
-            if img_effect is not None:
-                # print(f"Effect {args.effect} applied successfully.")
-                pass
