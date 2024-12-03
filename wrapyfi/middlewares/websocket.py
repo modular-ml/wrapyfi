@@ -1,6 +1,5 @@
 import logging
 import atexit
-import threading
 
 import socketio
 
@@ -48,18 +47,14 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         """
         logging.info(f"Initializing WebSocket middleware on {socket_address}")
 
-        # Store arguments, even if unused for now (for interface compatibility)
         self.socket_address = socket_address
         self.monitor_listener_spawn = monitor_listener_spawn
         self.websocket_kwargs = websocket_kwargs or {}
 
-        # Initialize WebSocket client
         self.socketio_client = socketio.Client()
 
-        # Track connection status
         self.connected = False
 
-        # Register event handlers for connection
         @self.socketio_client.event
         def connect():
             logging.info(
@@ -74,12 +69,8 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
             )
             self.connected = False
 
-        # Start the connection in a background thread
-        self.client_thread = threading.Thread(target=self._connect_client)
-        self.client_thread.daemon = True
-        self.client_thread.start()
+        self.socketio_client.start_background_task(self._connect_client)
 
-        # Ensure cleanup at exit
         atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 

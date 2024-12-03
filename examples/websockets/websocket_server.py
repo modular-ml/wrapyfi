@@ -89,6 +89,24 @@ def my_aud_message(data):
     print("Received 'my_message' in client script")
     socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
 
+# TODO (fabawi): additional forwarders for debugging purposes. To be removed soon
+
+@socketio.on("/camera/effect_image", namespace=WEBSOCKET_NAMESPACE)
+def my_imgefct_message(data):
+    socketio.emit("/camera/effect_image", data, namespace=WEBSOCKET_NAMESPACE)
+
+@socketio.on("/camera/raw_image", namespace=WEBSOCKET_NAMESPACE)
+def my_imgraw_message(data):
+    socketio.emit("/camera/raw_image", data, namespace=WEBSOCKET_NAMESPACE)
+
+@socketio.on("/message/my_message_snd", namespace=WEBSOCKET_NAMESPACE)
+def my_mtrcssnd_message(data):
+    socketio.emit("/message/my_message_snd", data, namespace=WEBSOCKET_NAMESPACE)
+
+@socketio.on("/message/my_message_rec", namespace=WEBSOCKET_NAMESPACE)
+def my_mtrcsrec_message(data):
+    socketio.emit("/message/my_message_rec", data, namespace=WEBSOCKET_NAMESPACE)
+
 
 # Start the development server. Note that for a production deployment, a production-ready server like waitress should be used.
 if __name__ == "__main__":

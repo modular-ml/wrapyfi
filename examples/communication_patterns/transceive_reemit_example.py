@@ -15,20 +15,31 @@ script running order to reemit followed to transceive. Additionally, `--should_w
 transmitted and received by the methods. When should_wait is False, the first of the returns to be received will be
 processed, while the others could potentially be ignored.
 
+Combinations:
+    - transceive: should_wait; reeimit: should_wait => run reemit before transceive. On stopping transceive, reemit has to be restarted
+    - transceive: NO WAITING; reeimit: should_wait => run reemit before transceive. On stopping transceive, reemit has to be restarted
+    - transceive: should_wait; reeimit: NO WAITING => run reemit before transceive.  No need to restart reemit
+    - transceive: NO WAITING; reeimit: NO WAITING => run reemit and transceive in any order. No need to restart reemit
+
+
+Limitations:
+    - Currently does not work with ZeroMQ (TODO: Fix)
+    - Currently does not work with Websockets due to race condition with multiple message instances (especially on receiving images) - https://github.com/miguelgrinberg/python-socketio/issues/403
+
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
-    - YARP, ROS, ROS 2, ZeroMQ (refer to the Wrapyfi documentation for installation instructions)
+    - YARP, ROS, ROS 2, Zenoh (refer to the Wrapyfi documentation for installation instructions)
     - OpenCV (for capturing and processing images)
 
 Run:
     # Alternative 1: PUB/SUB mode (transceive and reemit)
         # On machine 1 (or process 1): PUB/SUB mode - Listener receives images, applies effects, and republishes
 
-        ``python3 transceive_reemit_example.py --reemit --mware zeromq --effect invert --img_width -1 --img_height -1 --should_wait``
+        ``python3 transceive_reemit_example.py --reemit --mware zenoh --effect invert --img_width -1 --img_height -1 --should_wait``
 
         # On machine 2 (or process 2): PUB/SUB mode - Publisher captures webcam images and transmits them
 
-        ``python3 transceive_reemit_example.py --transceive --mware zeromq --img_source 0 --img_width -1 --img_height -1 --should_wait``
+        ``python3 transceive_reemit_example.py --transceive --mware zenoh --img_source 0 --img_width -1 --img_height -1 --should_wait``
 
 """
 import argparse
@@ -77,6 +88,7 @@ class CameraEffects(MiddlewareCommunicator):
         rgb=True,
         jpg=True,
         queue_size=10,
+        multi_threaded=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/camera/raw_image"},
         listener_kwargs={"class_name": "CameraEffects", "in_topic": "/camera/effect_image"}
@@ -87,6 +99,7 @@ class CameraEffects(MiddlewareCommunicator):
         "CameraEffects",
         "/message/my_message_snd",
         carrier="tcp",
+        multi_threaded=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/message/my_message_snd"},
         listener_kwargs={"class_name": "CameraEffects", "in_topic": "/message/my_message_rec"}
@@ -123,6 +136,7 @@ class CameraEffects(MiddlewareCommunicator):
         rgb=True,
         jpg=True,
         queue_size=10,
+        multi_threaded=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/camera/effect_image"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/camera/raw_image"}
@@ -133,6 +147,7 @@ class CameraEffects(MiddlewareCommunicator):
         "CameraEffects",
         "/message/my_message_rec",
         carrier="tcp",
+        multi_threaded=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/message/my_message_rec"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/message/my_message_snd"}

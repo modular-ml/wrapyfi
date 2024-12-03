@@ -85,7 +85,7 @@ to run using [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) 
 Note that the server must be running and also scripted to forward messages to the listening from the publishing client as demonstrated in the example found 
 [here](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/examples/websockets/websocket_server.py)
 
-* **Zenoh**: Zenoh can be installed using pip: `pip install zenoh`. It is recommended to use the `WRAPYFI_ZENOH_MODE` environment variable to set the mode to `peer` for running in peer-to-peer mode. 
+* **Zenoh**: Zenoh can be installed using pip: `pip install eclipse-zenoh`. It is recommended to use the `WRAPYFI_ZENOH_MODE` environment variable to set the mode to `peer` for running in peer-to-peer mode. 
 The PUB/SUB pattern followed in our Zenoh implementation requires a router. To install the Zenoh router, follow the instructions found [here](https://github.com/eclipse-zenoh/zenoh/?tab=readme-ov-file#how-to-install-it). 
 The `zenohd` router must be running before running any Zenoh-based scripts. *NOTE*: The `zenohd --rest-http-port 8082` command must be executed with an arbitrary (non-conflicting) port to avoid collision with other services occupying the default port (8000).
 
