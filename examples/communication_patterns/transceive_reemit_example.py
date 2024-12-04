@@ -26,7 +26,6 @@ Limitations:
     - Currently does not work with ZeroMQ if should_wait is True (TODO: Fix)
     - Currently does not work with ZeroMQ if no debug publisher exists since it spawns a ZeroMQ publish middleware. Need to fix singleton classes for both (TODO: Fix)
     - Currently does not work with YARP if should_wait is False (TODO: Fix)
-    - Currently does not work with Websockets due to race condition with multiple message instances (especially on receiving images) - https://github.com/miguelgrinberg/python-socketio/issues/403
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
@@ -204,7 +203,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/COLDSTART",
         carrier="tcp",
         multi_threaded=True,
-        should_wait="$should_wait",
+        should_wait=False,
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/COLDSTART"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/COLDSTART"}
     )
@@ -320,7 +319,9 @@ if __name__ == "__main__":
                 f"Display FPS: {display_fps:.2f}\n"
                 f"Latency: {latency * 1000:.2f} ms"
             )
+
             if img_out is not None and metrics is not None:
+                img_out = img_out.copy()
                 y_offset = img_out.shape[0] - 10  # Start from the bottom of the image
                 for i, line in enumerate(overlay_text.split('\n')):
                     cv2.putText(

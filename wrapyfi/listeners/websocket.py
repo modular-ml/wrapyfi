@@ -4,6 +4,7 @@ import time
 import os
 import queue
 from typing import Optional
+import base64
 
 import numpy as np
 import cv2
@@ -207,9 +208,10 @@ class WebSocketImageListener(WebSocketNativeObjectListener):
         Callback for handling incoming image messages.
         """
         try:
-            header, img_bytes = data
+            header, img_base64 = data
+            img_bytes = base64.b64decode(img_base64)
+
             if self.jpg:
-                # JPEG case: decode the JPEG image
                 img_array = np.frombuffer(img_bytes, dtype=np.uint8)
                 if self.rgb:
                     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
@@ -217,7 +219,6 @@ class WebSocketImageListener(WebSocketNativeObjectListener):
                     img = cv2.imdecode(img_array, cv2.IMREAD_GRAYSCALE)
                 self._message_queue.put(img)
             else:
-                # Non-JPEG case: reconstruct the numpy array
                 shape = header.get("shape", None)
                 dtype = header.get("dtype", None)
                 if shape is not None and dtype is not None:

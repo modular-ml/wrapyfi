@@ -24,7 +24,6 @@ This can be achieved by setting:
 * `WRAPYFI_WEBSOCKET_SOCKET_IP`: IP address of the socket. Defaults to "127.0.0.1"
 * `WRAPYFI_WEBSOCKET_SOCKET_PORT`: The socket port. Defaults to 5000
 * `WRAPYFI_WEBSOCKET_NAMESPACE`: The socket namespace. Defaults to "/"
-* `WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN`: Either spawn the websocket monitor listener as a "process" or "thread". Defaults to "thread" which is the only supported option for now
 * `WRAPYFI_ZENOH_IP`: IP address of the Zenoh socket. Defaults to "127.0.0.1"
 * `WRAPYFI_ZENOH_PORT`: The Zenoh socket port. Defaults to 7447
 * `WRAPYFI_ZENOH_MODE`: The Zenoh mode indicating whether to use the router as a broker or adopt peer-to-peer communication. Defaults to "peer"

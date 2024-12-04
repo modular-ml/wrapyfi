@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import os
+import base64
 
 import numpy as np
 import cv2
@@ -210,12 +211,12 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
                 time.sleep(0.2)
 
         if (
-            0 < self.width != img.shape[1]
-            or 0 < self.height != img.shape[0]
-            or not (
+                0 < self.width != img.shape[1]
+                or 0 < self.height != img.shape[0]
+                or not (
                 (img.ndim == 2 and not self.rgb)
                 or (img.ndim == 3 and self.rgb and img.shape[2] == 3)
-            )
+        )
         ):
             raise ValueError("Incorrect image shape for publisher")
         if not img.flags["C_CONTIGUOUS"]:
@@ -224,12 +225,10 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         socketio_client = WebSocketMiddlewarePubSub._instance.socketio_client
 
         if self.jpg:
-            # Encode image as JPEG
             _, img_encoded = cv2.imencode(".jpg", img)
             img_bytes = img_encoded.tobytes()
             header = {"timestamp": time.time()}
         else:
-            # Serialize numpy array to bytes
             img_bytes = img.tobytes()
             header = {
                 "timestamp": time.time(),
@@ -237,9 +236,10 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
                 "dtype": str(img.dtype),
             }
 
-        # Emit the header and image bytes as separate items in a list
+        img_base64 = base64.b64encode(img_bytes).decode("utf-8")
+
         try:
-            socketio_client.emit(self.out_topic, [header, img_bytes])
+            socketio_client.emit(self.out_topic, [header, img_base64])
         except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
             self.established = False
 

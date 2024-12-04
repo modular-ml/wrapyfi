@@ -1,5 +1,6 @@
 import logging
 import atexit
+import threading
 
 import socketio
 
@@ -14,7 +15,7 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
     The `deinit` method should be called to deinitialize the middleware and destroy all connections.
     """
 
-    _instance = None  # Singleton instance
+    _instance = None
 
     @staticmethod
     def activate(socket_address: str = "http://127.0.0.1:5000", **kwargs):
