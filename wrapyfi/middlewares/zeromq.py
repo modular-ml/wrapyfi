@@ -190,7 +190,7 @@ class ZeroMQMiddlewarePubSub(object):
         # start the pubsub proxy and monitor
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             # start the pubsub monitor listener
-            if zeromq_proxy_kwargs.get("pubsub_monitor_listener_spawn", False):
+            if zeromq_proxy_kwargs.get("start_pubsub_monitor_broker", False):
                 if zeromq_proxy_kwargs["pubsub_monitor_listener_spawn"] == "process":
                     self.shared_monitor_data = self.ZeroMQSharedMonitorData(
                         use_multiprocessing=True
@@ -386,11 +386,11 @@ class ZeroMQMiddlewarePubSub(object):
         ).start()
 
     def __init_monitor_listener(
-        self,
-        socket_pub_address: str = "tcp://127.0.0.1:5555",
-        pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
-        verbose: bool = False,
-        **kwargs,
+            self,
+            socket_pub_address: str = "tcp://127.0.0.1:5555",
+            pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
+            verbose: bool = False,
+            **kwargs,
     ):
         """
         Initialize the ZeroMQ PUB/SUB monitor listener.
@@ -409,19 +409,21 @@ class ZeroMQMiddlewarePubSub(object):
             while True:
                 _, message = subscriber.recv_multipart()
                 data = json.loads(message.decode("utf-8"))
-                topic = list(data.keys())[0]
-                if verbose:
-                    logging.info(f"[ZeroMQ] Topic: {topic}, Data: {data}")
 
-                if topic in self.shared_monitor_data.get_topics():
-                    self.shared_monitor_data.update_connection(topic, data)
-                    if data[topic] == 0:
-                        logging.info(
-                            f"[ZeroMQ] Subscriber disconnected from topic: {topic}"
-                        )
-                        self.shared_monitor_data.remove_connection(topic)
-                    else:
-                        logging.info(f"[ZeroMQ] Subscriber connected to topic: {topic}")
+                for topic, value in data.items():
+                    if verbose:
+                        logging.info(f"[ZeroMQ] Topic: {topic}, Data: {value}")
+
+                    # check if the topic exists in shared monitor data
+                    if topic in self.shared_monitor_data.get_topics():
+                        self.shared_monitor_data.update_connection(topic, value)
+                        if value == 0:
+                            logging.info(
+                                f"[ZeroMQ] Subscriber disconnected from topic: {topic}"
+                            )
+                            self.shared_monitor_data.remove_connection(topic)
+                        else:
+                            logging.info(f"[ZeroMQ] Subscriber connected to topic: {topic}")
 
                 if verbose:
                     for monitored_topic in self.shared_monitor_data.get_topics():

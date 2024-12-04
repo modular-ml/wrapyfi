@@ -33,6 +33,10 @@ ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get(
 ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = os.environ.get(
     "WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN", "process"
 )
+START_PUBSUB_MONITOR_BROKER = (
+    os.environ.get("WRAPYFI_ZEROMQ_START_PUBSUB_MONITOR", True) != "False"
+)
+
 WATCHDOG_POLL_REPEAT = None
 
 
@@ -66,9 +70,8 @@ class ZeroMQPublisher(Publisher):
         start_proxy_broker: bool = START_PROXY_BROKER,
         proxy_broker_spawn: str = PROXY_BROKER_SPAWN,
         pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
-        pubsub_monitor_listener_spawn: Optional[
-            str
-        ] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
+        start_pubsub_monitor_broker: bool = START_PUBSUB_MONITOR_BROKER,
+        pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
         zeromq_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -85,6 +88,7 @@ class ZeroMQPublisher(Publisher):
         :param start_proxy_broker: bool: Whether to start a proxy broker. Default is True
         :param proxy_broker_spawn: str: Whether to spawn the proxy broker as a process or thread. Default is 'process'
         :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
+        :param start_pubsub_monitor_broker: bool: Whether to start a topic monitor to enable connection establishment checking. Default is True
         :param pubsub_monitor_listener_spawn: str: Whether to spawn the PUB/SUB monitor listener as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ Pub/Sub middleware
         :param kwargs: Additional kwargs for the publisher
@@ -107,11 +111,13 @@ class ZeroMQPublisher(Publisher):
             start_proxy_broker=start_proxy_broker,
             proxy_broker_spawn=proxy_broker_spawn,
             pubsub_monitor_topic=pubsub_monitor_topic,
+            start_pubsub_monitor_broker=start_pubsub_monitor_broker,
             pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
             **zeromq_kwargs or {},
         )
-
-        ZeroMQMiddlewarePubSubPublish().shared_monitor_data.add_topic(self.out_topic)
+        self.start_pubsub_monitor_broker = start_pubsub_monitor_broker
+        if start_pubsub_monitor_broker:
+            ZeroMQMiddlewarePubSubPublish().shared_monitor_data.add_topic(self.out_topic)
 
     def await_connection(
         self, out_topic: Optional[str] = None, repeats: Optional[int] = None
@@ -131,11 +137,10 @@ class ZeroMQPublisher(Publisher):
             repeats = -1 if self.should_wait else 1
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            # allowing should_wait into the loop for consistency with other publishers only
-            connected = (
-                ZeroMQMiddlewarePubSubPublish().shared_monitor_data.is_connected(out_topic)
-                or not self.should_wait
-            )
+            # allowing should_wait into the loop for consistency with other mware publishers only
+            connected = (not self.start_pubsub_monitor_broker or
+                         ZeroMQMiddlewarePubSubPublish().shared_monitor_data.is_connected(out_topic)
+            ) or not self.should_wait
             if connected:
                 logging.info(f"[ZeroMQ] Output connection established: {out_topic}")
                 break
@@ -146,7 +151,8 @@ class ZeroMQPublisher(Publisher):
         """
         Close the publisher.
         """
-        ZeroMQMiddlewarePubSubPublish().shared_monitor_data.remove_topic(self.out_topic)
+        if self.start_pubsub_monitor_broker:
+            ZeroMQMiddlewarePubSubPublish().shared_monitor_data.remove_topic(self.out_topic)
         time.sleep(0.2)
 
         if hasattr(self, "_socket") and self._socket:

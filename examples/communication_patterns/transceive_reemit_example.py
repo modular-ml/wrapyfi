@@ -23,7 +23,6 @@ Combinations:
 
 
 Limitations:
-    - Currently does not work with ZeroMQ if should_wait is True (TODO: Fix)
     - Currently does not work with ZeroMQ if no debug publisher exists since it spawns a ZeroMQ publish middleware. Need to fix singleton classes for both (TODO: Fix)
     - Currently does not work with YARP if should_wait is False (TODO: Fix)
 
