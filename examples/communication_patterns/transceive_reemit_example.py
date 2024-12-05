@@ -23,8 +23,7 @@ Combinations:
 
 
 Limitations:
-    - Currently does not work with ZeroMQ if no debug publisher exists since it spawns a ZeroMQ publish middleware. Need to fix singleton classes for both (TODO: Fix)
-    - Currently does not work with YARP if should_wait is False (TODO: Fix)
+    - Currently does not wait for second return argument in ZeroMQ even when should_wait is True (TODO: Fix)
 
 Requirements:
     - Wrapyfi: Middleware communication wrapper (refer to the Wrapyfi documentation for installation instructions)
