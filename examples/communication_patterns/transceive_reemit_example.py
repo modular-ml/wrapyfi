@@ -89,6 +89,7 @@ class CameraEffects(MiddlewareCommunicator):
         jpg=True,
         queue_size=10,
         multi_threaded=True,
+        persistent=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/camera/raw_image"},
         listener_kwargs={"class_name": "CameraEffects", "in_topic": "/camera/effect_image"}
@@ -100,6 +101,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/message/my_message_snd",
         carrier="tcp",
         multi_threaded=True,
+        persistent=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/message/my_message_snd"},
         listener_kwargs={"class_name": "CameraEffects", "in_topic": "/message/my_message_rec"}
@@ -137,6 +139,7 @@ class CameraEffects(MiddlewareCommunicator):
         jpg=True,
         queue_size=10,
         multi_threaded=True,
+        persistent=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/camera/effect_image"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/camera/raw_image"}
@@ -148,6 +151,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/message/my_message_rec",
         carrier="tcp",
         multi_threaded=True,
+        persistent=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/message/my_message_rec"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/message/my_message_snd"}
@@ -202,6 +206,7 @@ class CameraEffects(MiddlewareCommunicator):
         "/COLDSTART",
         carrier="tcp",
         multi_threaded=True,
+        persistent=False,
         should_wait=False,
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/COLDSTART"},
         listener_kwargs={"class_name": "CameraRaw", "in_topic": "/COLDSTART"}

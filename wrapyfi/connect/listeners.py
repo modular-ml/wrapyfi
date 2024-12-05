@@ -42,7 +42,10 @@ class ListenerWatchDog(metaclass=SingletonOptimized):
 
         :param listener: Listener: The listener to remove
         """
-        self.listener_ring.remove(listener)
+        try:
+            self.listener_ring.remove(listener)
+        except ValueError:
+            pass
 
     def scan(self):
         """
