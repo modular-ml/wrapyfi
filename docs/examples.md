@@ -21,11 +21,14 @@ This script demonstrates message channeling through three different middleware (
 
 [//]: # (This script demonstrates the capability to publish and subscribe to messages using the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern, allowing message publishing and listening functionalities between processes or machines.)
 
-## [REQ/REP](https://wrapyfi.readthedocs.io/en/latest/examples/examples.communication_patterns.html#module-examples.communication_patterns.request_reply_example)
+## [REQ/REP - Request and Reply](https://wrapyfi.readthedocs.io/en/latest/examples/examples.communication_patterns.html#module-examples.communication_patterns.request_reply_example)
 This script demonstrates the capability to request and reply to messages using the MiddlewareCommunicator within the Wrapyfi library. The communication follows the REQ/REP pattern, allowing message requesting and replying functionalities between processes or machines.
 
-## [PUB/SUB](https://wrapyfi.readthedocs.io/en/latest/examples/examples.html#module-examples.hello_world)
+## [PUB/SUB - Publish and Listen](https://wrapyfi.readthedocs.io/en/latest/examples/examples.html#module-examples.hello_world)
 Most examples support PUB/SUB as the default protocol. This example shows how to use the MiddlewareCommunicator to send and receive messages. It can be used to test the functionality of the middleware using the PUB/SUB pattern. The example can be run on a single machine or on multiple machines. In this example (as with all other examples), the communication middleware is selected using the `--mware` argument. The default is ZeroMQ, but YARP, ROS, ROS 2, and Websocket (assuming server that forwards the topic is running) are also supported.
+
+## [PUB/SUB - Transceive and Reeimit](https://wrapyfi.readthedocs.io/en/latest/examples/examples.communication_patterns.html#module-examples.communication_patterns.transceive_reemit_example)
+This script demonstrates the capability to transceive and reemit messages using the MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern, allowing message publishing followed by listening (transceive on publishing end) and listening followed by publishing (reemit on receiving end) functionalities between processes or machines.
 
 # Custom Messages
 
