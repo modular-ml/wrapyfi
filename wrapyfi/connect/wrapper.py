@@ -367,6 +367,29 @@ class MiddlewareCommunicator(object):
         # return listened_output
 
     @classmethod
+    async def __async_trigger_receive(
+            cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+    ):
+        """
+        Triggers the receive mode of the middleware communicator. Similar to reemit mode, but does not publish the final result (returns).
+        """
+
+        # run publish and listen concurrently
+        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
+        listened_output, = await asyncio.gather(listen_task)
+        await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].put(listened_output)
+
+        try:
+            queued_listened_output = await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].get()
+            qds = wds + ([[None]],) if queued_listened_output is None else wds + tuple(queued_listened_output)
+        except asyncio.QueueEmpty:
+            qds = wds + ([[None]],)
+
+        returns = func(*qds, **kwds)
+
+        return returns
+
+    @classmethod
     def __trigger_reply(
         cls, func: Callable[..., Any], instance_id: str, kwd, *wds, **kwds
     ):
@@ -759,6 +782,15 @@ class MiddlewareCommunicator(object):
                 ):
                     return asyncio.run(cls.__async_trigger_reemit(func, instance_id, kwd, *wds, **kwds))
 
+                # listens for a message, invokes the method but does **NOT** publish the returns
+                elif (
+                        cls._MiddlewareCommunicator__registry[
+                            func.__qualname__ + instance_id
+                            ]["mode"]
+                        == "receive"
+                ):
+                    return asyncio.run(cls.__async_trigger_receive(func, instance_id, kwd, *wds, **kwds))
+
                 # server awaits request from client and replies with method returns
                 elif (
                         cls._MiddlewareCommunicator__registry[
@@ -854,7 +886,7 @@ class MiddlewareCommunicator(object):
                     self.__registry[instance_qualname]["mode"] = current_mode
                 except IndexError:
                     raise IndexError(
-                        "When mode (publish|listen|transceive|reemit|disable|null) specified in configuration file is a "
+                        "When mode (publish|listen|transceive|reemit|receive|disable|null) specified in configuration file is a "
                         "list, No. of elements in the list should match the number of instances"
                     )
             else:
