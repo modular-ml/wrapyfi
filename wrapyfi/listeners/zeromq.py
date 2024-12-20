@@ -37,7 +37,6 @@ if os.name == "nt" and ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN == "process":
     )
 
 
-
 class ZeroMQListener(Listener):
 
     def __init__(
@@ -50,7 +49,9 @@ class ZeroMQListener(Listener):
         socket_pub_port: int = SOCKET_PUB_PORT,
         pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
         start_pubsub_monitor_broker: bool = START_PUBSUB_MONITOR_BROKER,
-        pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
+        pubsub_monitor_listener_spawn: Optional[
+            str
+        ] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
         zeromq_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -112,9 +113,12 @@ class ZeroMQListener(Listener):
             repeats = -1 if self.should_wait else 1
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            connected = (not self.start_pubsub_monitor_broker or
-                         ZeroMQMiddlewarePubSubListen().shared_monitor_data.is_connected(in_topic)
-                    ) or not self.should_wait
+            connected = (
+                not self.start_pubsub_monitor_broker
+                or ZeroMQMiddlewarePubSubListen().shared_monitor_data.is_connected(
+                    in_topic
+                )
+            ) or not self.should_wait
             if connected:
                 logging.info(f"[ZeroMQ] Connected to input port: {in_topic}")
                 break
@@ -141,7 +145,9 @@ class ZeroMQListener(Listener):
         Close the subscriber.
         """
         if self.start_pubsub_monitor_broker:
-            ZeroMQMiddlewarePubSubListen().shared_monitor_data.remove_topic(self.in_topic)
+            ZeroMQMiddlewarePubSubListen().shared_monitor_data.remove_topic(
+                self.in_topic
+            )
         time.sleep(0.2)
 
         if hasattr(self, "_socket") and self._socket:

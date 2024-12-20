@@ -73,7 +73,10 @@ class MiddlewareCommunicator(object):
 
                     communicator["return_func_args"] = tuple(
                         return_func_pub_kwargs.pop(key, default)
-                        for key, default in zip(['class_name', 'out_topic'], communicator["return_func_args"])
+                        for key, default in zip(
+                            ["class_name", "out_topic"],
+                            communicator["return_func_args"],
+                        )
                     )
 
                     new_args, new_kwargs = match_args(
@@ -112,12 +115,19 @@ class MiddlewareCommunicator(object):
                         )
                         return_func_pub_kwargs.pop("listener_kwargs", None)
                         return_func_pub_kwargs.pop("publisher_kwargs", None)
-                        communicator["return_func_kwargs"][comm_idx].pop("listener_kwargs", None)
-                        communicator["return_func_kwargs"][comm_idx].pop("publisher_kwargs", None)
+                        communicator["return_func_kwargs"][comm_idx].pop(
+                            "listener_kwargs", None
+                        )
+                        communicator["return_func_kwargs"][comm_idx].pop(
+                            "publisher_kwargs", None
+                        )
 
                         communicator["return_func_args"][comm_idx] = tuple(
                             return_func_pub_kwargs.pop(key, default)
-                            for key, default in zip(['class_name', 'out_topic'], communicator["return_func_args"][comm_idx])
+                            for key, default in zip(
+                                ["class_name", "out_topic"],
+                                communicator["return_func_args"][comm_idx],
+                            )
                         )
 
                         new_args, new_kwargs = match_args(
@@ -203,7 +213,9 @@ class MiddlewareCommunicator(object):
 
                     communicator["return_func_args"] = tuple(
                         return_func_lsn_kwargs.pop(key, default)
-                        for key, default in zip(['class_name', 'in_topic'], communicator["return_func_args"])
+                        for key, default in zip(
+                            ["class_name", "in_topic"], communicator["return_func_args"]
+                        )
                     )
 
                     new_args, new_kwargs = match_args(
@@ -243,12 +255,19 @@ class MiddlewareCommunicator(object):
                         )
                         return_func_lsn_kwargs.pop("listener_kwargs", None)
                         return_func_lsn_kwargs.pop("publisher_kwargs", None)
-                        communicator["return_func_kwargs"][comm_idx].pop("listener_kwargs", None)
-                        communicator["return_func_kwargs"][comm_idx].pop("publisher_kwargs", None)
+                        communicator["return_func_kwargs"][comm_idx].pop(
+                            "listener_kwargs", None
+                        )
+                        communicator["return_func_kwargs"][comm_idx].pop(
+                            "publisher_kwargs", None
+                        )
 
                         communicator["return_func_args"][comm_idx] = tuple(
                             return_func_lsn_kwargs.pop(key, default)
-                            for key, default in zip(['class_name', 'in_topic'], communicator["return_func_args"][comm_idx])
+                            for key, default in zip(
+                                ["class_name", "in_topic"],
+                                communicator["return_func_args"][comm_idx],
+                            )
                         )
 
                         new_args, new_kwargs = match_args(
@@ -302,28 +321,43 @@ class MiddlewareCommunicator(object):
 
     @classmethod
     async def __async_trigger_publish(
-        cls, func: Callable[..., Any], instance_id: str, publish_kwargs: dict, *wds, **kwds
+        cls,
+        func: Callable[..., Any],
+        instance_id: str,
+        publish_kwargs: dict,
+        *wds,
+        **kwds,
     ):
         """
         Asynchronous wrapper for the synchronous publish method.
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None, partial(cls.__trigger_publish, func, instance_id, publish_kwargs, *wds, **kwds)
+            None,
+            partial(
+                cls.__trigger_publish, func, instance_id, publish_kwargs, *wds, **kwds
+            ),
         )
 
     @classmethod
     async def __async_trigger_listen(
-        cls, func: Callable[..., Any], instance_id: str, listen_kwargs: dict, *wds, **kwds
+        cls,
+        func: Callable[..., Any],
+        instance_id: str,
+        listen_kwargs: dict,
+        *wds,
+        **kwds,
     ):
         """
         Asynchronous wrapper for the synchronous listen method.
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None, partial(cls.__trigger_listen, func, instance_id, listen_kwargs, *wds, **kwds)
+            None,
+            partial(
+                cls.__trigger_listen, func, instance_id, listen_kwargs, *wds, **kwds
+            ),
         )
-
 
     @classmethod
     async def __async_trigger_transceive(
@@ -335,7 +369,9 @@ class MiddlewareCommunicator(object):
 
         # run publish and listen concurrently
         publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *wds, **kwds)
-        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
+        listen_task = cls.__async_trigger_listen(
+            func, instance_id + ":rec", kwd, *wds, **kwds
+        )
 
         # await tasks and return listened output
         _, listened_output = await asyncio.gather(publish_task, listen_task)
@@ -343,45 +379,65 @@ class MiddlewareCommunicator(object):
 
     @classmethod
     async def __async_trigger_reemit(
-            cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
     ):
         """
         Triggers the reemit mode of the middleware communicator. Asynchronous reemit method that uses an async queue to decouple listening and publishing.
         """
 
         # run publish and listen concurrently
-        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
-        listened_output, = await asyncio.gather(listen_task)
-        await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].put(listened_output)
+        listen_task = cls.__async_trigger_listen(
+            func, instance_id + ":rec", kwd, *wds, **kwds
+        )
+        (listened_output,) = await asyncio.gather(listen_task)
+        await cls._MiddlewareCommunicator__queue[
+            f"{func.__qualname__}.{instance_id}"
+        ].put(listened_output)
 
         try:
-            queued_listened_output = await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].get()
-            qds = wds + ([[None]],) if queued_listened_output is None else wds + tuple(queued_listened_output)
+            queued_listened_output = await cls._MiddlewareCommunicator__queue[
+                f"{func.__qualname__}.{instance_id}"
+            ].get()
+            qds = (
+                wds + ([[None]],)
+                if queued_listened_output is None
+                else wds + tuple(queued_listened_output)
+            )
         except asyncio.QueueEmpty:
             qds = wds + ([[None]],)
 
         publish_task = cls.__async_trigger_publish(func, instance_id, kwd, *qds, **kwds)
-        published_output, = await asyncio.gather(publish_task)
+        (published_output,) = await asyncio.gather(publish_task)
 
         return published_output
         # return listened_output
 
     @classmethod
     async def __async_trigger_receive(
-            cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
+        cls, func: Callable[..., Any], instance_id: str, kwd: dict, *wds, **kwds
     ):
         """
         Triggers the receive mode of the middleware communicator. Similar to reemit mode, but does not publish the final result (returns).
         """
 
         # run publish and listen concurrently
-        listen_task = cls.__async_trigger_listen(func, instance_id + ":rec", kwd, *wds, **kwds)
-        listened_output, = await asyncio.gather(listen_task)
-        await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].put(listened_output)
+        listen_task = cls.__async_trigger_listen(
+            func, instance_id + ":rec", kwd, *wds, **kwds
+        )
+        (listened_output,) = await asyncio.gather(listen_task)
+        await cls._MiddlewareCommunicator__queue[
+            f"{func.__qualname__}.{instance_id}"
+        ].put(listened_output)
 
         try:
-            queued_listened_output = await cls._MiddlewareCommunicator__queue[f"{func.__qualname__}.{instance_id}"].get()
-            qds = wds + ([[None]],) if queued_listened_output is None else wds + tuple(queued_listened_output)
+            queued_listened_output = await cls._MiddlewareCommunicator__queue[
+                f"{func.__qualname__}.{instance_id}"
+            ].get()
+            qds = (
+                wds + ([[None]],)
+                if queued_listened_output is None
+                else wds + tuple(queued_listened_output)
+            )
         except asyncio.QueueEmpty:
             qds = wds + ([[None]],)
 
@@ -748,73 +804,83 @@ class MiddlewareCommunicator(object):
 
                 # publishes the method returns
                 if (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "publish"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "publish"
                 ):
                     return cls.__trigger_publish(func, instance_id, kwd, *wds, **kwds)
 
                 # listens to the publisher and returns the messages
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "listen"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "listen"
                 ):
                     return cls.__trigger_listen(func, instance_id, kwd, *wds, **kwds)
 
                 # publishes the method returns and listens for another message, which is eventually returned
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "transceive"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "transceive"
                 ):
-                    return asyncio.run(cls.__async_trigger_transceive(func, instance_id, kwd, *wds, **kwds))
+                    return asyncio.run(
+                        cls.__async_trigger_transceive(
+                            func, instance_id, kwd, *wds, **kwds
+                        )
+                    )
 
                 # listens for a message, invokes the method and publishes the returns
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "reemit"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "reemit"
                 ):
-                    return asyncio.run(cls.__async_trigger_reemit(func, instance_id, kwd, *wds, **kwds))
+                    return asyncio.run(
+                        cls.__async_trigger_reemit(func, instance_id, kwd, *wds, **kwds)
+                    )
 
                 # listens for a message, invokes the method but does **NOT** publish the returns
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                            ]["mode"]
-                        == "receive"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "receive"
                 ):
-                    return asyncio.run(cls.__async_trigger_receive(func, instance_id, kwd, *wds, **kwds))
+                    return asyncio.run(
+                        cls.__async_trigger_receive(
+                            func, instance_id, kwd, *wds, **kwds
+                        )
+                    )
 
                 # server awaits request from client and replies with method returns
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "reply"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "reply"
                 ):
                     return cls.__trigger_reply(func, instance_id, kwd, *wds, **kwds)
 
                 # client requests with args from server and awaits reply
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "request"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "request"
                 ):
                     return cls.__trigger_request(func, instance_id, kwd, *wds, **kwds)
 
                 # WARNING: use with caution. This produces "None" for all the method's returns
                 elif (
-                        cls._MiddlewareCommunicator__registry[
-                            func.__qualname__ + instance_id
-                        ]["mode"]
-                        == "disable"
+                    cls._MiddlewareCommunicator__registry[
+                        func.__qualname__ + instance_id
+                    ]["mode"]
+                    == "disable"
                 ):
                     cls._MiddlewareCommunicator__registry[
                         func.__qualname__ + instance_id
@@ -838,7 +904,10 @@ class MiddlewareCommunicator(object):
         return encapsulate
 
     def activate_communication(
-        self, func: Union[str, Callable[..., Any]], mode: Union[str, List[str]], id_postfix: Optional[str] = False
+        self,
+        func: Union[str, Callable[..., Any]],
+        mode: Union[str, List[str]],
+        id_postfix: Optional[str] = False,
     ):
         """
         Activates the communication mode for a registered function in the middleware communicator.
@@ -895,17 +964,16 @@ class MiddlewareCommunicator(object):
             self.__registry[instance_qualname]["instance_addr"] = instance_addr
 
             if current_mode == "transceive":
-                self.__registry[instance_qualname + ":rec"] = (
-                    deepcopy(entry)
+                self.__registry[instance_qualname + ":rec"] = deepcopy(entry)
+                self.activate_communication(
+                    func, mode="transceive:rec", id_postfix=":rec"
                 )
-                self.activate_communication(func, mode="transceive:rec", id_postfix=":rec")
             elif current_mode == "reemit":
-                self.__registry[instance_qualname + ":rec"] = (
-                    deepcopy(entry)
-                )
+                self.__registry[instance_qualname + ":rec"] = deepcopy(entry)
                 self.activate_communication(func, mode="reemit:rec", id_postfix=":rec")
                 instance_id = "" if instance_id <= 1 else str(instance_id)
                 self.__queue[f"{func.__qualname__}.{instance_id}"] = asyncio.Queue()
+
     def close(self):
         """
         Closes this middleware communicator instance.
@@ -919,7 +987,12 @@ class MiddlewareCommunicator(object):
 
         :return: Set[str]: The available middleware communicators (excluding the fallback communicator)
         """
-        return (pub.Publishers.mwares | lsn.Listeners.mwares | srv.Servers.mwares | clt.Clients.mwares) - {"fallback"}
+        return (
+            pub.Publishers.mwares
+            | lsn.Listeners.mwares
+            | srv.Servers.mwares
+            | clt.Clients.mwares
+        ) - {"fallback"}
 
     @classmethod
     def close_all_instances(cls):

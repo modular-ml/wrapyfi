@@ -386,11 +386,11 @@ class ZeroMQMiddlewarePubSub(object):
         ).start()
 
     def __init_monitor_listener(
-            self,
-            socket_pub_address: str = "tcp://127.0.0.1:5555",
-            pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
-            verbose: bool = False,
-            **kwargs,
+        self,
+        socket_pub_address: str = "tcp://127.0.0.1:5555",
+        pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
+        verbose: bool = False,
+        **kwargs,
     ):
         """
         Initialize the ZeroMQ PUB/SUB monitor listener.
@@ -423,7 +423,9 @@ class ZeroMQMiddlewarePubSub(object):
                             )
                             self.shared_monitor_data.remove_connection(topic)
                         else:
-                            logging.info(f"[ZeroMQ] Subscriber connected to topic: {topic}")
+                            logging.info(
+                                f"[ZeroMQ] Subscriber connected to topic: {topic}"
+                            )
 
                 if verbose:
                     for monitored_topic in self.shared_monitor_data.get_topics():
@@ -441,7 +443,10 @@ class ZeroMQMiddlewarePubSub(object):
         logging.info("Deinitializing ZeroMQ middleware")
         zmq.Context.instance().destroy()
 
-class ZeroMQMiddlewarePubSubListen(ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized):
+
+class ZeroMQMiddlewarePubSubListen(
+    ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized
+):
 
     @staticmethod
     def activate(**kwargs):
@@ -471,7 +476,10 @@ class ZeroMQMiddlewarePubSubListen(ZeroMQMiddlewarePubSub, metaclass=SingletonOp
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class ZeroMQMiddlewarePubSubPublish(ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized):
+
+class ZeroMQMiddlewarePubSubPublish(
+    ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized
+):
     @staticmethod
     def activate(**kwargs):
         """
@@ -499,6 +507,7 @@ class ZeroMQMiddlewarePubSubPublish(ZeroMQMiddlewarePubSub, metaclass=SingletonO
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
 
 class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     """

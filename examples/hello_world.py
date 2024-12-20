@@ -51,7 +51,7 @@ class HelloWorld(MiddlewareCommunicator):
         """
         msg = input("Type your message: ")
         obj = {"message": msg, "message_from_requester": arg_from_requester}
-        return obj,
+        return (obj,)
 
 
 def parse_args():
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     hello_world = HelloWorld()
     hello_world.activate_communication(HelloWorld.send_message, mode=args.mode)
     while True:
-        my_message, = hello_world.send_message(
+        (my_message,) = hello_world.send_message(
             arg_from_requester=f"I got this message from the script running in {args.mode} mode",
             mware=args.mware,
         )
