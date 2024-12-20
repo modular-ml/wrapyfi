@@ -71,7 +71,9 @@ class ZeroMQPublisher(Publisher):
         proxy_broker_spawn: str = PROXY_BROKER_SPAWN,
         pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
         start_pubsub_monitor_broker: bool = START_PUBSUB_MONITOR_BROKER,
-        pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
+        pubsub_monitor_listener_spawn: Optional[
+            str
+        ] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
         zeromq_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -117,7 +119,9 @@ class ZeroMQPublisher(Publisher):
         )
         self.start_pubsub_monitor_broker = start_pubsub_monitor_broker
         if start_pubsub_monitor_broker:
-            ZeroMQMiddlewarePubSubPublish().shared_monitor_data.add_topic(self.out_topic)
+            ZeroMQMiddlewarePubSubPublish().shared_monitor_data.add_topic(
+                self.out_topic
+            )
 
     def await_connection(
         self, out_topic: Optional[str] = None, repeats: Optional[int] = None
@@ -138,8 +142,11 @@ class ZeroMQPublisher(Publisher):
         while repeats > 0 or repeats <= -1:
             repeats -= 1
             # allowing should_wait into the loop for consistency with other mware publishers only
-            connected = (not self.start_pubsub_monitor_broker or
-                         ZeroMQMiddlewarePubSubPublish().shared_monitor_data.is_connected(out_topic)
+            connected = (
+                not self.start_pubsub_monitor_broker
+                or ZeroMQMiddlewarePubSubPublish().shared_monitor_data.is_connected(
+                    out_topic
+                )
             ) or not self.should_wait
             if connected:
                 logging.info(f"[ZeroMQ] Output connection established: {out_topic}")
@@ -152,7 +159,9 @@ class ZeroMQPublisher(Publisher):
         Close the publisher.
         """
         if self.start_pubsub_monitor_broker:
-            ZeroMQMiddlewarePubSubPublish().shared_monitor_data.remove_topic(self.out_topic)
+            ZeroMQMiddlewarePubSubPublish().shared_monitor_data.remove_topic(
+                self.out_topic
+            )
         time.sleep(0.2)
 
         if hasattr(self, "_socket") and self._socket:
@@ -231,7 +240,9 @@ class ZeroMQNativeObjectPublisher(ZeroMQPublisher):
         if not hasattr(self._thread_local_storage, "socket"):
             # Initialize a new socket for the thread
             self._thread_local_storage.socket = zmq.Context.instance().socket(zmq.PUB)
-            for socket_property in ZeroMQMiddlewarePubSubPublish().zeromq_kwargs.items():
+            for (
+                socket_property
+            ) in ZeroMQMiddlewarePubSubPublish().zeromq_kwargs.items():
                 if isinstance(socket_property[1], str):
                     self._thread_local_storage.socket.setsockopt_string(
                         getattr(zmq, socket_property[0]), socket_property[1]

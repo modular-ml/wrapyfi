@@ -1,7 +1,7 @@
 
 [project]
 name = "wrapyfi"
-version = "0.4.52"
+version = "0.4.53"
 description = "Wrapyfi is a wrapper for simplifying Middleware communication"
 readme = "README.md"
 authors = [

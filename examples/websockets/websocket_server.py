@@ -90,7 +90,9 @@ def my_aud_message(data):
     print("Received 'my_message' in client script")
     socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
 
+
 # TODO (fabawi): additional forwarders for debugging purposes. To be removed soon
+
 
 @socketio.on("/camera/effect_image", namespace=WEBSOCKET_NAMESPACE)
 def my_imgefct_message(data):

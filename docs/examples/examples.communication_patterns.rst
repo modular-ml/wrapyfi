@@ -12,6 +12,14 @@ examples.communication\_patterns.request\_reply\_example module
    :undoc-members:
    :show-inheritance:
 
+examples.communication\_patterns.transceive\_reemit\_example module
+-------------------------------------------------------------------
+
+.. automodule:: examples.communication_patterns.transceive_reemit_example
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

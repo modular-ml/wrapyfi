@@ -41,6 +41,7 @@ Run:
         ``python3 transceive_reemit_example.py --transceive --mware zenoh --img_source 0 --img_width -1 --img_height -1 --should_wait``
 
 """
+
 import argparse
 import time
 from collections import deque
@@ -91,7 +92,10 @@ class CameraEffects(MiddlewareCommunicator):
         persistent=True,
         should_wait="$should_wait",
         publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/camera/raw_image"},
-        listener_kwargs={"class_name": "CameraEffects", "in_topic": "/camera/effect_image"}
+        listener_kwargs={
+            "class_name": "CameraEffects",
+            "in_topic": "/camera/effect_image",
+        },
     )
     @MiddlewareCommunicator.register(
         "NativeObject",
@@ -102,8 +106,14 @@ class CameraEffects(MiddlewareCommunicator):
         multi_threaded=True,
         persistent=True,
         should_wait="$should_wait",
-        publisher_kwargs={"class_name": "CameraRaw", "out_topic": "/message/my_message_snd"},
-        listener_kwargs={"class_name": "CameraEffects", "in_topic": "/message/my_message_rec"}
+        publisher_kwargs={
+            "class_name": "CameraRaw",
+            "out_topic": "/message/my_message_snd",
+        },
+        listener_kwargs={
+            "class_name": "CameraEffects",
+            "in_topic": "/message/my_message_rec",
+        },
     )
     def send_image(self, img_width=320, img_height=240, should_wait=True, mware=None):
         """
@@ -123,8 +133,11 @@ class CameraEffects(MiddlewareCommunicator):
         self.capture_times.append(self.frame_timestamps[frame_id])
         fps = self.calculate_fps(self.capture_times)
 
-        return frame, {"capture_fps": fps, "frame_id": frame_id,
-                       "timestamp": self.frame_timestamps[frame_id]}
+        return frame, {
+            "capture_fps": fps,
+            "frame_id": frame_id,
+            "timestamp": self.frame_timestamps[frame_id],
+        }
 
     @MiddlewareCommunicator.register(
         "Image",
@@ -140,8 +153,11 @@ class CameraEffects(MiddlewareCommunicator):
         multi_threaded=True,
         persistent=True,
         should_wait="$should_wait",
-        publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/camera/effect_image"},
-        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/camera/raw_image"}
+        publisher_kwargs={
+            "class_name": "CameraEffects",
+            "out_topic": "/camera/effect_image",
+        },
+        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/camera/raw_image"},
     )
     @MiddlewareCommunicator.register(
         "NativeObject",
@@ -152,10 +168,24 @@ class CameraEffects(MiddlewareCommunicator):
         multi_threaded=True,
         persistent=True,
         should_wait="$should_wait",
-        publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/message/my_message_rec"},
-        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/message/my_message_snd"}
+        publisher_kwargs={
+            "class_name": "CameraEffects",
+            "out_topic": "/message/my_message_rec",
+        },
+        listener_kwargs={
+            "class_name": "CameraRaw",
+            "in_topic": "/message/my_message_snd",
+        },
     )
-    def apply_effect(self, *data_from_pub, effect_type="none", img_width=320, img_height=240, should_wait=True, mware=None):
+    def apply_effect(
+        self,
+        *data_from_pub,
+        effect_type="none",
+        img_width=320,
+        img_height=240,
+        should_wait=True,
+        mware=None,
+    ):
         """
         Applies an effect to the received image frame.
         """
@@ -180,7 +210,9 @@ class CameraEffects(MiddlewareCommunicator):
                 img_out = cv2.bitwise_not(img)
             elif effect_type == "grayscale":
                 img_out = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                img_out = cv2.cvtColor(img_out, cv2.COLOR_GRAY2BGR)  # convert back to 3 channels
+                img_out = cv2.cvtColor(
+                    img_out, cv2.COLOR_GRAY2BGR
+                )  # convert back to 3 channels
             elif effect_type == "blur":
                 img_out = cv2.GaussianBlur(img, (15, 15), 0)
             else:
@@ -208,10 +240,11 @@ class CameraEffects(MiddlewareCommunicator):
         persistent=False,
         should_wait=False,
         publisher_kwargs={"class_name": "CameraEffects", "out_topic": "/COLDSTART"},
-        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/COLDSTART"}
+        listener_kwargs={"class_name": "CameraRaw", "in_topic": "/COLDSTART"},
     )
     def debug(self, should_wait=False, mware=None):
-        return "hello",
+        return ("hello",)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -240,8 +273,8 @@ def parse_args():
     )
     parser.add_argument(
         "--should_wait",
-        action='store_true',
-        dest='should_wait',
+        action="store_true",
+        dest="should_wait",
         default=False,
         help="If True, listeners wait for a publisher, and publishers wait for at least one listener",
     )
@@ -263,12 +296,14 @@ def parse_args():
 
     return parser.parse_args()
 
+
 if __name__ == "__main__":
     args = parse_args()
 
-
     if args.mode == "transceive":
-        cam_effects = CameraEffects(cam_id=args.img_source, img_width=args.img_width, img_height=args.img_height)
+        cam_effects = CameraEffects(
+            cam_id=args.img_source, img_width=args.img_width, img_height=args.img_height
+        )
         cam_effects.activate_communication(CameraEffects.debug, mode="listen")
         cam_effects.activate_communication(CameraEffects.send_image, mode="transceive")
         cam_effects.activate_communication(CameraEffects.apply_effect, mode="disable")
@@ -278,7 +313,9 @@ if __name__ == "__main__":
         frame_timestamps = {}
 
     elif args.mode == "reemit":
-        cam_effects = CameraEffects(cam_id=None, img_width=args.img_width, img_height=args.img_height)
+        cam_effects = CameraEffects(
+            cam_id=None, img_width=args.img_width, img_height=args.img_height
+        )
         cam_effects.activate_communication(CameraEffects.debug, mode="publish")
         cam_effects.activate_communication(CameraEffects.apply_effect, mode="reemit")
         cam_effects.activate_communication(CameraEffects.send_image, mode="disable")
@@ -286,7 +323,7 @@ if __name__ == "__main__":
     metrics = {}
 
     while True:
-        testing, = cam_effects.debug(should_wait=args.should_wait, mware=args.mware)
+        (testing,) = cam_effects.debug(should_wait=args.should_wait, mware=args.mware)
         if testing is not None:
             # print(f"{testing}")
             pass
@@ -295,7 +332,9 @@ if __name__ == "__main__":
             current_display_time = time.time()
             display_times.append(current_display_time)
             if len(display_times) > 1:
-                display_fps = len(display_times) / (display_times[-1] - display_times[0])
+                display_fps = len(display_times) / (
+                    display_times[-1] - display_times[0]
+                )
             else:
                 display_fps = 0
 
@@ -303,7 +342,7 @@ if __name__ == "__main__":
                 img_width=args.img_width,
                 img_height=args.img_height,
                 should_wait=args.should_wait,
-                mware=args.mware
+                mware=args.mware,
             )
 
             if recent_metrics is not None:
@@ -326,24 +365,31 @@ if __name__ == "__main__":
             if img_out is not None and metrics is not None:
                 img_out = img_out.copy()
                 y_offset = img_out.shape[0] - 10  # Start from the bottom of the image
-                for i, line in enumerate(overlay_text.split('\n')):
+                for i, line in enumerate(overlay_text.split("\n")):
                     cv2.putText(
-                        img_out, line,
+                        img_out,
+                        line,
                         (10, y_offset - (i * 20)),  # Position the text lines
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.5,
                         (255, 255, 255),  # White color text
                         1,
-                        cv2.LINE_AA
+                        cv2.LINE_AA,
                     )
                 cv2.imshow("Captured Image", img_out)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
             elif img_out is not None:
                 cv2.imshow("Captured Image", img_out)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
         elif args.mode == "reemit":
             testing = cam_effects.debug(should_wait=args.should_wait, mware=args.mware)
-            img_effect, _ = cam_effects.apply_effect(img_width=args.img_width, img_height=args.img_height, mware=args.mware, should_wait=args.should_wait, effect_type=args.effect)
+            img_effect, _ = cam_effects.apply_effect(
+                img_width=args.img_width,
+                img_height=args.img_height,
+                mware=args.mware,
+                should_wait=args.should_wait,
+                effect_type=args.effect,
+            )
