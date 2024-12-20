@@ -12,7 +12,7 @@ Communication patterns in Wrapyfi are set by passing the configuration `mode` ar
 in REQ/REP, the requester transmits all arguments passed to the method as a dictionary encoded as a string. This is not ideal for predefined services, where the service expects a certain object/message type. A better approach would include the option to pass a single item of a certain value and type [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 ```
 
-### Publishers and Listeners/Subscribers (PUB/SUB)
+### Publishers and Listeners|Subscribers (PUB/SUB)
 
 The publishers and listeners of the same message type should have identical constructor signatures. The current Wrapyfi version supports
 4 universal message types for all middleware. The extended types such as `ROSMessage` and `ROS2Message` are exclusive to the provided middleware.

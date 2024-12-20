@@ -16,7 +16,7 @@ The `MiddlewareCommunicator`'s child class method modes can be independently set
 * **disable**: Disables the method and returns None for all its returns. Caution should be taken when disabling a method since it 
 could break subsequent calls
 
-#### Modes for Publishers and Listeners/Subscribers (PUB/SUB)
+#### Modes for Publishers and Listeners|Subscribers (PUB/SUB)
 
 * **publish**: Run the method and publish the results using the middleware's transmission protocol. The results of executing the method are returned directly from the method: The method runs as expected, with the additional publishing of its returns
 * **listen**: Skip the method and wait for the publisher with the same port name to transmit a message, eventually returning the received message
