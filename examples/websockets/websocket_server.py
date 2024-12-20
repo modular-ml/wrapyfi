@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_socketio import SocketIO, Namespace
 import logging
+import base64
 
 # Default configuration (should the values not be changed in the environment)
 SOCKET_IP = "0.0.0.0"
@@ -88,6 +89,51 @@ def my_aud_message(data):
     """
     print("Received 'my_message' in client script")
     socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
+
+# TODO (fabawi): additional forwarders for debugging purposes. To be removed soon
+
+@socketio.on("/camera/effect_image", namespace=WEBSOCKET_NAMESPACE)
+def my_imgefct_message(data):
+    """
+    Handle effect image data, ensure Base64 encoding for transport.
+    """
+    try:
+        socketio.emit("/camera/effect_image", data, namespace=WEBSOCKET_NAMESPACE)
+    except Exception as e:
+        logging.error(f"Error in /camera/effect_image: {e}")
+
+
+@socketio.on("/camera/raw_image", namespace=WEBSOCKET_NAMESPACE)
+def my_imgraw_message(data):
+    """
+    Handle raw image data, ensure Base64 encoding for transport.
+    """
+    try:
+        socketio.emit("/camera/raw_image", data, namespace=WEBSOCKET_NAMESPACE)
+    except Exception as e:
+        logging.error(f"Error in /camera/raw_image: {e}")
+
+
+@socketio.on("/message/my_message_snd", namespace=WEBSOCKET_NAMESPACE)
+def my_mtrcssnd_message(data):
+    """
+    Handle 'my_message_snd', ensure Base64 encoding if data is binary.
+    """
+    try:
+        socketio.emit("/message/my_message_snd", data, namespace=WEBSOCKET_NAMESPACE)
+    except Exception as e:
+        logging.error(f"Error in /message/my_message_snd: {e}")
+
+
+@socketio.on("/message/my_message_rec", namespace=WEBSOCKET_NAMESPACE)
+def my_mtrcsrec_message(data):
+    """
+    Handle 'my_message_rec', ensure Base64 encoding if data is binary.
+    """
+    try:
+        socketio.emit("/message/my_message_rec", data, namespace=WEBSOCKET_NAMESPACE)
+    except Exception as e:
+        logging.error(f"Error in /message/my_message_rec: {e}")
 
 
 # Start the development server. Note that for a production deployment, a production-ready server like waitress should be used.

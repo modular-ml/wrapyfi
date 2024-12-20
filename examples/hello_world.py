@@ -51,7 +51,7 @@ class HelloWorld(MiddlewareCommunicator):
         """
         msg = input("Type your message: ")
         obj = {"message": msg, "message_from_requester": arg_from_requester}
-        return (obj,)
+        return obj,
 
 
 def parse_args():
@@ -71,6 +71,14 @@ def parse_args():
         const="listen",
         default="listen",
         help="Listen mode (default)",
+    )
+    parser.add_argument(
+        "--transceive",
+        dest="mode",
+        action="store_const",
+        const="transceive",
+        default="listen",
+        help="Transceive mode - publish the method and listen for output instead of just returning published output",
     )
     parser.add_argument(
         "--request",
@@ -102,9 +110,8 @@ if __name__ == "__main__":
     args = parse_args()
     hello_world = HelloWorld()
     hello_world.activate_communication(HelloWorld.send_message, mode=args.mode)
-
     while True:
-        (my_message,) = hello_world.send_message(
+        my_message, = hello_world.send_message(
             arg_from_requester=f"I got this message from the script running in {args.mode} mode",
             mware=args.mware,
         )

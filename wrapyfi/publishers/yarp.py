@@ -75,7 +75,8 @@ class YarpPublisher(Publisher):
             repeats = -1 if self.should_wait else 1
             while repeats > 0 or repeats <= -1:
                 repeats -= 1
-                connected = port.getOutputCount() > 0
+                # allowing should_wait into the loop for consistency with other mware publishers only
+                connected = port.getOutputCount() > 0 or not self.should_wait
                 if connected:
                     logging.info(f"[YARP] Output connection established: {out_topic}")
                     break

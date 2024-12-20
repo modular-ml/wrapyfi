@@ -9,7 +9,7 @@ import cv2
 import zmq
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
-from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSub
+from wrapyfi.middlewares.zeromq import ZeroMQMiddlewarePubSubListen
 from wrapyfi.encoders import JsonDecodeHook
 
 
@@ -21,6 +21,10 @@ ZEROMQ_PUBSUB_MONITOR_TOPIC = os.environ.get(
 ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN = os.environ.get(
     "WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN", "process"
 )
+START_PUBSUB_MONITOR_BROKER = (
+    os.environ.get("WRAPYFI_ZEROMQ_START_PUBSUB_MONITOR", True) != "False"
+)
+
 WATCHDOG_POLL_REPEAT = None
 
 
@@ -31,6 +35,7 @@ if os.name == "nt" and ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN == "process":
         "the environment variable WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN='thread'. "
         "Switching automatically to 'thread' mode. "
     )
+
 
 
 class ZeroMQListener(Listener):
@@ -44,9 +49,8 @@ class ZeroMQListener(Listener):
         socket_ip: str = SOCKET_IP,
         socket_pub_port: int = SOCKET_PUB_PORT,
         pubsub_monitor_topic: str = ZEROMQ_PUBSUB_MONITOR_TOPIC,
-        pubsub_monitor_listener_spawn: Optional[
-            str
-        ] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
+        start_pubsub_monitor_broker: bool = START_PUBSUB_MONITOR_BROKER,
+        pubsub_monitor_listener_spawn: Optional[str] = ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN,
         zeromq_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -62,6 +66,7 @@ class ZeroMQListener(Listener):
                                  Note that the subscriber listens directly to this port which is proxied .
                                  Default is 5555
         :param pubsub_monitor_topic: str: Topic to monitor the connections. Default is 'ZEROMQ/CONNECTIONS'
+        :param start_pubsub_monitor_broker: bool: Whether to start a topic monitor to enable connection establishment checking. Default is True
         :param pubsub_monitor_listener_spawn: str: Whether to spawn the PUB/SUB monitor listener as a process or thread. Default is 'process'
         :param zeromq_kwargs: dict: Additional kwargs for the ZeroMQ middleware
         :param kwargs: dict: Additional kwargs for the subscriber
@@ -77,14 +82,16 @@ class ZeroMQListener(Listener):
 
         self.socket_address = f"{carrier}://{socket_ip}:{socket_pub_port}"
 
-        ZeroMQMiddlewarePubSub.activate(
+        ZeroMQMiddlewarePubSubListen.activate(
             socket_pub_address=self.socket_address,
             pubsub_monitor_topic=pubsub_monitor_topic,
+            start_pubsub_monitor_broker=start_pubsub_monitor_broker,
             pubsub_monitor_listener_spawn=pubsub_monitor_listener_spawn,
             **zeromq_kwargs or {},
         )
-
-        ZeroMQMiddlewarePubSub().shared_monitor_data.add_topic(self.in_topic)
+        self.start_pubsub_monitor_broker = start_pubsub_monitor_broker
+        if start_pubsub_monitor_broker:
+            ZeroMQMiddlewarePubSubListen().shared_monitor_data.add_topic(self.in_topic)
 
     def await_connection(
         self, socket=None, in_topic: Optional[str] = None, repeats: Optional[int] = None
@@ -102,16 +109,12 @@ class ZeroMQListener(Listener):
             in_topic = self.in_topic
         logging.info(f"[ZeroMQ] Waiting for input port: {in_topic}")
         if repeats is None:
-            if self.should_wait:
-                repeats = -1
-            else:
-                return True
-
+            repeats = -1 if self.should_wait else 1
         while repeats > 0 or repeats <= -1:
             repeats -= 1
-            connected = ZeroMQMiddlewarePubSub().shared_monitor_data.is_connected(
-                in_topic
-            )
+            connected = (not self.start_pubsub_monitor_broker or
+                         ZeroMQMiddlewarePubSubListen().shared_monitor_data.is_connected(in_topic)
+                    ) or not self.should_wait
             if connected:
                 logging.info(f"[ZeroMQ] Connected to input port: {in_topic}")
                 break
@@ -137,7 +140,8 @@ class ZeroMQListener(Listener):
         """
         Close the subscriber.
         """
-        ZeroMQMiddlewarePubSub().shared_monitor_data.remove_topic(self.in_topic)
+        if self.start_pubsub_monitor_broker:
+            ZeroMQMiddlewarePubSubListen().shared_monitor_data.remove_topic(self.in_topic)
         time.sleep(0.2)
 
         if hasattr(self, "_socket") and self._socket:
@@ -189,7 +193,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
         :return: bool: True if connection established, False otherwise
         """
         self._socket = zmq.Context.instance().socket(zmq.SUB)
-        for socket_property in ZeroMQMiddlewarePubSub().zeromq_kwargs.items():
+        for socket_property in ZeroMQMiddlewarePubSubListen().zeromq_kwargs.items():
             if isinstance(socket_property[1], str):
                 self._socket.setsockopt_string(
                     getattr(zmq, socket_property[0]), socket_property[1]
@@ -216,7 +220,7 @@ class ZeroMQNativeObjectListener(ZeroMQListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        if self._socket.poll(timeout=None if self.should_wait else 0):
+        if self._socket.poll(timeout=0):
             obj = self._socket.recv_multipart()
             if obj is not None:
                 return json.loads(
@@ -280,7 +284,7 @@ class ZeroMQImageListener(ZeroMQNativeObjectListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        if self._socket.poll(timeout=None if self.should_wait else 0):
+        if self._socket.poll(timeout=0):
             obj = self._socket.recv_multipart()
             if obj is None:
                 return None
@@ -365,7 +369,7 @@ class ZeroMQAudioChunkListener(ZeroMQImageListener):
             established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not established:
                 return None
-        if self._socket.poll(timeout=None if self.should_wait else 0):
+        if self._socket.poll(timeout=0):
             obj = self._socket.recv_multipart()
             chunk, channels, rate, aud = (
                 json.loads(

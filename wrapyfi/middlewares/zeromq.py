@@ -28,7 +28,7 @@ ZEROMQ_POST_OPTS = [
 ]
 
 
-class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
+class ZeroMQMiddlewarePubSub(object):
     """
     ZeroMQ PUB/SUB middleware wrapper. This class is a singleton, so it can be instantiated only once. The ``activate``
     method should be called to initialize the middleware. The ``deinit`` method should be called to deinitialize the
@@ -190,7 +190,7 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         # start the pubsub proxy and monitor
         if zeromq_proxy_kwargs is not None and zeromq_proxy_kwargs:
             # start the pubsub monitor listener
-            if zeromq_proxy_kwargs.get("pubsub_monitor_listener_spawn", False):
+            if zeromq_proxy_kwargs.get("start_pubsub_monitor_broker", False):
                 if zeromq_proxy_kwargs["pubsub_monitor_listener_spawn"] == "process":
                     self.shared_monitor_data = self.ZeroMQSharedMonitorData(
                         use_multiprocessing=True
@@ -386,11 +386,11 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         ).start()
 
     def __init_monitor_listener(
-        self,
-        socket_pub_address: str = "tcp://127.0.0.1:5555",
-        pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
-        verbose: bool = False,
-        **kwargs,
+            self,
+            socket_pub_address: str = "tcp://127.0.0.1:5555",
+            pubsub_monitor_topic: str = "ZEROMQ/CONNECTIONS",
+            verbose: bool = False,
+            **kwargs,
     ):
         """
         Initialize the ZeroMQ PUB/SUB monitor listener.
@@ -409,19 +409,21 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
             while True:
                 _, message = subscriber.recv_multipart()
                 data = json.loads(message.decode("utf-8"))
-                topic = list(data.keys())[0]
-                if verbose:
-                    logging.info(f"[ZeroMQ] Topic: {topic}, Data: {data}")
 
-                if topic in self.shared_monitor_data.get_topics():
-                    self.shared_monitor_data.update_connection(topic, data)
-                    if data[topic] == 0:
-                        logging.info(
-                            f"[ZeroMQ] Subscriber disconnected from topic: {topic}"
-                        )
-                        self.shared_monitor_data.remove_connection(topic)
-                    else:
-                        logging.info(f"[ZeroMQ] Subscriber connected to topic: {topic}")
+                for topic, value in data.items():
+                    if verbose:
+                        logging.info(f"[ZeroMQ] Topic: {topic}, Data: {value}")
+
+                    # check if the topic exists in shared monitor data
+                    if topic in self.shared_monitor_data.get_topics():
+                        self.shared_monitor_data.update_connection(topic, value)
+                        if value == 0:
+                            logging.info(
+                                f"[ZeroMQ] Subscriber disconnected from topic: {topic}"
+                            )
+                            self.shared_monitor_data.remove_connection(topic)
+                        else:
+                            logging.info(f"[ZeroMQ] Subscriber connected to topic: {topic}")
 
                 if verbose:
                     for monitored_topic in self.shared_monitor_data.get_topics():
@@ -439,6 +441,64 @@ class ZeroMQMiddlewarePubSub(metaclass=SingletonOptimized):
         logging.info("Deinitializing ZeroMQ middleware")
         zmq.Context.instance().destroy()
 
+class ZeroMQMiddlewarePubSubListen(ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized):
+
+    @staticmethod
+    def activate(**kwargs):
+        """
+        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialize the middleware.
+
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
+        """
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
+        for key, value in kwargs.items():
+            try:
+                getattr(zmq, key)
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
+            except AttributeError:
+                pass
+
+        ZeroMQMiddlewarePubSubListen(
+            zeromq_proxy_kwargs=kwargs,
+            zeromq_post_kwargs=zeromq_post_kwargs,
+            **zeromq_pre_kwargs,
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+class ZeroMQMiddlewarePubSubPublish(ZeroMQMiddlewarePubSub, metaclass=SingletonOptimized):
+    @staticmethod
+    def activate(**kwargs):
+        """
+        Activate the ZeroMQ PUB/SUB middleware. This method should be called to initialize the middleware.
+
+        :param kwargs: dict: Keyword arguments to be passed to the ZeroMQ initialization function
+        """
+        zeromq_post_kwargs = {}
+        zeromq_pre_kwargs = {}
+        for key, value in kwargs.items():
+            try:
+                getattr(zmq, key)
+                if key in ZEROMQ_POST_OPTS:
+                    zeromq_post_kwargs[key] = value
+                else:
+                    zeromq_pre_kwargs[key] = value
+            except AttributeError:
+                pass
+
+        ZeroMQMiddlewarePubSubPublish(
+            zeromq_proxy_kwargs=kwargs,
+            zeromq_post_kwargs=zeromq_post_kwargs,
+            **zeromq_pre_kwargs,
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class ZeroMQMiddlewareReqRep(metaclass=SingletonOptimized):
     """

@@ -103,28 +103,65 @@ del example_instance
 ```
 
 ## Configuration
-The `MiddlewareCommunicator`'s child class method modes can be independently set to:
 
-* **publish**: Run the method and publish the results using the middleware's transmission protocol
+In order to establish communication using any [communication pattern](#communication-patterns) supported by Wrapyfi, the methods need to be activated by setting them to behave according to a compatible communication mode
+
+### Communication Modes
+
+Modes are configurations that define the behavior of a method, i.e., *should the method be executed?*, *should the method await a message from another method?*, *should the method publish its message?*, or *should the method await an acknowledgement from a message requester?*
+
+Selecting the mode for each method is tha starting point for establishing communication through Wrapyfi. Wrapyfi supports
+the common PUB/SUB and REQ/REP communication patterns, with different modes supported for each.
+The `MiddlewareCommunicator`'s child class method modes can be independently set to accomodate the communication pattern. We separate the modes into their corresponding patterns:
+
+#### Mode-Agnostic
+
+* **none**(default): Run the method as usual without triggering `publish, listen, receive, reemit, transceive, request` or `reply`. *hint*: Setting the mode to `None` (or `null` within a yaml configuration file) has the same effect
+* **disable**: Disables the method and returns None for all its returns. Caution should be taken when disabling a method since it 
+could break subsequent calls
+
+#### Modes for Publishers and Listeners/Subscribers (PUB/SUB)
+
+* **publish**: Run the method and publish the results using the middleware's transmission protocol. The results of executing the method are returned directly from the method: The method runs as expected, with the additional publishing of its returns
 * **listen**: Skip the method and wait for the publisher with the same port name to transmit a message, eventually returning the received message
+
+* **receive**: Similar in behavior to the `listen` mode, but receives the input as an argument and executes the method assuming the argument/s are received from a publisher. The method is then run based on the received argument/s value/s and the returns are resulting from running the method itself, rather than passively listening for input only
+
+* **reemit**: Similar in behavior to the `receive` mode, but also publishes the returns eventually, similar to the `publish` mode
+* **transceive**: Similar in behavior to the `publish` mode, however, unlike publishing methods, it listens for returns from another publisher, and returns the resulting message instead, similar to the `listen` mode
+
+The possible mode combinations for each method to communicate successfully with its corresponding methods operating on the same topic are:
+
+* `publish` **<->** `listen`: Both method returns are identical
+* `publish` **<->** `disable`: Method returns are not identical: This only works when `publish` decorater argument `should_wait=False`, since there is no listener, given `disable` mode always returns `None` and does not establish a connection with the publisher
+* `publish` **<->** `none`: Method returns are not identical: This only works when `publish` decorater argument `should_wait=False`, since there is no listener, given `"none"`/`None` mode always runs the method and acquires its returns but does not establish a connection with the publisher
+* `publish` **<->** `receive`: Method returns are not identical
+* `transceive` **<->** `reemit`: Both method returns *could* be identical
+
+
+
+#### Modes for Servers and Clients (REQ/REP)
 
 * **reply**: Run the method and publish the results using the middleware's transmission protocol. Arguments are received from the requester
 * **request**: Send a request to the replier in the form of arguments passed to the method. Skip the method and wait for the replier with the same port name to transmit a message, eventually returning the received message
 
-* **none**(default): Run the method as usual without triggering publish, listen, request or reply. *hint*: Setting the mode to `None` (or `null` within a yaml configuration file) has the same effect
-* **disable**: Disables the method and returns None for all its returns. Caution should be taken when disabling a method since it 
-could break subsequent calls
+The possible mode combinations for each method to communicate successfully with its corresponding methods operating on the same topic are:
 
-These properties can be set by calling: 
+* `request` **<->** `reply`: Both method returns are identical. For every request (client) there should be a corresponding reply (server) and would not operate (hangs indefinitely) without acknowledgement from the server
+
+### Activating Communication Modes
+
+The mode of each method can be set by calling: 
 
 `activate_communication(<Method name>, mode=<Mode>)`
 
 where `<Method name>` is the method's name (`string` name of method by definition) and `<Mode>` is the transmission mode 
-(`"publish"`, `"listen"`, `"reply"`, `request`, `"none"` | `None`, `"disable"`) depending on the communication pattern . 
+(`"publish"`, `"listen"`,`"receive"`, `"transceive"`, `reemit`, `"reply"`, `request`, `"none"` | `None`, `"disable"`) depending on the communication pattern . 
 The `activate_communication` method can be called multiple times. `<Method name>` could also be a class instance method, by calling:
 
 `activate_communication(<MiddlwareCommunicator instance>.method_of_class_instance, mode=<Mode>)`
 
+### Configuration Files
 for each decorated method within the class. This however requires modifying your scripts for each machine or process running
 on Wrapyfi. To overcome this limitation, use the `ConfigManager` e.g.:
 ```
@@ -170,6 +207,8 @@ The PUB/SUB pattern assumes message arguments are passed from the publisher-call
 The publisher executes the method and the subscriber (listener) merely triggers the method call, awaits the publisher to execute the method, and returns the publisher's method returns.
 The REQ/REP pattern on the other hand assumes arguments from the client (requester) are sent to the server (responder or replier). Once the server receives the request, it passes the arguments
 to its own method, executes it, and replies to the client back with its method returns.
+
+Communication patterns in Wrapyfi are set by passing the configuration `mode` argument to `activate_communication` method as described in the [configuration documentation](#communication-modes).
 
 ```{warning}
 in REQ/REP, the requester transmits all arguments passed to the method as a dictionary encoded as a string. This is not ideal for predefined services, where the service expects a certain object/message type. A better approach would include the option to pass a single item of a certain value and type [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
@@ -568,6 +607,7 @@ This can be achieved by setting:
 * `WRAPYFI_ZEROMQ_SOCKET_PUB_PORT`: The publishing socket port. Defaults to 5555
 * `WRAPYFI_ZEROMQ_SOCKET_SUB_PORT`: The sub-socket port (listening port for the broker). Defaults to 5556
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC`: The topic name for the pub-sub monitor. Defaults to "ZEROMQ/CONNECTIONS"
+* `WRAPYFI_ZEROMQ_START_PUBSUB_MONITOR_BROKER`: Spawn a new broker for enabling topic discovery since topic discovery is not natively supported on ZeroMQ. Defaults to "True"
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN`: Either spawn the pub-sub monitor listener as a "process" or "thread". Defaults to "process"
 * `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](https://github.com/fabawi/wrapyfi/tree/main/wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
@@ -578,7 +618,6 @@ This can be achieved by setting:
 * `WRAPYFI_WEBSOCKET_SOCKET_IP`: IP address of the socket. Defaults to "127.0.0.1"
 * `WRAPYFI_WEBSOCKET_SOCKET_PORT`: The socket port. Defaults to 5000
 * `WRAPYFI_WEBSOCKET_NAMESPACE`: The socket namespace. Defaults to "/"
-* `WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN`: Either spawn the websocket monitor listener as a "process" or "thread". Defaults to "thread" which is the only supported option for now
 * `WRAPYFI_ZENOH_IP`: IP address of the Zenoh socket. Defaults to "127.0.0.1"
 * `WRAPYFI_ZENOH_PORT`: The Zenoh socket port. Defaults to 7447
 * `WRAPYFI_ZENOH_MODE`: The Zenoh mode indicating whether to use the router as a broker or adopt peer-to-peer communication. Defaults to "peer"

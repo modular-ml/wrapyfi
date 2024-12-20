@@ -4,6 +4,7 @@ import time
 import os
 import queue
 from typing import Optional
+import base64
 
 import numpy as np
 import cv2
@@ -15,17 +16,7 @@ from wrapyfi.encoders import JsonDecodeHook
 SOCKET_IP = os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_IP", "127.0.0.1")
 SOCKET_PORT = int(os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_PORT", 5000))
 WEBSOCKET_NAMESPACE = os.environ.get("WRAPYFI_WEBSOCKET_NAMESPACE", "/")
-WEBSOCKET_MONITOR_LISTENER_SPAWN = os.environ.get(
-    "WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN", "thread"
-)
 WATCHDOG_POLL_REPEAT = None
-if WEBSOCKET_MONITOR_LISTENER_SPAWN == "process":
-    WEBSOCKET_MONITOR_LISTENER_SPAWN = "thread"
-    logging.warning(
-        "[WebSocket] Wrapyfi does not support multiprocessing for Websockets. Please set "
-        "the environment variable WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN='thread'. "
-        "Switching automatically to 'thread' mode."
-    )
 
 
 class WebSocketListener(Listener):
@@ -38,7 +29,6 @@ class WebSocketListener(Listener):
         socket_ip: str = SOCKET_IP,
         socket_port: int = SOCKET_PORT,
         namespace: str = WEBSOCKET_NAMESPACE,
-        monitor_listener_spawn: Optional[str] = WEBSOCKET_MONITOR_LISTENER_SPAWN,
         websocket_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -51,7 +41,6 @@ class WebSocketListener(Listener):
         :param socket_ip: str: IP address of the socket. Default is '127.0.0.1'
         :param socket_port: int: Port of the socket for publishing. Default is 5000
         :param namespace: str: Namespace of the WebSocket. Default is '/'
-        :param monitor_listener_spawn: str: Whether to spawn the monitor listener as a process or thread. Default is 'thread'
         :param websocket_kwargs: dict: Additional kwargs for the WebSocket middleware
         :param kwargs: dict: Additional kwargs for the subscriber
         """
@@ -62,7 +51,6 @@ class WebSocketListener(Listener):
         # Activate the WebSocket middleware
         WebSocketMiddlewarePubSub.activate(
             socket_address=self.socket_address,
-            monitor_listener_spawn=monitor_listener_spawn,
             **(websocket_kwargs or {}),
         )
 
@@ -220,9 +208,10 @@ class WebSocketImageListener(WebSocketNativeObjectListener):
         Callback for handling incoming image messages.
         """
         try:
-            header, img_bytes = data
+            header, img_base64 = data
+            img_bytes = base64.b64decode(img_base64)
+
             if self.jpg:
-                # JPEG case: decode the JPEG image
                 img_array = np.frombuffer(img_bytes, dtype=np.uint8)
                 if self.rgb:
                     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
@@ -230,7 +219,6 @@ class WebSocketImageListener(WebSocketNativeObjectListener):
                     img = cv2.imdecode(img_array, cv2.IMREAD_GRAYSCALE)
                 self._message_queue.put(img)
             else:
-                # Non-JPEG case: reconstruct the numpy array
                 shape = header.get("shape", None)
                 dtype = header.get("dtype", None)
                 if shape is not None and dtype is not None:
@@ -242,7 +230,7 @@ class WebSocketImageListener(WebSocketNativeObjectListener):
                         "Missing 'shape' or 'dtype' in header for non-JPEG image"
                     )
         except Exception as e:
-            logging.error(f"Failed to process message: {e}")
+            logging.error(f"Failed to decode image message: {e}")
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """
@@ -339,7 +327,7 @@ class WebSocketAudioChunkListener(WebSocketNativeObjectListener):
 
             self._message_queue.put((aud_array, rate))
         except Exception as e:
-            logging.error(f"Failed to process message: {e}")
+            logging.error(f"Failed to decode audio message: {e}")
 
     def establish(self, repeats: Optional[int] = None, **kwargs):
         """

@@ -14,6 +14,7 @@ This can be achieved by setting:
 * `WRAPYFI_ZEROMQ_SOCKET_PUB_PORT`: The publishing socket port. Defaults to 5555
 * `WRAPYFI_ZEROMQ_SOCKET_SUB_PORT`: The sub-socket port (listening port for the broker). Defaults to 5556
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_TOPIC`: The topic name for the pub-sub monitor. Defaults to "ZEROMQ/CONNECTIONS"
+* `WRAPYFI_ZEROMQ_START_PUBSUB_MONITOR_BROKER`: Spawn a new broker for enabling topic discovery since topic discovery is not natively supported on ZeroMQ. Defaults to "True"
 * `WRAPYFI_ZEROMQ_PUBSUB_MONITOR_LISTENER_SPAWN`: Either spawn the pub-sub monitor listener as a "process" or "thread". Defaults to "process"
 * `WRAPYFI_ZEROMQ_START_PROXY_BROKER`: Spawn a new broker proxy without running the [standalone proxy broker](../../../wrapyfi/standalone/zeromq_proxy_broker.py). Defaults to "True"
 * `WRAPYFI_ZEROMQ_PROXY_BROKER_SPAWN`: Either spawn broker as a "process" or "thread". Defaults to "process")
@@ -24,7 +25,6 @@ This can be achieved by setting:
 * `WRAPYFI_WEBSOCKET_SOCKET_IP`: IP address of the socket. Defaults to "127.0.0.1"
 * `WRAPYFI_WEBSOCKET_SOCKET_PORT`: The socket port. Defaults to 5000
 * `WRAPYFI_WEBSOCKET_NAMESPACE`: The socket namespace. Defaults to "/"
-* `WRAPYFI_WEBSOCKET_MONITOR_LISTENER_SPAWN`: Either spawn the websocket monitor listener as a "process" or "thread". Defaults to "thread" which is the only supported option for now
 * `WRAPYFI_ZENOH_IP`: IP address of the Zenoh socket. Defaults to "127.0.0.1"
 * `WRAPYFI_ZENOH_PORT`: The Zenoh socket port. Defaults to 7447
 * `WRAPYFI_ZENOH_MODE`: The Zenoh mode indicating whether to use the router as a broker or adopt peer-to-peer communication. Defaults to "peer"

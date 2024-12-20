@@ -15,7 +15,7 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
     The `deinit` method should be called to deinitialize the middleware and destroy all connections.
     """
 
-    _instance = None  # Singleton instance
+    _instance = None
 
     @staticmethod
     def activate(socket_address: str = "http://127.0.0.1:5000", **kwargs):
@@ -34,7 +34,6 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
     def __init__(
         self,
         socket_address: str = "http://127.0.0.1:5000",
-        monitor_listener_spawn: str = None,
         websocket_kwargs: dict = None,
         **kwargs,
     ):
@@ -42,24 +41,18 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
         Initialize the WebSocket middleware. This method is automatically called when the class is instantiated.
 
         :param socket_address: str: The WebSocket server address
-        :param monitor_listener_spawn: str: Determines the type of listener spawn
         :param websocket_kwargs: dict: Additional keyword arguments for the WebSocket connection
         :param kwargs: dict: Additional keyword arguments for compatibility with the interface
         """
         logging.info(f"Initializing WebSocket middleware on {socket_address}")
 
-        # Store arguments, even if unused for now (for interface compatibility)
         self.socket_address = socket_address
-        self.monitor_listener_spawn = monitor_listener_spawn
         self.websocket_kwargs = websocket_kwargs or {}
 
-        # Initialize WebSocket client
         self.socketio_client = socketio.Client()
 
-        # Track connection status
         self.connected = False
 
-        # Register event handlers for connection
         @self.socketio_client.event
         def connect():
             logging.info(
@@ -74,12 +67,8 @@ class WebSocketMiddlewarePubSub(metaclass=SingletonOptimized):
             )
             self.connected = False
 
-        # Start the connection in a background thread
-        self.client_thread = threading.Thread(target=self._connect_client)
-        self.client_thread.daemon = True
-        self.client_thread.start()
+        self.socketio_client.start_background_task(self._connect_client)
 
-        # Ensure cleanup at exit
         atexit.register(MiddlewareCommunicator.close_all_instances)
         atexit.register(self.deinit)
 
