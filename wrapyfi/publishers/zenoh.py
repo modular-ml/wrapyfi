@@ -76,7 +76,7 @@ class ZenohPublisher(Publisher):
             "mode": mode,
             "connect/endpoints": (
                 ZENOH_CONNECT
-                if isinstance(ZENOH_CONNECT, list)
+                if isinstance(ZENOH_CONNECT, list) and ZENOH_CONNECT
                 else (
                     ZENOH_CONNECT.split(",")
                     if isinstance(ZENOH_CONNECT, str)

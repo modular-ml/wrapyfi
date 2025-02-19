@@ -77,7 +77,7 @@ class ZenohListener(Listener):
             "mode": mode,
             "connect/endpoints": (
                 ZENOH_CONNECT
-                if isinstance(ZENOH_CONNECT, list)
+                if isinstance(ZENOH_CONNECT, list) and ZENOH_CONNECT
                 else (
                     ZENOH_CONNECT.split(",")
                     if isinstance(ZENOH_CONNECT, str)
@@ -182,6 +182,9 @@ class ZenohNativeObjectListener(ZenohListener):
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._message_queue = queue.Queue()
         self._deserializer_kwargs = deserializer_kwargs or {}
+
+        if not self.should_wait:
+            ListenerWatchDog().add_listener(self)
 
     def on_message(self, sample):
         """
