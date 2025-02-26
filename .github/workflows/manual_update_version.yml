@@ -13,7 +13,7 @@ jobs:
 
     - name: Install PDM
       run: |
-        python3 -m pip install pdm
+        python3 -m pip install pdm==2.22.2
         pdm add setuptools
         pdm import setup.py
 
