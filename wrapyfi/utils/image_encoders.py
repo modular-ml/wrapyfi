@@ -6,7 +6,12 @@ import numpy as np
 
 
 class JpegEncoder(object):
-    def __init__(self, quality: int = 95, encoder: str = "opencv", logging_level: int = logging.WARNING):
+    def __init__(
+        self,
+        quality: int = 95,
+        encoder: str = "opencv",
+        logging_level: int = logging.WARNING,
+    ):
         """
         Initialize the JPEG encoder with the specified quality and encoder.
 
@@ -20,21 +25,27 @@ class JpegEncoder(object):
         if encoder == "vips":
             try:
                 import pyvips
-                logging.getLogger('pyvips').setLevel(logging_level)
+
+                logging.getLogger("pyvips").setLevel(logging_level)
                 self._encode_jpg_image = self._encode_jpg_image_vips
             except ImportError:
-                raise ImportError("The 'pyvips' package is required for the 'vips' encoder. "
-                                  "Install it with 'pip install pyvips'. This also requires installing 'libvips' e.g., "
-                                  "on Ubuntu 'sudo apt install libvips-dev'.")
+                raise ImportError(
+                    "The 'pyvips' package is required for the 'vips' encoder. "
+                    "Install it with 'pip install pyvips'. This also requires installing 'libvips' e.g., "
+                    "on Ubuntu 'sudo apt install libvips-dev'."
+                )
         elif encoder == "pil":
             try:
                 from PIL import Image
-                logging.getLogger('PIL').setLevel(logging_level)
+
+                logging.getLogger("PIL").setLevel(logging_level)
                 self._encode_jpg_image = self._encode_jpg_image_pil
             except ImportError:
-                raise ImportError("The 'Pillow' package is required for the 'pil' encoder. Install it with 'pip install Pillow'.")
+                raise ImportError(
+                    "The 'Pillow' package is required for the 'pil' encoder. Install it with 'pip install Pillow'."
+                )
         elif encoder == "opencv":
-            logging.getLogger('cv2').setLevel(logging_level)
+            logging.getLogger("cv2").setLevel(logging_level)
             self._encode_jpg_image = self._encode_jpg_image_opencv
         else:
             raise ValueError("The encoder must be either 'pil', 'opencv', or 'vips'.")
@@ -61,7 +72,9 @@ class JpegEncoder(object):
         Returns:
             img_bytes (bytes or np.ndarray): Encoded JPEG image as bytes or numpy array.
         """
-        _, img_bytes = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), self.quality])
+        _, img_bytes = cv2.imencode(
+            ".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), self.quality]
+        )
         if return_numpy:
             return img_bytes
         else:
@@ -115,7 +128,7 @@ class JpegEncoder(object):
             img_rgb.shape[1],  # Width
             img_rgb.shape[0],  # Height
             img_rgb.shape[2],  # Number of bands (channels)
-            'uchar'  # Data type
+            "uchar",  # Data type
         )
 
         # Encode to JPEG with the specified quality

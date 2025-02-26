@@ -9,45 +9,45 @@ wrapyfi.connect.clients module
 
 .. automodule:: wrapyfi.connect.clients
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.connect.listeners module
 --------------------------------
 
 .. automodule:: wrapyfi.connect.listeners
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.connect.publishers module
 ---------------------------------
 
 .. automodule:: wrapyfi.connect.publishers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.connect.servers module
 ------------------------------
 
 .. automodule:: wrapyfi.connect.servers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.connect.wrapper module
 ------------------------------
 
 .. automodule:: wrapyfi.connect.wrapper
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: wrapyfi.connect
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -196,7 +196,9 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         self._type = np.float32 if self.fp else np.uint8
 
         if self.jpg:
-            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
+            self._image_encoder = JpegEncoder(
+                **(self.jpg if isinstance(self.jpg, dict) else {})
+            )
 
     def publish(self, img: np.ndarray):
         """

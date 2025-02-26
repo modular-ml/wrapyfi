@@ -9,37 +9,37 @@ wrapyfi.servers.ros module
 
 .. automodule:: wrapyfi.servers.ros
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.servers.ros2 module
 ---------------------------
 
 .. automodule:: wrapyfi.servers.ros2
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.servers.yarp module
 ---------------------------
 
 .. automodule:: wrapyfi.servers.yarp
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.servers.zeromq module
 -----------------------------
 
 .. automodule:: wrapyfi.servers.zeromq
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: wrapyfi.servers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

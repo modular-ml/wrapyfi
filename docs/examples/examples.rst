@@ -24,13 +24,13 @@ examples.hello\_world module
 
 .. automodule:: examples.hello_world
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: examples
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -234,7 +234,9 @@ class YarpImagePublisher(YarpPublisher):
         self.jpg = jpg
 
         if self.jpg:
-            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
+            self._image_encoder = JpegEncoder(
+                **(self.jpg if isinstance(self.jpg, dict) else {})
+            )
 
         self._port = self._type = self._netconnect = None
 
@@ -303,7 +305,9 @@ class YarpImagePublisher(YarpPublisher):
         img = np.require(img, dtype=self._type, requirements="C")
 
         if self.jpg:
-            img_str = self._image_encoder.encode_jpg_image(img, return_numpy=True).tostring()
+            img_str = self._image_encoder.encode_jpg_image(
+                img, return_numpy=True
+            ).tostring()
             with io.BytesIO() as memfile:
                 np.save(memfile, img_str)
                 img_str = base64.b64encode(memfile.getvalue()).decode("ascii")

@@ -80,9 +80,7 @@ class MqttListener(Listener):
         while repeats > 0 or repeats == -1:
             if repeats != -1:
                 repeats -= 1
-            connected = (
-                MqttMiddlewarePubSub._instance.is_connected()
-            )
+            connected = MqttMiddlewarePubSub._instance.is_connected()
             logging.debug(f"Connection status: {connected}")
             if connected:
                 logging.info(f"[MQTT] Connected to input topic: {in_topic}")

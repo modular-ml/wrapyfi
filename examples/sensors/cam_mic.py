@@ -1,7 +1,7 @@
 """
 A simple example of using the Wrapper class to publish and listen to audio and video streams.
 
-This script demonstrates the capability to transmit audio and video streams using the 
+This script demonstrates the capability to transmit audio and video streams using the
 MiddlewareCommunicator within the Wrapyfi library. The communication follows the PUB/SUB pattern
 allowing message publishing and listening functionalities between processes or machines.
 
@@ -26,30 +26,30 @@ Requirements:
 Run:
     # Alternative 1: Separate audio and video publishing
         # On machine 1 (or process 1): The audio stream publishing
-        
+
         ``python3 cam_mic.py --mode publish --stream audio --mic_source 0``
-        
+
         # On machine 2 (or process 2): The video stream publishing
-        
+
         ``python3 cam_mic.py --mode publish --stream video --img_source 0``
-        
+
         # On machine 3 (or process 3): The audio stream listening
-        
+
         ``python3 cam_mic.py --mode listen --stream audio``
-        
+
         # On machine 4 (or process 4): The video stream listening
-        
+
         ``python3 cam_mic.py --mode listen --stream video``
-        
+
     # Alternative 2: Concurrent audio and video publishing
         # On machine 1 (or process 1): The audio/video stream publishing
-        
+
         ``python3 cam_mic.py --mode publish --stream audio video --img_source 0 --mic_source 0``
-        
+
         # On machine 2 (or process 2): The audio/video stream listening
-        
+
         ``python3 cam_mic.py --mode listen --stream audio video``
-        
+
 """
 
 import logging

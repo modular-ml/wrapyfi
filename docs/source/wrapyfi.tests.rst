@@ -17,21 +17,21 @@ wrapyfi.tests.test\_middleware module
 
 .. automodule:: wrapyfi.tests.test_middleware
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.tests.test\_wrapper module
 ----------------------------------
 
 .. automodule:: wrapyfi.tests.test_wrapper
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: wrapyfi.tests
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -252,7 +252,13 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
         :param fp: bool: True if the image is floating point, False if integer. Default is False
         :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         """
-        super().__init__(name, out_topic, should_wait=should_wait, multi_threaded=multi_threaded, **kwargs)
+        super().__init__(
+            name,
+            out_topic,
+            should_wait=should_wait,
+            multi_threaded=multi_threaded,
+            **kwargs,
+        )
         self.width = width
         self.height = height
         self.rgb = rgb
@@ -260,7 +266,9 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
         self.jpg = jpg
 
         if self.jpg:
-            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
+            self._image_encoder = JpegEncoder(
+                **(self.jpg if isinstance(self.jpg, dict) else {})
+            )
 
         self._type = np.float32 if self.fp else np.uint8
 

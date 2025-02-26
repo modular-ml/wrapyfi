@@ -9,13 +9,13 @@ examples.encoders.plugins.astropy\_tables module
 
 .. automodule:: examples.encoders.plugins.astropy_tables
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: examples.encoders.plugins
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
