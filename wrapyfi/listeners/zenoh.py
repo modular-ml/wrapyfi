@@ -3,7 +3,7 @@ import json
 import queue
 import time
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import cv2
@@ -11,7 +11,7 @@ import zenoh
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.zenoh import ZenohMiddlewarePubSub
-from wrapyfi.encoders import JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonDecodeHook
 
 
 # Capture environment variables for Zenoh configuration
@@ -160,15 +160,7 @@ class ZenohListener(Listener):
 
 @Listeners.register("NativeObject", "zenoh")
 class ZenohNativeObjectListener(ZenohListener):
-    """
-    Zenoh NativeObject listener for handling JSON-encoded native objects.
-    Decodes incoming messages to native Python objects using JsonDecodeHook.
 
-    :param name: str: Name of the listener
-    :param in_topic: str: Name of the input topic
-    :param should_wait: bool: Whether to wait for messages
-    :param deserializer_kwargs: dict: Keyword arguments for the JSON deserializer
-    """
 
     def __init__(
         self,
@@ -178,6 +170,15 @@ class ZenohNativeObjectListener(ZenohListener):
         deserializer_kwargs: Optional[dict] = None,
         **kwargs,
     ):
+        """
+        Zenoh NativeObject listener for handling JSON-encoded native objects.
+        Decodes incoming messages to native Python objects using JsonDecodeHook.
+
+        :param name: str: Name of the listener
+        :param in_topic: str: Name of the input topic
+        :param should_wait: bool: Whether to wait for messages
+        :param deserializer_kwargs: dict: Keyword arguments for the JSON deserializer
+        """
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self._plugin_decoder_hook = JsonDecodeHook(**kwargs).object_hook
         self._message_queue = queue.Queue()
@@ -222,18 +223,7 @@ class ZenohNativeObjectListener(ZenohListener):
 
 @Listeners.register("Image", "zenoh")
 class ZenohImageListener(ZenohNativeObjectListener):
-    """
-    Zenoh Image listener for handling image messages.
-    Converts incoming data to OpenCV images, supporting JPEG and raw formats.
 
-    :param name: str: Name of the listener
-    :param in_topic: str: Name of the input topic
-    :param should_wait: bool: Whether to wait for messages
-    :param width: int: Expected image width, -1 to use received width
-    :param height: int: Expected image height, -1 to use received height
-    :param rgb: bool: True if the image is RGB, False if grayscale
-    :param jpg: bool: True if the image is JPEG-compressed
-    """
 
     def __init__(
         self,
@@ -243,9 +233,21 @@ class ZenohImageListener(ZenohNativeObjectListener):
         width: int = -1,
         height: int = -1,
         rgb: bool = True,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
+        """
+        Zenoh Image listener for handling image messages.
+        Converts incoming data to OpenCV images, supporting JPEG and raw formats.
+
+        :param name: str: Name of the listener
+        :param in_topic: str: Name of the input topic
+        :param should_wait: bool: Whether to wait for messages
+        :param width: int: Expected image width, -1 to use received width
+        :param height: int: Expected image height, -1 to use received height
+        :param rgb: bool: True if the image is RGB, False if grayscale
+        :param jpg: bool: True if the image is JPEG-compressed
+        """
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self.width = width
         self.height = height
@@ -303,17 +305,7 @@ class ZenohImageListener(ZenohNativeObjectListener):
 
 @Listeners.register("AudioChunk", "zenoh")
 class ZenohAudioChunkListener(ZenohNativeObjectListener):
-    """
-    Zenoh AudioChunk listener for handling audio messages.
-    Converts incoming data to numpy arrays for audio processing.
 
-    :param name: str: Name of the listener
-    :param in_topic: str: Name of the input topic
-    :param should_wait: bool: Whether to wait for messages
-    :param channels: int: Number of audio channels
-    :param rate: int: Sampling rate of the audio
-    :param chunk: int: Number of samples in the audio chunk
-    """
 
     def __init__(
         self,
@@ -325,6 +317,17 @@ class ZenohAudioChunkListener(ZenohNativeObjectListener):
         chunk: int = -1,
         **kwargs,
     ):
+        """
+        Zenoh AudioChunk listener for handling audio messages.
+        Converts incoming data to numpy arrays for audio processing.
+
+        :param name: str: Name of the listener
+        :param in_topic: str: Name of the input topic
+        :param should_wait: bool: Whether to wait for messages
+        :param channels: int: Number of audio channels
+        :param rate: int: Sampling rate of the audio
+        :param chunk: int: Number of samples in the audio chunk
+        """
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self.channels = channels
         self.rate = rate

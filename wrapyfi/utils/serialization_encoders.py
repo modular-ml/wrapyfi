@@ -6,7 +6,7 @@ from datetime import datetime
 
 import numpy as np
 
-from wrapyfi.utils import *
+from wrapyfi.utils.core_utils import *
 
 
 class JsonEncoder(json.JSONEncoder):

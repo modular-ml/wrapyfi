@@ -10,7 +10,7 @@ import wrapyfi.connect.listeners as lsn
 import wrapyfi.connect.servers as srv
 import wrapyfi.connect.clients as clt
 
-from wrapyfi.utils import get_default_args, match_args, deepcopy
+from wrapyfi.utils.core_utils import get_default_args, match_args, deepcopy
 from wrapyfi.config.manager import ConfigManager
 
 

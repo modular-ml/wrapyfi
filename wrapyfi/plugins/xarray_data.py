@@ -24,7 +24,7 @@ from datetime import datetime
 
 import numpy as np
 
-from wrapyfi.utils import *
+from wrapyfi.utils.core_utils import *
 
 try:
     import xarray as xr

@@ -1,23 +1,21 @@
 import logging
 import json
 import queue
-import time
 import os
-from typing import Optional
+from typing import Optional, Union
 import sys
 import importlib
 
 import numpy as np
 import cv2
 import rclpy
-from rclpy import Parameter
 from rclpy.node import Node
 import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.ros2 import ROS2Middleware
-from wrapyfi.encoders import JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonDecodeHook
 
 
 WAIT = {True: None, False: 0}
@@ -172,7 +170,7 @@ class ROS2ImageListener(ROS2Listener):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """

@@ -6,7 +6,7 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 
-from wrapyfi.utils import SingletonOptimized
+from wrapyfi.utils.core_utils import SingletonOptimized
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 

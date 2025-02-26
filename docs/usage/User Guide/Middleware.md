@@ -20,7 +20,7 @@ Wrapyfi natively supports a [number of middleware](#middleware). However, more m
 - [ROS 2](https://docs.ros2.org/foxy/api/rclpy/index.html)
 - [ZeroMQ](http://zeromq.org/) [*beta feature*]: 
   * `should_wait` trigger introduced with event monitoring
-  * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v0.5-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
+  * Event monitoring currently cannot be disabled [![planned](https://custom-icon-badges.demolab.com/badge/planned%20for%20Wrapyfi%20v1.0-%23C2E0C6.svg?logo=hourglass&logoColor=white)](https://github.com/modular-ml/wrapyfi/issues/99 "planned link")
 - [Websocket](https://socket.io/) *Only PUB/SUB* [*alpha support*]
 - [Zenoh](https://zenoh.io/) *Only PUB/SUB* [*alpha support*]
 - [MQTT](https://mqtt.org) *Only PUB/SUB* [*alpha support*]

@@ -3,7 +3,7 @@ import time
 import os
 import queue
 import json
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 import random
 import struct
 
@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
-from wrapyfi.encoders import JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonDecodeHook
 from wrapyfi.middlewares.mqtt import MqttMiddlewarePubSub
 
 MQTT_BROKER_ADDRESS = os.environ.get("WRAPYFI_MQTT_BROKER_ADDRESS", "broker.emqx.io")
@@ -82,7 +82,7 @@ class MqttListener(Listener):
                 repeats -= 1
             connected = (
                 MqttMiddlewarePubSub._instance.is_connected()
-            )  # Use the instance
+            )
             logging.debug(f"Connection status: {connected}")
             if connected:
                 logging.info(f"[MQTT] Connected to input topic: {in_topic}")
@@ -185,7 +185,7 @@ class MqttImageListener(MqttNativeObjectListener):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """
@@ -216,18 +216,14 @@ class MqttImageListener(MqttNativeObjectListener):
         """
         try:
             payload = msg.payload
-            # Read the first 4 bytes to get the header length
             header_length_packed = payload[:4]
             header_length = struct.unpack("!I", header_length_packed)[0]
-            # Read the header bytes
             header_bytes = payload[4 : 4 + header_length]
             header_json = header_bytes.decode("utf-8")
             header = json.loads(header_json)
-            # Remaining bytes are image bytes
             img_bytes = payload[4 + header_length :]
 
             if self.jpg:
-                # JPEG case: decode the JPEG image
                 img_array = np.frombuffer(img_bytes, dtype=np.uint8)
                 if self.rgb:
                     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
@@ -235,7 +231,6 @@ class MqttImageListener(MqttNativeObjectListener):
                     img = cv2.imdecode(img_array, cv2.IMREAD_GRAYSCALE)
                 self._message_queue.put(img)
             else:
-                # Non-JPEG case: reconstruct the numpy array
                 shape = header.get("shape", None)
                 dtype = header.get("dtype", None)
                 if shape is not None and dtype is not None:
@@ -312,29 +307,23 @@ class MqttAudioChunkListener(MqttNativeObjectListener):
         """
         try:
             payload = msg.payload
-            # Ensure payload is long enough to contain the header length
             if len(payload) < 4:
                 logging.error("Payload too short to contain header length")
                 return
 
-            # Read the first 4 bytes to get the header length
             header_length_packed = payload[:4]
             header_length = struct.unpack("!I", header_length_packed)[0]
 
-            # Ensure payload is long enough to contain the header
             if len(payload) < 4 + header_length:
                 logging.error("Payload too short to contain header")
                 return
 
-            # Read the header bytes
             header_bytes = payload[4 : 4 + header_length]
             header_json = header_bytes.decode("utf-8")
             header = json.loads(header_json)
 
-            # Remaining bytes are audio bytes
             aud_bytes = payload[4 + header_length :]
 
-            # Extract metadata from header
             shape = header.get("shape")
             dtype = header.get("dtype")
             rate = header.get("rate")

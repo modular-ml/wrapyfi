@@ -3,15 +3,15 @@ import json
 import time
 import os
 import threading
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
-import cv2
 import zenoh
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapyfi.middlewares.zenoh import ZenohMiddlewarePubSub
-from wrapyfi.encoders import JsonEncoder
+from wrapyfi.utils.serialization_encoders import JsonEncoder
+from wrapyfi.utils.image_encoders import JpegEncoder
 
 
 # Capture environment variables for Zenoh configuration
@@ -236,7 +236,7 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """
@@ -250,14 +250,18 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
         :param height: int: Height of the image. Default is -1 (dynamic height)
         :param rgb: bool: True if the image is RGB, False if grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if integer. Default is False
-        :param jpg: bool: True if the image should be compressed as JPG. Default is False
+        :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         """
-        super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
+        super().__init__(name, out_topic, should_wait=should_wait, multi_threaded=multi_threaded, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
         self.jpg = jpg
+
+        if self.jpg:
+            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
+
         self._type = np.float32 if self.fp else np.uint8
 
     def publish(self, img: np.ndarray):
@@ -289,8 +293,7 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            _, img_encoded = cv2.imencode(".jpg", img)
-            img_bytes = img_encoded.tobytes()
+            img_bytes = self._image_encoder.encode_jpg_image(img)
             header = {"timestamp": time.time()}
         else:
             img_bytes = img.tobytes()
@@ -345,8 +348,6 @@ class ZenohAudioChunkPublisher(ZenohNativeObjectPublisher):
         self.channels = channels
         self.rate = rate
         self.chunk = chunk
-
-    import json
 
     def publish(self, aud: Tuple[np.ndarray, int]):
         """

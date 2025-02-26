@@ -1,22 +1,17 @@
 import logging
 import sys
 import json
-import time
-import os
-import importlib.util
 import queue
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 import numpy as np
 import cv2
 import rclpy
 from rclpy.node import Node
-import std_msgs.msg
-import sensor_msgs.msg
 
 from wrapyfi.connect.clients import Client, Clients
 from wrapyfi.middlewares.ros2 import ROS2Middleware
-from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROS2Client(Client, Node):
@@ -182,7 +177,7 @@ class ROS2ImageClient(ROS2Client):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         serializer_kwargs: Optional[dict] = None,
         **kwargs,
     ):

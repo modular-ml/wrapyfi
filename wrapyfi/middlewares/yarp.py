@@ -3,7 +3,7 @@ import atexit
 
 import yarp
 
-from wrapyfi.utils import SingletonOptimized
+from wrapyfi.utils.core_utils import SingletonOptimized
 from wrapyfi.connect.wrapper import MiddlewareCommunicator
 
 

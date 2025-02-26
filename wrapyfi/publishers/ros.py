@@ -3,20 +3,18 @@ import sys
 import json
 import time
 import os
-import base64
-import io
 import importlib.util
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
-import cv2
 import rospy
 import std_msgs.msg
 import sensor_msgs.msg
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapyfi.middlewares.ros import ROSMiddleware
-from wrapyfi.encoders import JsonEncoder
+from wrapyfi.utils.serialization_encoders import JsonEncoder
+from wrapyfi.utils.image_encoders import JpegEncoder
 
 
 QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
@@ -185,7 +183,7 @@ class ROSImagePublisher(ROSPublisher):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """
@@ -200,7 +198,7 @@ class ROSImagePublisher(ROSPublisher):
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be compressed as JPG. Default is False
+        :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         """
         super().__init__(
             name,
@@ -225,6 +223,7 @@ class ROSImagePublisher(ROSPublisher):
         if self.jpg:
             self._encoding = "jpeg"
             self._type = np.uint8
+            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
 
         self._publisher = None
 
@@ -282,7 +281,7 @@ class ROSImagePublisher(ROSPublisher):
             img_msg = sensor_msgs.msg.CompressedImage()
             img_msg.header.stamp = rospy.Time.now()
             img_msg.format = "jpeg"
-            img_msg.data = np.array(cv2.imencode(".jpg", img)[1]).tobytes()
+            img_msg.data = self._image_encoder.encode_jpg_image(img, return_numpy=True).tobytes()
         else:
             img_msg = sensor_msgs.msg.Image()
             img_msg.header.stamp = rospy.Time.now()

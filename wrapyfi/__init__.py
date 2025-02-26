@@ -90,7 +90,7 @@ if __version__ is None or __url__ is None or __doc__ is None:
         __url__ = "unknown_url"
         __doc__ = "unknown_url"
 
-from wrapyfi.utils import PluginRegistrar
+from wrapyfi.utils.core_utils import PluginRegistrar
 
 PluginRegistrar.scan()
 

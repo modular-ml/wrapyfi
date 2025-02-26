@@ -5,13 +5,14 @@ import os
 import base64
 
 import numpy as np
-import cv2
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from socketio import exceptions
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapyfi.middlewares.websocket import WebSocketMiddlewarePubSub
-from wrapyfi.encoders import JsonEncoder
+from wrapyfi.utils.serialization_encoders import JsonEncoder
+from wrapyfi.utils.image_encoders import JpegEncoder
+
 
 SOCKET_IP = os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_IP", "127.0.0.1")
 SOCKET_PORT = int(os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_PORT", 5000))
@@ -170,7 +171,7 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """
@@ -183,7 +184,7 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be compressed as JPG. Default is False
+        :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         """
         super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
         self.width = width
@@ -193,6 +194,9 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         self.jpg = jpg
 
         self._type = np.float32 if self.fp else np.uint8
+
+        if self.jpg:
+            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
 
     def publish(self, img: np.ndarray):
         """
@@ -225,8 +229,7 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         socketio_client = WebSocketMiddlewarePubSub._instance.socketio_client
 
         if self.jpg:
-            _, img_encoded = cv2.imencode(".jpg", img)
-            img_bytes = img_encoded.tobytes()
+            img_bytes = self._image_encoder.encode_jpg_image(img)
             header = {"timestamp": time.time()}
         else:
             img_bytes = img.tobytes()
@@ -312,7 +315,7 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
             "rate": rate,
             "timestamp": time.time(),
         }
-        # Emit the header and audio bytes as a list
+
         try:
             socketio_client.emit(self.out_topic, [header, aud_bytes])
         except (exceptions.BadNamespaceError, exceptions.DisconnectedError):

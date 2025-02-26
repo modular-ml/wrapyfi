@@ -20,7 +20,7 @@ Requirements:
 import base64
 import json
 
-from wrapyfi.utils import *
+from wrapyfi.utils.core_utils import *
 
 try:
     from pint import Quantity

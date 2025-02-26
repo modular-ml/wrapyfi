@@ -70,7 +70,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Portions of the scripts in: 
 
-* wrapyfi/encoders.py
+* wrapyfi.utils.encoders.py
 
 contain code derived from:
 

@@ -9,7 +9,7 @@ import yarp
 
 from wrapyfi.connect.clients import Client, Clients
 from wrapyfi.middlewares.yarp import YarpMiddleware
-from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonEncoder, JsonDecodeHook
 
 
 class YarpClient(Client):

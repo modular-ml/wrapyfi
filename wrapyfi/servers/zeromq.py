@@ -1,16 +1,15 @@
 import logging
 import json
-import time
 import os
-from typing import Optional, Tuple, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
-import cv2
 import zmq
 
 from wrapyfi.connect.servers import Server, Servers
 from wrapyfi.middlewares.zeromq import ZeroMQMiddlewareReqRep
-from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.image_encoders import JpegEncoder
 
 
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
@@ -187,7 +186,7 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         deserializer_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -201,7 +200,7 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
         :param height: int: Height of the image. Default is -1 (use the height of the received image)
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be decompressed from JPG. Default is False
+        :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         :param deserializer_kwargs: dict: Additional kwargs for the deserializer
         """
         super().__init__(
@@ -217,6 +216,9 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
         self.rgb = rgb
         self.fp = fp
         self.jpg = jpg
+
+        if self.jpg:
+            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
 
         self._type = np.float32 if self.fp else np.uint8
 
@@ -244,8 +246,7 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            _, img_encoded = cv2.imencode(".jpg", img)
-            img_bytes = img_encoded.tobytes()
+            img_bytes = self._image_encoder.encode_jpg_image(img)
             self._socket.send(img_bytes)
         else:
             img_list = img.tolist()
