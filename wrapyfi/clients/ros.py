@@ -14,7 +14,7 @@ from wrapyfi.middlewares.ros import (
     ROSNativeObjectService,
     ROSImageService,
 )
-from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonEncoder, JsonDecodeHook
 
 
 class ROSClient(Client):

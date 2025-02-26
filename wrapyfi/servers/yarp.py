@@ -7,7 +7,7 @@ import yarp
 
 from wrapyfi.connect.servers import Server, Servers
 from wrapyfi.middlewares.yarp import YarpMiddleware
-from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonEncoder, JsonDecodeHook
 
 
 class YarpServer(Server):

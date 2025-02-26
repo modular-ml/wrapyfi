@@ -56,13 +56,13 @@ class CameraEffects(MiddlewareCommunicator):
     def __init__(self, cam_id, img_width, img_height):
         super().__init__()
         self.cap = None if cam_id is None else cv2.VideoCapture(cam_id)
-        if img_width > 0:
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, img_width)
-        if img_height > 0:
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, img_height)
-
-        if self.cap is not None and not self.cap.isOpened():
-            raise RuntimeError(f"Cannot open camera with ID {cam_id}")
+        if self.cap is not None:
+            if img_width > 0:
+                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, img_width)
+            if img_height > 0:
+                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, img_height)
+            if not self.cap.isOpened():
+                raise RuntimeError(f"Cannot open camera with ID {cam_id}")
 
         self.capture_times = deque(maxlen=100)  # to calculate FPS for capturing
         self.frame_timestamps = {}  # stores timestamps of each frame keyed by unique ID
@@ -86,7 +86,7 @@ class CameraEffects(MiddlewareCommunicator):
         width="$img_width",
         height="$img_height",
         rgb=True,
-        jpg=True,
+        jpg={"quality": 80, "encoder": "opencv"},
         queue_size=10,
         multi_threaded=True,
         persistent=True,
@@ -148,7 +148,7 @@ class CameraEffects(MiddlewareCommunicator):
         width="$img_width",
         height="$img_height",
         rgb=True,
-        jpg=True,
+        jpg={"quality": 80, "encoder": "opencv"},
         queue_size=10,
         multi_threaded=True,
         persistent=True,

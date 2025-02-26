@@ -21,18 +21,18 @@ Subpackages
 Submodules
 ----------
 
-wrapyfi.encoders module
+wrapyfi.utils.encoders module
 -----------------------
 
-.. automodule:: wrapyfi.encoders
+.. automodule:: wrapyfi.utils.encoders
    :members:
    :undoc-members:
    :show-inheritance:
 
-wrapyfi.utils module
+wrapyfi.utils.core_utils module
 --------------------
 
-.. automodule:: wrapyfi.utils
+.. automodule:: wrapyfi.utils.core_utils
    :members:
    :undoc-members:
    :show-inheritance:

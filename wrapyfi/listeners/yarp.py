@@ -3,7 +3,7 @@ import json
 import time
 import base64
 import io
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 
 import numpy as np
 import cv2
@@ -11,7 +11,7 @@ import yarp
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.yarp import YarpMiddleware
-from wrapyfi.encoders import JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonDecodeHook
 
 
 WATCHDOG_POLL_REPEAT = None
@@ -201,7 +201,7 @@ class YarpImageListener(YarpListener):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """

@@ -2,7 +2,7 @@ import yaml
 import logging
 from typing import Union, Optional
 
-from wrapyfi.utils import SingletonOptimized
+from wrapyfi.utils.core_utils import SingletonOptimized
 
 
 class ConfigManager(metaclass=SingletonOptimized):

@@ -3,7 +3,7 @@ import os
 from glob import glob
 from pathlib import Path
 
-from wrapyfi.utils import (
+from wrapyfi.utils.core_utils import (
     SingletonOptimized,
     dynamic_module_import,
     scan_external,

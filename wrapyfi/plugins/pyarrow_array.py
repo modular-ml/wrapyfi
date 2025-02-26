@@ -20,7 +20,7 @@ Requirements:
 import pickle
 import base64
 
-from wrapyfi.utils import *
+from wrapyfi.utils.core_utils import *
 
 try:
     import pyarrow as pa

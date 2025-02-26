@@ -4,7 +4,7 @@ import json
 import queue
 import time
 import os
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 import numpy as np
 import cv2
@@ -15,7 +15,7 @@ import sensor_msgs.msg
 
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.ros import ROSMiddleware
-from wrapyfi.encoders import JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonDecodeHook
 
 
 QUEUE_SIZE = int(os.environ.get("WRAPYFI_ROS_QUEUE_SIZE", 5))
@@ -171,7 +171,7 @@ class ROSImageListener(ROSListener):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """

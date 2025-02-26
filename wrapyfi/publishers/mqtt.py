@@ -3,16 +3,16 @@ import json
 import time
 import os
 import threading
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 import random
 import struct
 
 import numpy as np
-import cv2
 
 from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapyfi.middlewares.mqtt import MqttMiddlewarePubSub
-from wrapyfi.encoders import JsonEncoder
+from wrapyfi.utils.serialization_encoders import JsonEncoder
+from wrapyfi.utils.image_encoders import JpegEncoder
 
 MQTT_BROKER_ADDRESS = os.environ.get("WRAPYFI_MQTT_BROKER_ADDRESS", "broker.emqx.io")
 MQTT_BROKER_PORT = int(os.environ.get("WRAPYFI_MQTT_BROKER_PORT", 1883))
@@ -174,7 +174,7 @@ class MqttImagePublisher(MqttNativeObjectPublisher):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         **kwargs,
     ):
         """
@@ -188,14 +188,17 @@ class MqttImagePublisher(MqttNativeObjectPublisher):
         :param height: int: Height of the image. Default is -1 meaning that the height is not fixed
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be compressed as JPG. Default is False
+        :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         """
-        super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
+        super().__init__(name, out_topic, should_wait=should_wait, multi_threaded=multi_threaded, **kwargs)
         self.width = width
         self.height = height
         self.rgb = rgb
         self.fp = fp
         self.jpg = jpg
+
+        if self.jpg:
+            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
 
         self._type = np.float32 if self.fp else np.uint8
 
@@ -228,13 +231,11 @@ class MqttImagePublisher(MqttNativeObjectPublisher):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            # Encode image as JPEG and get raw bytes
-            img_bytes = cv2.imencode(".jpg", img)[1].tobytes()
+            img_bytes = self._image_encoder.encode_jpg_image(img)
             header = {
                 "timestamp": time.time(),
             }
         else:
-            # Convert the image to raw bytes
             img_bytes = img.tobytes()
             header = {
                 "shape": img.shape,
@@ -242,17 +243,13 @@ class MqttImagePublisher(MqttNativeObjectPublisher):
                 "timestamp": time.time(),
             }
 
-        # Serialize header to JSON and encode to bytes
         header_json = json.dumps(header)
         header_bytes = header_json.encode("utf-8")
         header_length = len(header_bytes)
-        # Pack header length into 4 bytes (big-endian)
         header_length_packed = struct.pack("!I", header_length)
 
-        # Construct the payload: header length + header bytes + image bytes
         payload = header_length_packed + header_bytes + img_bytes
 
-        # Publish the binary payload
         MqttMiddlewarePubSub._instance.mqtt_client.publish(self.out_topic, payload)
 
 
@@ -291,11 +288,7 @@ class MqttAudioChunkPublisher(MqttNativeObjectPublisher):
         self.rate = rate
         self.chunk = chunk
 
-    import struct
-    import json
     import numpy as np
-    import time
-    import logging
 
     def publish(self, aud: Tuple[np.ndarray, int]):
         """
@@ -326,7 +319,6 @@ class MqttAudioChunkPublisher(MqttNativeObjectPublisher):
 
         aud_array = np.require(aud_array, dtype=np.float32, requirements="C")
 
-        # Create the header
         header = {
             "shape": aud_array.shape,
             "dtype": str(aud_array.dtype),
@@ -334,20 +326,15 @@ class MqttAudioChunkPublisher(MqttNativeObjectPublisher):
             "timestamp": time.time(),
         }
 
-        # Serialize header to JSON and encode to bytes
         header_json = json.dumps(header)
         header_bytes = header_json.encode("utf-8")
         header_length = len(header_bytes)
-        # Pack header length into 4 bytes (big-endian)
         header_length_packed = struct.pack("!I", header_length)
 
-        # Get audio bytes
         aud_bytes = aud_array.tobytes()
 
-        # Construct the payload: header length + header bytes + audio bytes
         payload = header_length_packed + header_bytes + aud_bytes
 
-        # Publish the binary payload
         try:
             MqttMiddlewarePubSub._instance.mqtt_client.publish(self.out_topic, payload)
         except Exception as e:

@@ -2,7 +2,7 @@ import logging
 import json
 import queue
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import cv2
@@ -10,7 +10,7 @@ import zmq
 
 from wrapyfi.connect.clients import Client, Clients
 from wrapyfi.middlewares.zeromq import ZeroMQMiddlewareReqRep
-from wrapyfi.encoders import JsonEncoder, JsonDecodeHook
+from wrapyfi.utils.serialization_encoders import JsonEncoder, JsonDecodeHook
 
 SOCKET_IP = os.environ.get("WRAPYFI_ZEROMQ_SOCKET_IP", "127.0.0.1")
 SOCKET_REP_PORT = int(os.environ.get("WRAPYFI_ZEROMQ_SOCKET_REP_PORT", 5558))
@@ -175,7 +175,7 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         height: int = -1,
         rgb: bool = True,
         fp: bool = False,
-        jpg: bool = False,
+        jpg: Union[bool, dict] = False,
         serializer_kwargs: Optional[dict] = None,
         **kwargs,
     ):
@@ -189,7 +189,7 @@ class ZeroMQImageClient(ZeroMQNativeObjectClient):
         :param height: int: Height of the image. Default is -1 (use the height of the received image)
         :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
         :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be compressed to JPG before sending. Default is False
+        :param jpg: bool:  True if the image should be decompressed from JPG. Default is False
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(
@@ -273,11 +273,10 @@ class ZeroMQAudioChunkClient(ZeroMQNativeObjectClient):
         :param name: str: Name of the client
         :param in_topic: str: Topics are not supported for the REQ/REP pattern in ZeroMQ. Any given topic is ignored
         :param carrier: str: Carrier protocol (e.g. 'tcp'). Default is 'tcp'
-        :param width: int: Width of the image. Default is -1 (use the width of the received image)
-        :param height: int: Height of the image. Default is -1 (use the height of the received image)
-        :param rgb: bool: True if the image is RGB, False if it is grayscale. Default is True
-        :param fp: bool: True if the image is floating point, False if it is integer. Default is False
-        :param jpg: bool: True if the image should be compressed to JPG before sending. Default is False
+        :param channels: int: Number of audio channels. Default is 1
+        :param rate: int: Sampling rate of the audio. Default is 44100
+        :param chunk: int: The size of audio chunks. Default is -1
+        :param persistent: bool: Whether to keep the service connection alive across multiple service calls. Default is True
         :param serializer_kwargs: dict: Additional kwargs for the serializer
         """
         super().__init__(
