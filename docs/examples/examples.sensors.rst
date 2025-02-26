@@ -9,13 +9,13 @@ examples.sensors.cam\_mic module
 
 .. automodule:: examples.sensors.cam_mic
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: examples.sensors
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

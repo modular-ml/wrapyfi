@@ -212,7 +212,9 @@ class ROS2ImagePublisher(ROS2Publisher):
         if self.jpg:
             self._encoding = "jpeg"
             self._type = np.uint8
-            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
+            self._image_encoder = JpegEncoder(
+                **(self.jpg if isinstance(self.jpg, dict) else {})
+            )
 
         self._publisher = None
 
@@ -270,7 +272,9 @@ class ROS2ImagePublisher(ROS2Publisher):
             img_msg = sensor_msgs.msg.CompressedImage()
             img_msg.header.stamp = rclpy.clock.Clock().now().to_msg()
             img_msg.format = "jpeg"
-            img_msg.data = self._image_encoder.encode_jpg_image(img, return_numpy=True).tobytes()
+            img_msg.data = self._image_encoder.encode_jpg_image(
+                img, return_numpy=True
+            ).tobytes()
         else:
             img_msg = sensor_msgs.msg.Image()
             img_msg.header.stamp = self.get_clock().now().to_msg()

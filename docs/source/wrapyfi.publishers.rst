@@ -9,61 +9,61 @@ wrapyfi.publishers.mqtt module
 
 .. automodule:: wrapyfi.publishers.mqtt
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.publishers.ros module
 -----------------------------
 
 .. automodule:: wrapyfi.publishers.ros
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.publishers.ros2 module
 ------------------------------
 
 .. automodule:: wrapyfi.publishers.ros2
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.publishers.websocket module
 -----------------------------------
 
 .. automodule:: wrapyfi.publishers.websocket
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.publishers.yarp module
 ------------------------------
 
 .. automodule:: wrapyfi.publishers.yarp
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.publishers.zenoh module
 -------------------------------
 
 .. automodule:: wrapyfi.publishers.zenoh
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 wrapyfi.publishers.zeromq module
 --------------------------------
 
 .. automodule:: wrapyfi.publishers.zeromq
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: wrapyfi.publishers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

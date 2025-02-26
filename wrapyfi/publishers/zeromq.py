@@ -309,7 +309,12 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         :param jpg: Union[bool, dict]: If True, compress as JPG with default settings. If a dict, pass arguments to JpegEncoder. Default is False
         """
         super().__init__(
-            name, out_topic, carrier=carrier, should_wait=should_wait, multi_threaded=multi_threaded, **kwargs
+            name,
+            out_topic,
+            carrier=carrier,
+            should_wait=should_wait,
+            multi_threaded=multi_threaded,
+            **kwargs,
         )
         self.width = width
         self.height = height
@@ -318,7 +323,9 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
         self.jpg = jpg
 
         if self.jpg:
-            self._image_encoder = JpegEncoder(**(self.jpg if isinstance(self.jpg, dict) else {}))
+            self._image_encoder = JpegEncoder(
+                **(self.jpg if isinstance(self.jpg, dict) else {})
+            )
 
         self._type = np.float32 if self.fp else np.uint8
 
@@ -350,7 +357,9 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            img_str = self._image_encoder.encode_jpg_image(img, return_numpy=True).tostring()
+            img_str = self._image_encoder.encode_jpg_image(
+                img, return_numpy=True
+            ).tostring()
         else:
             img_str = json.dumps(
                 img,

@@ -161,7 +161,6 @@ class ZenohListener(Listener):
 @Listeners.register("NativeObject", "zenoh")
 class ZenohNativeObjectListener(ZenohListener):
 
-
     def __init__(
         self,
         name: str,
@@ -223,7 +222,6 @@ class ZenohNativeObjectListener(ZenohListener):
 
 @Listeners.register("Image", "zenoh")
 class ZenohImageListener(ZenohNativeObjectListener):
-
 
     def __init__(
         self,
@@ -305,7 +303,6 @@ class ZenohImageListener(ZenohNativeObjectListener):
 
 @Listeners.register("AudioChunk", "zenoh")
 class ZenohAudioChunkListener(ZenohNativeObjectListener):
-
 
     def __init__(
         self,
