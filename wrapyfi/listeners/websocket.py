@@ -2,9 +2,11 @@ import logging
 import json
 import time
 import os
+import io
 import queue
 from typing import Optional, Union
 import base64
+import tempfile
 
 import numpy as np
 import cv2
@@ -354,6 +356,96 @@ class WebSocketAudioChunkListener(WebSocketNativeObjectListener):
             return aud, rate
         except queue.Empty:
             return None, self.rate
+
+
+@Listeners.register("Video", "websocket")
+class WebSocketVideoListener(WebSocketNativeObjectListener):
+    def __init__(
+        self,
+        name: str,
+        in_topic: str,
+        should_wait: bool = True,
+        width: int = -1,
+        height: int = -1,
+        fps: int = 30,
+        buffer_length: int = 30,
+        buffer_type: str = "frames",
+        **kwargs,
+    ):
+        super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
+        self.width = width
+        self.height = height
+        self.fps = fps
+        self.buffer_length = buffer_length
+        self.buffer_type = buffer_type
+
+        self._message_queue = queue.Queue()
+        self._codec_params = {}
+        self._cap = None
+
+    def on_message(self, data):
+        try:
+            header, chunk_b64 = data
+            chunk = base64.b64decode(chunk_b64)
+
+            if (self.width > 0 and header["width"] != self.width) or \
+                    (self.height > 0 and header["height"] != self.height):
+                raise ValueError("Frame dimension mismatch")
+
+            codec = header["codec"].lower()
+            self._codec_params = {
+                "codec": codec,
+                "fps": header["fps"],
+                "width": header["width"],
+                "height": header["height"],
+            }
+
+            # Use PyAV for H.264, OpenCV for others (e.g., mp4v)
+            if codec in ["libx264", "h264"]:
+                import av
+                try:
+                    container = av.open(io.BytesIO(chunk), format="mp4")
+                    video_stream = next(s for s in container.streams if s.type == "video")
+                    for frame in container.decode(video_stream):
+                        cv_frame = frame.to_ndarray(format="bgr24")  # Convert to BGR for OpenCV
+                        self._message_queue.put(cv_frame)
+                    container.close()
+                except Exception as e:
+                    logging.error(f"PyAV decoding failed: {e}")
+                    return
+            else:
+                # Fallback to OpenCV for other codecs
+                with tempfile.NamedTemporaryFile(delete=False) as f:
+                    f.write(chunk)
+                    temp_path = f.name
+
+                self._cap = cv2.VideoCapture(temp_path)
+                while self._cap.isOpened():
+                    ret, frame = self._cap.read()
+                    if not ret:
+                        break
+                    self._message_queue.put(frame)
+                self._cap.release()
+                os.unlink(temp_path)
+
+        except Exception as e:
+            logging.error(f"Video decoding error: {e}")
+
+    def listen(self):
+        if not self.established:
+            self.established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
+            if not self.established:
+                return None
+
+        try:
+            return self._message_queue.get(block=self.should_wait)
+        except queue.Empty:
+            return None
+
+    def close(self):
+        if self._cap and self._cap.isOpened():
+            self._cap.release()
+        super().close()
 
 
 @Listeners.register("Properties", "websocket")

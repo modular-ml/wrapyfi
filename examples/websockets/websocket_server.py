@@ -7,14 +7,17 @@ import base64
 SOCKET_IP = "0.0.0.0"
 SOCKET_PORT = 5000
 WEBSOCKET_NAMESPACE = "/"
+DEBUG = False
 
 # Initialize Flask and Flask-SocketIO
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "some secret key"
-socketio = SocketIO(app, logger=True, engineio_logger=True)
+
+
+socketio = SocketIO(app, max_http_buffer_size=1e9, logger=DEBUG, engineio_logger=DEBUG)
 
 # Setup logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG if DEBUG else logging.WARNING)
 
 
 # Create a custom namespace class
@@ -54,7 +57,7 @@ def connect():
     """
     This is the default event handler for when a client connects to the server.
     """
-    print("Connected to the server")
+    # print("Connected to the server")
 
 
 @socketio.on("/hello/my_message", namespace=WEBSOCKET_NAMESPACE)
@@ -65,7 +68,7 @@ def my_text_message(data):
 
     :param data: dict: The message data
     """
-    print("Received 'my_message' in client script")
+    # print("Received 'my_message' in client script")
     socketio.emit("/hello/my_message", data, namespace=WEBSOCKET_NAMESPACE)
 
 
@@ -76,7 +79,7 @@ def my_img_message(data):
 
     :param data: dict: The image data
     """
-    print("Received 'my_message' in client script")
+    # print("Received 'my_message' in client script")
     socketio.emit("/cam_mic/cam_feed", data, namespace=WEBSOCKET_NAMESPACE)
 
 
@@ -87,8 +90,22 @@ def my_aud_message(data):
 
     :param data: dict: The audio data
     """
-    print("Received 'my_message' in client script")
+    # print("Received 'my_message' in client script")
     socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
+
+
+@socketio.on("/video_cam/video_feed", namespace=WEBSOCKET_NAMESPACE)
+def my_video_message(data):
+    """
+    This is for the `websockets/cam_video_feed.py` example for when the publisher streams a chunk of image messages over websocket (setting `--mware` argument to 'websocket').
+
+    :param data: dict: The image data
+    """
+    try:
+        socketio.emit("/video_cam/video_feed", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'video_feed' in client script: {data}")
+    except Exception as e:
+        logging.error(f"Error in /video_cam/video_feed: {e}")
 
 
 # TODO (fabawi): additional forwarders for debugging purposes. To be removed soon
@@ -141,5 +158,5 @@ def my_mtrcsrec_message(data):
 # Start the development server. Note that for a production deployment, a production-ready server like waitress should be used.
 if __name__ == "__main__":
     socketio.run(
-        app, host=SOCKET_IP, port=SOCKET_PORT, debug=True, allow_unsafe_werkzeug=True
+        app, host=SOCKET_IP, port=SOCKET_PORT, debug=DEBUG, allow_unsafe_werkzeug=True
     )

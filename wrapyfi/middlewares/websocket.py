@@ -1,6 +1,5 @@
 import logging
 import atexit
-import threading
 
 import socketio
 

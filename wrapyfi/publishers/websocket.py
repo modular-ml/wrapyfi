@@ -4,6 +4,7 @@ import time
 import os
 import base64
 
+import cv2
 import numpy as np
 from typing import Optional, Tuple, Union
 from socketio import exceptions
@@ -12,6 +13,7 @@ from wrapyfi.connect.publishers import Publisher, Publishers, PublisherWatchDog
 from wrapyfi.middlewares.websocket import WebSocketMiddlewarePubSub
 from wrapyfi.utils.serialization_encoders import JsonEncoder
 from wrapyfi.utils.image_encoders import JpegEncoder
+from wrapyfi.utils.video_encoders import VideoEncoder
 
 
 SOCKET_IP = os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_IP", "127.0.0.1")
@@ -322,6 +324,110 @@ class WebSocketAudioChunkPublisher(WebSocketNativeObjectPublisher):
             socketio_client.emit(self.out_topic, [header, aud_bytes])
         except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
             self.established = False
+
+
+@Publishers.register("Video", "websocket")
+class WebSocketVideoPublisher(WebSocketNativeObjectPublisher):
+    def __init__(
+        self,
+        name: str,
+        out_topic: str,
+        should_wait: bool = True,
+        width: int = -1,
+        height: int = -1,
+        fps: int = 30,
+        buffer_length: int = 30,
+        buffer_type: str = "frames",
+        encoder: str = "opencv",
+        codec: str = "mp4v",
+        gop: int = 30,
+        quality: int = 95,
+        **kwargs,
+    ):
+        super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
+
+        if width <= 0 or height <= 0:
+            raise ValueError("Width and height must be positive integers.")
+
+        self.width = width
+        self.height = height
+        self.fps = fps
+        self.buffer_length = buffer_length
+        self.buffer_type = buffer_type
+        self.encoder = encoder
+        self.codec = codec
+        self.gop = gop
+        self.quality = quality
+
+        self._video_encoder = VideoEncoder(
+            buffer_length=self.buffer_length,
+            buffer_type=self.buffer_type,
+            encoder=self.encoder,
+            codec=self.codec,
+            fps=self.fps,
+            gop=self.gop,
+            quality=self.quality,
+            width=self.width,
+            height=self.height,
+        )
+
+        if not self.should_wait:
+            PublisherWatchDog().add_publisher(self)
+
+    def publish(self, frame: np.ndarray):
+        if frame is None:
+            return
+
+        if not self.established:
+            self.established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
+            if not self.established:
+                return
+            time.sleep(0.2)
+
+        if frame.shape[1] != self.width or frame.shape[0] != self.height:
+            raise ValueError("Frame dimensions do not match publisher settings.")
+
+        chunk = self._video_encoder.add_frame(frame)
+        if chunk is not None:
+            header = {
+                "timestamp": time.time(),
+                "codec": self.codec,
+                "buffer_type": self.buffer_type,
+                "buffer_length": self.buffer_length,
+                "width": self.width,
+                "height": self.height,
+                "fps": self.fps,
+                "gop": self.gop,
+            }
+            chunk_b64 = base64.b64encode(chunk).decode("utf-8")
+            try:
+                WebSocketMiddlewarePubSub._instance.socketio_client.emit(
+                    self.out_topic, [header, chunk_b64]
+                )
+            except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
+                self.established = False
+
+    def close(self):
+        chunk = self._video_encoder._encode_chunk()
+        if chunk:
+            header = {
+                "timestamp": time.time(),
+                "codec": self.codec,
+                "buffer_type": self.buffer_type,
+                "buffer_length": self.buffer_length,
+                "width": self.width,
+                "height": self.height,
+                "fps": self.fps,
+                "gop": self.gop,
+            }
+            chunk_b64 = base64.b64encode(chunk).decode("utf-8")
+            try:
+                WebSocketMiddlewarePubSub._instance.socketio_client.emit(
+                    self.out_topic, [header, chunk_b64]
+                )
+            except (exceptions.BadNamespaceError, exceptions.DisconnectedError):
+                self.established = False
+        super().close()
 
 
 @Publishers.register("Properties", "websocket")
