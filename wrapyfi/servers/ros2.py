@@ -328,7 +328,7 @@ class ROS2ImageServer(ROS2Server):
             if self.jpg:
                 img_msg.header.stamp = rclpy.clock.Clock().now().to_msg()
                 img_msg.format = "jpeg"
-                img_msg.data = self._image_encoder.encode_jpg_image(
+                img_msg.data = self._image_encoder.encode(
                     img, return_numpy=True
                 ).tobytes()
             else:

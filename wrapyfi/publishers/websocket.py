@@ -233,7 +233,7 @@ class WebSocketImagePublisher(WebSocketNativeObjectPublisher):
         socketio_client = WebSocketMiddlewarePubSub._instance.socketio_client
 
         if self.jpg:
-            img_bytes = self._image_encoder.encode_jpg_image(img)
+            img_bytes = self._image_encoder.encode(img)
             header = {"timestamp": time.time()}
         else:
             img_bytes = img.tobytes()
@@ -344,6 +344,22 @@ class WebSocketVideoPublisher(WebSocketNativeObjectPublisher):
         quality: int = 95,
         **kwargs,
     ):
+        """
+        The VideoPublisher using the WebSocket message construct assuming a numpy array as input.
+
+        :param name: str: Name of the publisher.
+        :param out_topic: str: Name of the output topic (e.g. 'topic').
+        :param should_wait: bool: Whether to wait for at least one listener before unblocking the script. Default is True.
+        :param width: int: Width of the video. Default is -1 meaning that the width is not fixed.
+        :param height: int: Height of the video. Default is -1 meaning that the height is not fixed.
+        :param fps: int: Frames per second of the video. Default is 30.
+        :param buffer_length: int: Length of the buffer in units of `buffer_type`. Default is 30.
+        :param buffer_type: str: Type of buffer ('frames', 'time', 'bytes'). Default is 'frames'.
+        :param encoder: str: Encoder backend to use ('opencv', 'pyav', 'ffmpeg'). Default is 'opencv'.
+        :param codec: str: Video codec to use (e.g., 'h264', 'mp4v'). Default is 'mp4v'.
+        :param gop: int: Group of Pictures size for video encoding. Default is 30.
+        :param quality: int: Encoding quality (0-100, higher is better). Default is 95.
+        """
         super().__init__(name, out_topic, should_wait=should_wait, **kwargs)
 
         if width <= 0 or height <= 0:
@@ -375,6 +391,11 @@ class WebSocketVideoPublisher(WebSocketNativeObjectPublisher):
             PublisherWatchDog().add_publisher(self)
 
     def publish(self, frame: np.ndarray):
+        """
+        Publish the video frame to the middleware.
+
+        :param frame: np.ndarray: Video frame to publish formatted as a cv2 image np.ndarray[img_height, img_width, channels].
+        """
         if frame is None:
             return
 
@@ -408,6 +429,9 @@ class WebSocketVideoPublisher(WebSocketNativeObjectPublisher):
                 self.established = False
 
     def close(self):
+        """
+        Close the publisher and send any remaining buffered data.
+        """
         chunk = self._video_encoder._encode_chunk()
         if chunk:
             header = {

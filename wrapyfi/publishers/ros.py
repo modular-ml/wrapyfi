@@ -283,7 +283,7 @@ class ROSImagePublisher(ROSPublisher):
             img_msg = sensor_msgs.msg.CompressedImage()
             img_msg.header.stamp = rospy.Time.now()
             img_msg.format = "jpeg"
-            img_msg.data = self._image_encoder.encode_jpg_image(
+            img_msg.data = self._image_encoder.encode(
                 img, return_numpy=True
             ).tobytes()
         else:

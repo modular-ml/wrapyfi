@@ -357,7 +357,7 @@ class ZeroMQImagePublisher(ZeroMQNativeObjectPublisher):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            img_str = self._image_encoder.encode_jpg_image(
+            img_str = self._image_encoder.encode(
                 img, return_numpy=True
             ).tostring()
         else:

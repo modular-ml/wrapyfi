@@ -2,11 +2,9 @@ import logging
 import json
 import time
 import os
-import io
 import queue
 from typing import Optional, Union
 import base64
-import tempfile
 
 import numpy as np
 import cv2
@@ -14,6 +12,8 @@ import cv2
 from wrapyfi.connect.listeners import Listener, Listeners, ListenerWatchDog
 from wrapyfi.middlewares.websocket import WebSocketMiddlewarePubSub
 from wrapyfi.utils.serialization_encoders import JsonDecodeHook
+from wrapyfi.utils.video_encoders import VideoDecoder
+
 
 SOCKET_IP = os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_IP", "127.0.0.1")
 SOCKET_PORT = int(os.environ.get("WRAPYFI_WEBSOCKET_SOCKET_PORT", 5000))
@@ -370,81 +370,103 @@ class WebSocketVideoListener(WebSocketNativeObjectListener):
         fps: int = 30,
         buffer_length: int = 30,
         buffer_type: str = "frames",
+        decoder: str = "auto",
+        codec: str = "mp4v",
         **kwargs,
     ):
+        """
+        The VideoListener using the WebSocket message construct parsed to a numpy array.
+
+        :param name: str: Name of the listener.
+        :param in_topic: str: Name of the input topic (e.g., 'topic').
+        :param should_wait: bool: Whether the listener should wait for the publisher to transmit a message. Default is True.
+        :param width: int: Width of the video. Default is -1 (use the width of the received video).
+        :param height: int: Height of the video. Default is -1 (use the height of the received video).
+        :param fps: int: Frames per second of the video. Default is 30.
+        :param buffer_length: int: Length of the buffer in units of `buffer_type`. Default is 30.
+        :param buffer_type: str: Type of buffer ('frames', 'time', 'bytes'). Default is 'frames'.
+        :param decoder: str: Decoder backend to use ('auto', 'pyav', 'opencv'). Default is 'auto'.
+        :param codec: str: Video codec to use (e.g., 'h264', 'mp4v'). Default is 'mp4v'.
+        """
         super().__init__(name, in_topic, should_wait=should_wait, **kwargs)
         self.width = width
         self.height = height
         self.fps = fps
         self.buffer_length = buffer_length
         self.buffer_type = buffer_type
+        self.decoder = decoder
+        self.codec = codec
 
         self._message_queue = queue.Queue()
-        self._codec_params = {}
-        self._cap = None
+        self._video_decoder = VideoDecoder(
+            codec=self.codec,
+            width=self.width,
+            height=self.height,
+            fps=self.fps,
+            decoder=self.decoder,
+        )
+
 
     def on_message(self, data):
+        """
+        Callback for handling incoming video messages.
+        """
         try:
             header, chunk_b64 = data
             chunk = base64.b64decode(chunk_b64)
 
-            if (self.width > 0 and header["width"] != self.width) or \
-                    (self.height > 0 and header["height"] != self.height):
+            if (0 < self.width != header["width"]) or \
+                    (0 < self.height != header["height"]):
                 raise ValueError("Frame dimension mismatch")
 
+            if self._video_decoder.width == -1:
+                self._video_decoder.width = header["width"]
+            if self._video_decoder.height == -1:
+                self._video_decoder.height = header["height"]
+            if self._video_decoder.fps == -1:
+                self._video_decoder.fps = header["fps"]
+
             codec = header["codec"].lower()
-            self._codec_params = {
-                "codec": codec,
-                "fps": header["fps"],
-                "width": header["width"],
-                "height": header["height"],
-            }
+            if codec != self.codec:
+                logging.warning(f"Received codec '{codec}' does not match configured codec '{self.codec}'. Updating decoder codec.")
+                self.codec = codec
+                self._video_decoder.codec = self.codec
 
-            # Use PyAV for H.264, OpenCV for others (e.g., mp4v)
-            if codec in ["libx264", "h264"]:
-                import av
-                try:
-                    container = av.open(io.BytesIO(chunk), format="mp4")
-                    video_stream = next(s for s in container.streams if s.type == "video")
-                    for frame in container.decode(video_stream):
-                        cv_frame = frame.to_ndarray(format="bgr24")  # Convert to BGR for OpenCV
-                        self._message_queue.put(cv_frame)
-                    container.close()
-                except Exception as e:
-                    logging.error(f"PyAV decoding failed: {e}")
-                    return
-            else:
-                # Fallback to OpenCV for other codecs
-                with tempfile.NamedTemporaryFile(delete=False) as f:
-                    f.write(chunk)
-                    temp_path = f.name
+            _ret_status = self._video_decoder.decode(self._message_queue, chunk)
+            # if not _ret_status:
+            #     logging.warning("Video decoding failed")
 
-                self._cap = cv2.VideoCapture(temp_path)
-                while self._cap.isOpened():
-                    ret, frame = self._cap.read()
-                    if not ret:
-                        break
-                    self._message_queue.put(frame)
-                self._cap.release()
-                os.unlink(temp_path)
 
         except Exception as e:
             logging.error(f"Video decoding error: {e}")
 
     def listen(self):
+        """
+        Listen for a message.
+
+        :return: np.ndarray: The received video frame as a numpy array formatted as a cv2 image np.ndarray[img_height, img_width, channels].
+        """
         if not self.established:
             self.established = self.establish(repeats=WATCHDOG_POLL_REPEAT)
             if not self.established:
                 return None
 
         try:
-            return self._message_queue.get(block=self.should_wait)
+            img = self._message_queue.get(block=self.should_wait)
+            if img is not None:
+                if (
+                    (self.width > 0 and self.width != img.shape[1])
+                    or (self.height > 0 and self.height != img.shape[0])
+                ):
+                    raise ValueError("Incorrect video shape for listener")
+            return img
         except queue.Empty:
             return None
 
     def close(self):
-        if self._cap and self._cap.isOpened():
-            self._cap.release()
+        """
+        Close the listener and release resources.
+        """
         super().close()
 
 

@@ -65,7 +65,7 @@ class VideoCam(MiddlewareCommunicator):
         buffer_length="$buffer_length",
         encoder="$encoder",
         codec="$codec",
-        queue_size=30,
+        queue_size=10,
         should_wait=False
     )
     def collect_cam(self, img_width=640, img_height=480, fps=30,
@@ -105,6 +105,8 @@ class VideoCam(MiddlewareCommunicator):
                 img_width=self.img_width,
                 img_height=self.img_height,
                 fps=self.fps,
+                encoder=self.encoder,
+                codec=self.codec,
                 mware=self.mware,
             )
             if frame is not None:
@@ -112,23 +114,31 @@ class VideoCam(MiddlewareCommunicator):
                     self.buffer.append(frame)
 
     def run_playback(self):
+        print("Starting video playback")
         cv2.namedWindow("Video Stream", cv2.WINDOW_NORMAL)
         last_frame_time = time.time()
 
         while self.running.is_set():
+            frame = None
             with self.buffer_lock:
                 if self.buffer:
                     frame = self.buffer.popleft()
-                    current_time = time.time()
-                    # Calculate expected display time based on FPS
-                    expected_time = last_frame_time + (1.0 / self.fps)
-                    # Sleep only if ahead of schedule
-                    if current_time < expected_time:
-                        time.sleep(expected_time - current_time)
-                    cv2.imshow("Video Stream", frame)
-                    cv2.waitKey(1)
-                    last_frame_time = time.time()
-            time.sleep(0.001)  # Reduce CPU usage
+
+            if frame is not None:
+                # Calculate time since last frame and sleep if necessary
+                current_time = time.time()
+                elapsed = current_time - last_frame_time
+                delay = max(1.0 / self.fps - elapsed, 0.001)  # Ensure minimal sleep to prevent busy-wait
+                time.sleep(delay)
+
+                # Display frame
+                cv2.imshow("Video Stream", frame)
+                last_frame_time = time.time()
+
+            # Process GUI events every iteration (crucial for responsiveness)
+            key = cv2.waitKey(1)
+            if key == ord('q'):
+                self.running.clear()
 
         cv2.destroyAllWindows()
 
@@ -202,19 +212,17 @@ def main(args):
         except KeyboardInterrupt:
             video_cam.running.clear()
     elif args.mode == "listen":
+        # Listener runs in background thread
         listener_thread = threading.Thread(target=video_cam.run_listener)
-        playback_thread = threading.Thread(target=video_cam.run_playback)
         listener_thread.daemon = True
-        playback_thread.daemon = True
         listener_thread.start()
-        playback_thread.start()
+
+        # Playback runs in main thread (required for OpenCV GUI)
         try:
-            while True:
-                time.sleep(1)
+            video_cam.run_playback()
         except KeyboardInterrupt:
             video_cam.running.clear()
-            listener_thread.join()
-            playback_thread.join()
+        listener_thread.join()
 
 
 if __name__ == "__main__":

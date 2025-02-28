@@ -301,7 +301,7 @@ class ZenohImagePublisher(ZenohNativeObjectPublisher):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            img_bytes = self._image_encoder.encode_jpg_image(img)
+            img_bytes = self._image_encoder.encode(img)
             header = {"timestamp": time.time()}
         else:
             img_bytes = img.tobytes()

@@ -7,6 +7,7 @@ import base64
 SOCKET_IP = "0.0.0.0"
 SOCKET_PORT = 5000
 WEBSOCKET_NAMESPACE = "/"
+SOCKET_BUFFER_SIZE = 2e8
 DEBUG = False
 
 # Initialize Flask and Flask-SocketIO
@@ -14,7 +15,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "some secret key"
 
 
-socketio = SocketIO(app, max_http_buffer_size=1e9, logger=DEBUG, engineio_logger=DEBUG)
+socketio = SocketIO(app, max_http_buffer_size=SOCKET_BUFFER_SIZE, logger=DEBUG, engineio_logger=DEBUG)
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG if DEBUG else logging.WARNING)
@@ -57,7 +58,7 @@ def connect():
     """
     This is the default event handler for when a client connects to the server.
     """
-    # print("Connected to the server")
+    logging.debug("Client connected")
 
 
 @socketio.on("/hello/my_message", namespace=WEBSOCKET_NAMESPACE)
@@ -68,8 +69,11 @@ def my_text_message(data):
 
     :param data: dict: The message data
     """
-    # print("Received 'my_message' in client script")
-    socketio.emit("/hello/my_message", data, namespace=WEBSOCKET_NAMESPACE)
+    try:
+        socketio.emit("/hello/my_message", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'my_message' in client script: {data}")
+    except Exception as e:
+        logging.error(f"Error in /hello/my_message: {e}")
 
 
 @socketio.on("/cam_mic/cam_feed", namespace=WEBSOCKET_NAMESPACE)
@@ -79,8 +83,11 @@ def my_img_message(data):
 
     :param data: dict: The image data
     """
-    # print("Received 'my_message' in client script")
-    socketio.emit("/cam_mic/cam_feed", data, namespace=WEBSOCKET_NAMESPACE)
+    try:
+        socketio.emit("/cam_mic/cam_feed", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'cam_feed' in client script: {data}")
+    except Exception as e:
+        logging.error(f"Error in /cam_mic/cam_feed: {e}")
 
 
 @socketio.on("/cam_mic/audio_feed", namespace=WEBSOCKET_NAMESPACE)
@@ -90,8 +97,11 @@ def my_aud_message(data):
 
     :param data: dict: The audio data
     """
-    # print("Received 'my_message' in client script")
-    socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
+    try:
+        socketio.emit("/cam_mic/audio_feed", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'audio_feed' in client script: {data}")
+    except Exception as e:
+        logging.error(f"Error in /cam_mic/audio_feed: {e}")
 
 
 @socketio.on("/video_cam/video_feed", namespace=WEBSOCKET_NAMESPACE)
@@ -118,6 +128,7 @@ def my_imgefct_message(data):
     """
     try:
         socketio.emit("/camera/effect_image", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'effect_image' in client script: {data}")
     except Exception as e:
         logging.error(f"Error in /camera/effect_image: {e}")
 
@@ -129,6 +140,7 @@ def my_imgraw_message(data):
     """
     try:
         socketio.emit("/camera/raw_image", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'raw_image' in client script: {data}")
     except Exception as e:
         logging.error(f"Error in /camera/raw_image: {e}")
 
@@ -140,6 +152,7 @@ def my_mtrcssnd_message(data):
     """
     try:
         socketio.emit("/message/my_message_snd", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'my_message_snd' in client script: {data}")
     except Exception as e:
         logging.error(f"Error in /message/my_message_snd: {e}")
 
@@ -151,6 +164,7 @@ def my_mtrcsrec_message(data):
     """
     try:
         socketio.emit("/message/my_message_rec", data, namespace=WEBSOCKET_NAMESPACE)
+        logging.debug(f"Received 'my_message_rec' in client script: {data}")
     except Exception as e:
         logging.error(f"Error in /message/my_message_rec: {e}")
 

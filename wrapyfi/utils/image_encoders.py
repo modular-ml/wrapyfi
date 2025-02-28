@@ -21,12 +21,17 @@ class JpegEncoder(object):
         """
         self.encoder = encoder
         self.quality = quality
+        self.logging_level = logging_level
 
-        if encoder == "vips":
+        self._setup_encoder()
+
+    def _setup_encoder(self):
+        """Set the encoder to use for encoding images."""
+        if self.encoder == "vips":
             try:
                 import pyvips
 
-                logging.getLogger("pyvips").setLevel(logging_level)
+                logging.getLogger("pyvips").setLevel(self.logging_level)
                 self._encode_jpg_image = self._encode_jpg_image_vips
             except ImportError:
                 raise ImportError(
@@ -34,23 +39,23 @@ class JpegEncoder(object):
                     "Install it with 'pip install pyvips'. This also requires installing 'libvips' e.g., "
                     "on Ubuntu 'sudo apt install libvips-dev'."
                 )
-        elif encoder == "pil":
+        elif self.encoder == "pil":
             try:
                 from PIL import Image
 
-                logging.getLogger("PIL").setLevel(logging_level)
+                logging.getLogger("PIL").setLevel(self.logging_level)
                 self._encode_jpg_image = self._encode_jpg_image_pil
             except ImportError:
                 raise ImportError(
                     "The 'Pillow' package is required for the 'pil' encoder. Install it with 'pip install Pillow'."
                 )
-        elif encoder == "opencv":
-            logging.getLogger("cv2").setLevel(logging_level)
+        elif self.encoder == "opencv":
+            logging.getLogger("cv2").setLevel(self.logging_level)
             self._encode_jpg_image = self._encode_jpg_image_opencv
         else:
             raise ValueError("The encoder must be either 'pil', 'opencv', or 'vips'.")
 
-    def encode_jpg_image(self, img: np.ndarray, return_numpy: bool = False):
+    def encode(self, img: np.ndarray, return_numpy: bool = False):
         """
         Encode an image to JPEG using the specified encoder.
 
@@ -92,13 +97,9 @@ class JpegEncoder(object):
         """
         from PIL import Image
 
-        # Convert BGR (OpenCV) to RGB (Pillow)
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-        # Convert numpy array to PIL Image
         pil_img = Image.fromarray(img_rgb)
 
-        # Encode to JPEG with the specified quality
         with BytesIO() as buffer:
             pil_img.save(buffer, format="JPEG", quality=self.quality, optimize=True)
             img_bytes = buffer.getvalue()
@@ -122,7 +123,6 @@ class JpegEncoder(object):
 
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        # Create a pyvips image from the numpy array
         vips_img = pyvips.Image.new_from_memory(
             img_rgb.data,  # Raw image data
             img_rgb.shape[1],  # Width
@@ -131,7 +131,6 @@ class JpegEncoder(object):
             "uchar",  # Data type
         )
 
-        # Encode to JPEG with the specified quality
         img_bytes = vips_img.jpegsave_buffer(Q=self.quality)
 
         if return_numpy:

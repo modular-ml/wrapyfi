@@ -305,7 +305,7 @@ class YarpImagePublisher(YarpPublisher):
         img = np.require(img, dtype=self._type, requirements="C")
 
         if self.jpg:
-            img_str = self._image_encoder.encode_jpg_image(
+            img_str = self._image_encoder.encode(
                 img, return_numpy=True
             ).tostring()
             with io.BytesIO() as memfile:

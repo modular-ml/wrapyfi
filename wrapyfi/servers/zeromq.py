@@ -248,7 +248,7 @@ class ZeroMQImageServer(ZeroMQNativeObjectServer):
             img = np.ascontiguousarray(img)
 
         if self.jpg:
-            img_bytes = self._image_encoder.encode_jpg_image(img)
+            img_bytes = self._image_encoder.encode(img)
             self._socket.send(img_bytes)
         else:
             img_list = img.tolist()
