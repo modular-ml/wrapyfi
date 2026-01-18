@@ -158,7 +158,7 @@ class ROS2NativeObjectPublisher(ROS2Publisher):
             obj,
             cls=self._plugin_encoder,
             **self._plugin_kwargs,
-            serializer_kwrags=self._serializer_kwargs,
+            serializer_kwargs=self._serializer_kwargs,
         )
         obj_str_msg = std_msgs.msg.String()
         obj_str_msg.data = obj_str
